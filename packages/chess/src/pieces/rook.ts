@@ -5,5 +5,5 @@ export class Rook extends Piece {
     super(initial_position, color, "r");
   }
 
-  generate_moves(board: Board) {}
+  generate_moves(fen: string): void {}
 }

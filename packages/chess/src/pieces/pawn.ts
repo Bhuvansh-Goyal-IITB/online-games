@@ -5,5 +5,5 @@ export class Pawn extends Piece {
     super(initial_position, color, "p");
   }
 
-  generate_moves(board: Board) {}
+  generate_moves(fen: string): void {}
 }

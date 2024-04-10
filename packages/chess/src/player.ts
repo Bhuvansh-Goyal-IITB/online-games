@@ -60,9 +60,8 @@ export class Player {
   }
 
   generate_moves(fen: string) {
-    let board = Chess.fen_to_board(fen);
     this.pieces.forEach((piece) => {
-      piece.generate_moves(board);
+      piece.generate_moves(fen);
       piece.valid_moves.forEach((to) => {
         if (
           Player.isInCheck(
@@ -97,20 +96,20 @@ export class Player {
 
     if (!king_pos) throw Error("No king bruh");
 
-    for (let position = king_pos; position >= 0; position -= 8) {
+    for (let position = king_pos - 8; position >= 0; position -= 8) {
       if (board[position] && Piece.get_color(board[position]!) == color) break;
       if (Piece.check_opponent_piece(board[position]!, color, ["Q", "R"]))
         return true;
     }
 
-    for (let position = king_pos; position <= 63; position += 8) {
+    for (let position = king_pos + 8; position <= 63; position += 8) {
       if (board[position] && Piece.get_color(board[position]!) == color) break;
       if (Piece.check_opponent_piece(board[position]!, color, ["Q", "R"]))
         return true;
     }
 
     for (
-      let position = king_pos;
+      let position = king_pos + 1;
       position <= 8 * Math.floor(king_pos / 8) + 7;
       position += 1
     ) {
@@ -120,7 +119,7 @@ export class Player {
     }
 
     for (
-      let position = king_pos;
+      let position = king_pos - 1;
       position >= 8 * Math.floor(king_pos / 8);
       position -= 1
     ) {
@@ -130,7 +129,7 @@ export class Player {
     }
 
     for (
-      let position = king_pos;
+      let position = king_pos - 7;
       position >=
       king_pos + Math.min(Math.floor(king_pos / 8), 7 - (king_pos % 8)) * -7;
       position -= 7
@@ -141,7 +140,7 @@ export class Player {
     }
 
     for (
-      let position = king_pos;
+      let position = king_pos + 9;
       position <=
       king_pos + Math.min(7 - Math.floor(king_pos / 8), 7 - (king_pos % 8)) * 9;
       position += 9
@@ -152,7 +151,7 @@ export class Player {
     }
 
     for (
-      let position = king_pos;
+      let position = king_pos + 7;
       position <=
       king_pos + Math.min(7 - Math.floor(king_pos / 8), king_pos % 8) * 7;
       position += 7
@@ -163,7 +162,7 @@ export class Player {
     }
 
     for (
-      let position = king_pos;
+      let position = king_pos - 9;
       position >=
       king_pos + Math.min(Math.floor(king_pos / 8), king_pos % 8) * -9;
       position -= 9

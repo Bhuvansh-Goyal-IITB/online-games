@@ -5,5 +5,5 @@ export class Bishop extends Piece {
     super(initial_position, color, "b");
   }
 
-  generate_moves(board: Board): void {}
+  generate_moves(fen: string): void {}
 }

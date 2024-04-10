@@ -64,7 +64,7 @@ export abstract class Piece {
     return this._piece_type;
   }
 
-  abstract generate_moves(board: Board): void;
+  abstract generate_moves(fen: string): void;
 
   remove_move(to: number) {
     this._valid_moves = this._valid_moves.filter((move) => move != to);

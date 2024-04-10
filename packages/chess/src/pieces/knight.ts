@@ -5,5 +5,5 @@ export class Knight extends Piece {
     super(initial_position, color, "n");
   }
 
-  generate_moves(board: Board): void {}
+  generate_moves(fen: string): void {}
 }

@@ -121,7 +121,7 @@ export class Chess {
     return piece_placement + current_turn + castling_rights + en_passant;
   }
 
-  static algebric_to_pos() {}
+  static algebric_to_pos(algebric_notation: string) {}
 
   static pos_to_algebric(position: number) {
     let row = Math.floor(position / 8);
