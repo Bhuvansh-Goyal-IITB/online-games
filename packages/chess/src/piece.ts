@@ -10,13 +10,12 @@ export type FenTypes =
   | "B"
   | "K"
   | "Q"
-  | "P";
+  | "P"
+  | "";
 
 export type PieceType = "r" | "n" | "b" | "k" | "q" | "p";
 
-export interface Board {
-  [index: number]: FenTypes;
-}
+export type Board = Array<FenTypes>;
 
 export abstract class Piece {
   private _valid_moves: number[] = [];

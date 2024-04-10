@@ -28,12 +28,12 @@ export class Chess {
 
   static fen_to_board(fen: string) {
     let piece_placement = fen.split(" ")[0]!.split("/");
-    let board: Board = {};
+    let board: Board = new Array(64).fill("");
 
     let position_counter = 0;
     piece_placement.forEach((fen_row) => {
       for (let i = 0; i < fen_row.length; i++) {
-        let current_character = fen_row.charAt(i);
+        let current_character = fen_row[i]!;
 
         if (isNaN(parseInt(current_character))) {
           board[position_counter] = current_character as FenTypes;
@@ -116,12 +116,27 @@ export class Chess {
       } else {
         en_passant = Chess.pos_to_algebric(from + 8);
       }
+    } else {
+      en_passant = "-";
     }
 
-    return piece_placement + current_turn + castling_rights + en_passant;
+    return (
+      piece_placement +
+      " " +
+      current_turn +
+      " " +
+      castling_rights +
+      " " +
+      en_passant
+    );
   }
 
-  static algebric_to_pos(algebric_notation: string) {}
+  static algebric_to_pos(algebric_notation: string) {
+    let col = algebric_notation.charCodeAt(0) - "a".charCodeAt(0);
+    let row = parseInt(algebric_notation[1]!);
+
+    return row * 8 + col;
+  }
 
   static pos_to_algebric(position: number) {
     let row = Math.floor(position / 8);
@@ -130,6 +145,35 @@ export class Chess {
     let col_str = String.fromCharCode(97 + col);
 
     return col_str + (8 - row).toString();
+  }
+
+  static get_king_position(fen: string, color: "w" | "b") {
+    let piece_placement = fen.split(" ")[0]!.split("/");
+    let piece = color == "w" ? "K" : "k";
+
+    for (let row_index = 0; row_index < piece_placement.length; row_index++) {
+      let fen_row = piece_placement[row_index]!;
+
+      if (fen_row.includes(piece)) {
+        let counter = row_index * 8;
+        for (let i = 0; i < fen_row.length; i++) {
+          let current_char = fen_row[i]!;
+          let parsed_char = parseInt(current_char);
+
+          if (isNaN(parsed_char)) {
+            if (current_char == piece) {
+              return counter;
+            }
+
+            counter++;
+            continue;
+          }
+
+          counter += parsed_char;
+        }
+      }
+    }
+    return -1;
   }
 
   static get_piece_at(position: number, fen: string) {
@@ -147,7 +191,6 @@ export class Chess {
         if (counter == position % 8) {
           piece = current_char;
           return piece;
-          break;
         }
 
         counter++;
@@ -214,6 +257,7 @@ export class Chess {
 
     return row;
   }
+
   static delete_from_row(target: number, row: string) {
     let current_index = 8 * Math.floor(target / 8);
     for (let i = 0; i < row.length; i++) {
@@ -228,7 +272,7 @@ export class Chess {
               return row;
             }
 
-            if (isNaN(parseInt(row.charAt(i + 1)))) {
+            if (isNaN(parseInt(row[i + 1]!))) {
               row = row.substring(0, i) + "1" + row.substring(i + 1);
               return row;
             }
@@ -246,7 +290,7 @@ export class Chess {
               return row;
             }
 
-            if (isNaN(parseInt(row.charAt(i + 1)))) {
+            if (isNaN(parseInt(row[i + 1]!))) {
               row =
                 row.substring(0, i - 1) +
                 (parseInt(row[i - 1]!) + 1).toString() +

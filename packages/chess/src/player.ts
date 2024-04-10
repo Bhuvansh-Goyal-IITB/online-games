@@ -83,18 +83,10 @@ export class Player {
   static isInCheck(fen: string, color: "w" | "b") {
     let board = Chess.fen_to_board(fen);
 
-    let king_pos: number | null = null;
+    let king_pos = Chess.get_king_position(fen, color);
 
-    for (const position in board) {
-      if (
-        board[position]!.toUpperCase() == "K" &&
-        Piece.get_color(board[position]!) == color
-      ) {
-        king_pos = parseInt(position);
-      }
-    }
-
-    if (!king_pos) throw Error("No king bruh");
+    let row = Math.floor(king_pos / 8);
+    let col = king_pos % 8;
 
     for (let position = king_pos - 8; position >= 0; position -= 8) {
       if (board[position] && Piece.get_color(board[position]!) == color) break;
@@ -108,21 +100,13 @@ export class Player {
         return true;
     }
 
-    for (
-      let position = king_pos + 1;
-      position <= 8 * Math.floor(king_pos / 8) + 7;
-      position += 1
-    ) {
+    for (let position = king_pos + 1; position <= 8 * row + 7; position += 1) {
       if (board[position] && Piece.get_color(board[position]!) == color) break;
       if (Piece.check_opponent_piece(board[position]!, color, ["Q", "R"]))
         return true;
     }
 
-    for (
-      let position = king_pos - 1;
-      position >= 8 * Math.floor(king_pos / 8);
-      position -= 1
-    ) {
+    for (let position = king_pos - 1; position >= 8 * row; position -= 1) {
       if (board[position] && Piece.get_color(board[position]!) == color) break;
       if (Piece.check_opponent_piece(board[position]!, color, ["Q", "R"]))
         return true;
@@ -130,8 +114,7 @@ export class Player {
 
     for (
       let position = king_pos - 7;
-      position >=
-      king_pos + Math.min(Math.floor(king_pos / 8), 7 - (king_pos % 8)) * -7;
+      position >= king_pos + Math.min(row, 7 - col) * -7;
       position -= 7
     ) {
       if (board[position] && Piece.get_color(board[position]!) == color) break;
@@ -141,8 +124,7 @@ export class Player {
 
     for (
       let position = king_pos + 9;
-      position <=
-      king_pos + Math.min(7 - Math.floor(king_pos / 8), 7 - (king_pos % 8)) * 9;
+      position <= king_pos + Math.min(7 - row, 7 - col) * 9;
       position += 9
     ) {
       if (board[position] && Piece.get_color(board[position]!) == color) break;
@@ -152,8 +134,7 @@ export class Player {
 
     for (
       let position = king_pos + 7;
-      position <=
-      king_pos + Math.min(7 - Math.floor(king_pos / 8), king_pos % 8) * 7;
+      position <= king_pos + Math.min(7 - row, col) * 7;
       position += 7
     ) {
       if (board[position] && Piece.get_color(board[position]!) == color) break;
@@ -163,17 +144,13 @@ export class Player {
 
     for (
       let position = king_pos - 9;
-      position >=
-      king_pos + Math.min(Math.floor(king_pos / 8), king_pos % 8) * -9;
+      position >= king_pos + Math.min(row, col) * -9;
       position -= 9
     ) {
       if (board[position] && Piece.get_color(board[position]!) == color) break;
       if (Piece.check_opponent_piece(board[position]!, color, ["Q", "B"]))
         return true;
     }
-
-    let row = Math.floor(king_pos / 8);
-    let col = king_pos % 8;
 
     if (row - 2 >= 0 && col + 1 <= 7) {
       if (Piece.check_opponent_piece(board[king_pos - 15], color, ["N"]))
