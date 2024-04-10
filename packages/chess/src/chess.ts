@@ -18,6 +18,10 @@ export class Chess {
     this.current.generate_moves(this.fen);
   }
 
+  debug(from: number) {
+    return this.current.get_valid_moves(from);
+  }
+
   move(from: number, to: number, promote_to?: "q" | "r" | "b" | "n") {
     if (this.current.move(from, to, promote_to)) {
       this.fen = Chess.update_fen(this.fen, from, to, promote_to);
@@ -152,7 +156,7 @@ export class Chess {
     let col = algebric_notation.charCodeAt(0) - "a".charCodeAt(0);
     let row = parseInt(algebric_notation[1]!);
 
-    return row * 8 + col;
+    return (8 - row) * 8 + col;
   }
 
   static pos_to_algebric(position: number) {

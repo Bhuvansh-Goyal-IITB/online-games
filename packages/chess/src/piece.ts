@@ -65,6 +65,10 @@ export abstract class Piece {
 
   abstract generate_moves(fen: string): void;
 
+  protected push_move(position: number) {
+    this._valid_moves.push(position);
+  }
+
   remove_move(to: number) {
     this._valid_moves = this._valid_moves.filter((move) => move != to);
   }
