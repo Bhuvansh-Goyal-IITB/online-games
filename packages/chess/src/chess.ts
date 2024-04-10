@@ -24,9 +24,19 @@ export class Chess {
 
   move(from: number, to: number, promote_to?: "q" | "r" | "b" | "n") {
     if (this.current.move(from, to, promote_to)) {
+      let en_passant = this.fen.split(" ")[3]!;
       this.fen = Chess.update_fen(this.fen, from, to, promote_to);
       this.current = this.current.color == "w" ? this.black : this.white;
-      this.current.capture(to);
+
+      if (Chess.algebric_to_pos(en_passant) == to) {
+        if (this.current.color == "w") {
+          this.current.capture(to - 8);
+        } else {
+          this.current.capture(to + 8);
+        }
+      } else {
+        this.current.capture(to);
+      }
     }
   }
 
@@ -72,6 +82,23 @@ export class Chess {
       to_row,
       from_piece
     );
+
+    if (
+      from_piece.toUpperCase() == "P" &&
+      to == Chess.algebric_to_pos(fen.split(" ")[3]!)
+    ) {
+      if (Piece.get_color(from_piece) == "w") {
+        piece_placement[Math.floor((to + 8) / 8)] = Chess.delete_from_row(
+          to + 8,
+          piece_placement[Math.floor((to + 8) / 8)]!
+        );
+      } else {
+        piece_placement[Math.floor((to - 8) / 8)] = Chess.delete_from_row(
+          to - 8,
+          piece_placement[Math.floor((to - 8) / 8)]!
+        );
+      }
+    }
 
     return piece_placement.join("/");
   }
@@ -336,3 +363,9 @@ export class Chess {
     return row;
   }
 }
+
+let a = new Chess(
+  "rn1q1rk1/pb1p1p2/1p1bp2p/2pP2pN/6P1/2NBPP2/PPP4P/R2Q1RK1 w - c6"
+);
+
+a.move(27, 18);
