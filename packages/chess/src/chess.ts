@@ -20,7 +20,7 @@ export class Chess {
 
   move(from: number, to: number, promote_to?: "q" | "r" | "b" | "n") {
     if (this.current.move(from, to, promote_to)) {
-      this.fen = Chess.update_fen(this.fen, from, to);
+      this.fen = Chess.update_fen(this.fen, from, to, promote_to);
       this.current = this.current.color == "w" ? this.black : this.white;
       this.current.capture(to);
     }
@@ -72,11 +72,28 @@ export class Chess {
     return piece_placement.join("/");
   }
 
-  static update_fen(fen: string, from: number, to: number) {
+  static update_fen(
+    fen: string,
+    from: number,
+    to: number,
+    promote_to?: "q" | "r" | "b" | "n"
+  ) {
     let [piece_placement, current_turn, castling_rights, en_passant] =
       fen.split(" ");
 
     let from_piece = Chess.get_piece_at(from, fen);
+
+    if (
+      from_piece.toUpperCase() == "P" &&
+      ((Piece.get_color(from_piece) == "w" && Math.floor(to / 8) == 0) ||
+        (Piece.get_color(from_piece) == "b" && Math.floor(to / 8) == 7))
+    ) {
+      if (!promote_to) throw Error("Promotion piece not given");
+      from_piece =
+        Piece.get_color(from_piece) == "w"
+          ? promote_to.toUpperCase()
+          : promote_to;
+    }
 
     piece_placement = Chess.update_piece_placement(fen, from, to, from_piece);
 
