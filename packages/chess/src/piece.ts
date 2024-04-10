@@ -59,6 +59,11 @@ export abstract class Piece {
     return this._piece_type;
   }
 
+  get fen_type() {
+    if (this._color == "w") return this._piece_type.toUpperCase();
+    return this._piece_type;
+  }
+
   abstract generate_moves(board: Board): void;
 
   remove_move(to: number) {
