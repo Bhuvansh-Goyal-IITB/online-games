@@ -93,8 +93,25 @@ export class Player {
   }
 
   generate_valid_moves(white: Player, black: Player, fen: string) {
+    let white_bit_board = 0n;
+    let black_bit_board = 0n;
+
+    white.pieces.forEach((piece) => {
+      white_bit_board |= piece.bit_position;
+    });
+
+    black.pieces.forEach((piece) => {
+      black_bit_board |= piece.bit_position;
+    });
+
     this.pieces.forEach((piece) => {
-      piece.generate_valid_moves(white, black, fen);
+      piece.generate_valid_moves(
+        white_bit_board,
+        black_bit_board,
+        white,
+        black,
+        fen
+      );
     });
   }
 
