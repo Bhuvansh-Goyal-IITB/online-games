@@ -49,20 +49,34 @@ export class Player {
         let parsed_char = parseInt(char);
 
         if (isNaN(parsed_char)) {
-          switch (char.toLowerCase()) {
-            case "k":
-              this.pieces.push(new King(position, this.color));
-            case "q":
-              this.pieces.push(new Queen(position, this.color));
-            case "r":
-              this.pieces.push(new Rook(position, this.color));
-            case "b":
-              this.pieces.push(new Bishop(position, this.color));
-            case "n":
-              this.pieces.push(new Knight(position, this.color));
-            case "p":
-              this.pieces.push(new Pawn(position, this.color));
+          if (
+            (this.color == "w" && char == char.toUpperCase()) ||
+            (this.color == "b" && char != char.toUpperCase())
+          ) {
+            switch (char.toLowerCase()) {
+              case "k":
+                this.pieces.push(new King(position, this.color));
+                break;
+              case "q":
+                this.pieces.push(new Queen(position, this.color));
+                break;
+              case "r":
+                this.pieces.push(new Rook(position, this.color));
+                break;
+              case "b":
+                this.pieces.push(new Bishop(position, this.color));
+                break;
+              case "n":
+                this.pieces.push(new Knight(position, this.color));
+                break;
+              case "p":
+                this.pieces.push(new Pawn(position, this.color));
+                break;
+            }
           }
+
+          position++;
+          continue;
         }
 
         position += parsed_char;
@@ -184,10 +198,12 @@ export class Player {
           ) {
             return true;
           }
+          break;
         case "n":
           if (KNIGHT_BIT_MASK[king.position]! & opponent_piece.bit_position) {
             return true;
           }
+          break;
         case "b":
           if (
             (TOP_LEFT_DIAGONAL_BIT_MASK[king.position]! &
@@ -221,6 +237,7 @@ export class Player {
           ) {
             return true;
           }
+          break;
         case "k":
           if (KING_BIT_MASK[king.position]! & opponent_piece.bit_position) {
             return true;
@@ -282,6 +299,7 @@ export class Player {
           ) {
             return true;
           }
+          break;
         case "p":
           if (
             this.color == "w" &&
@@ -296,6 +314,7 @@ export class Player {
           ) {
             return true;
           }
+          break;
       }
     }
 

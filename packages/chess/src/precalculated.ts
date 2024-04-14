@@ -346,7 +346,7 @@ for (let i = 0; i < 64; i++) {
   WHITE_KING_PAWN_BIT_MASK.push(white_king_pawn_bit_mask(i));
   BLACK_KING_PAWN_BIT_MASK.push(black_king_pawn_bit_mask(i));
 
-  KNIGHT_BIT_MASK.push(king_bit_mask(i));
+  KING_BIT_MASK.push(king_bit_mask(i));
 }
 
 export {
