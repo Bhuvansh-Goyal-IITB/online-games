@@ -116,7 +116,6 @@ export class Player {
     }
     piece.position = to;
 
-    // Castling
     if (piece.piece_type == "k" && Math.abs(from - to) == 2) {
       let rook_from_position =
         from > to ? Math.floor(from / 8) * 8 : Math.floor(from / 8) * 8 + 7;
@@ -126,7 +125,6 @@ export class Player {
       this.move(rook_from_position, rook_to_position);
     }
 
-    // Pawn Promotion
     if (is_pawn_promotion) {
       this._pieces = this.pieces.map((_piece) => {
         if (piece!.position == _piece.position) {
@@ -150,7 +148,15 @@ export class Player {
   }
 
   remove_piece(position: number) {
-    this._pieces = this.pieces.filter((piece) => piece.position != position);
+    let removed_piece: Piece | undefined;
+    this._pieces = this.pieces.filter((piece) => {
+      if (piece.position == position) {
+        removed_piece = piece;
+      }
+      return piece.position != position;
+    });
+
+    return removed_piece;
   }
 
   is_in_check(opponent: Player): boolean {

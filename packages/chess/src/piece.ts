@@ -1,3 +1,4 @@
+import { Chess } from "./chess";
 import { Player } from "./player";
 import { Color, PieceType } from "./types";
 
@@ -54,14 +55,61 @@ export abstract class Piece {
   generate_valid_moves(white: Player, black: Player, fen: string) {
     let moves = this.generate_moves(white.pieces, black.pieces, fen);
 
+    let from = this.position;
+    let captured_piece: Piece | undefined;
     moves.forEach((move) => {
       this.position = move;
+
+      if (
+        this.piece_type == "p" &&
+        move == Chess.algebraic_to_position(fen.split(" ")[3]!)
+      ) {
+        captured_piece =
+          this.color == "w"
+            ? black.remove_piece(move + 8)
+            : white.remove_piece(move - 8);
+      } else {
+        captured_piece =
+          this.color == "w"
+            ? black.remove_piece(move)
+            : white.remove_piece(move);
+      }
+
       if (this.color == "w" && !white.is_in_check(black)) {
-        this.valid_moves.push(move);
+        if (this.piece_type == "k" && Math.abs(from - move) == 2) {
+          this.position = from;
+          if (!white.is_in_check(black)) {
+            this.position = from > move ? move + 1 : move - 1;
+
+            if (!white.is_in_check(black)) {
+              this._valid_moves.push(move);
+            }
+          }
+        } else {
+          this.valid_moves.push(move);
+        }
       } else if (this.color == "b" && !black.is_in_check(white)) {
-        this.valid_moves.push(move);
+        if (this.piece_type == "k" && Math.abs(from - move) == 2) {
+          this.position = from;
+          if (!black.is_in_check(white)) {
+            this.position = from > move ? move + 1 : move - 1;
+
+            if (!black.is_in_check(white)) {
+              this._valid_moves.push(move);
+            }
+          }
+        } else {
+          this.valid_moves.push(move);
+        }
       }
     });
+
+    this.position = from;
+    if (captured_piece) {
+      this.color == "w"
+        ? black.pieces.push(captured_piece)
+        : white.pieces.push(captured_piece);
+    }
   }
 
   clear_moves() {
