@@ -1,371 +1,196 @@
-import { Board, FenTypes, Piece } from "./piece";
+import { Piece } from "./piece";
+import { Queen } from "./pieces/queen";
 import { Player } from "./player";
+import { PieceType } from "./types";
 
 export class Chess {
-  private white: Player;
-  private black: Player;
-  private current: Player;
-  constructor(private fen: string) {
-    this.white = new Player(this.fen, "w");
-    this.black = new Player(this.fen, "b");
+  private _white: Player;
+  private _black: Player;
+  private _current: Player;
 
-    if (this.fen.split(" ")[1]! == "w") {
-      this.current = this.white;
+  constructor(private _fen: string) {
+    this._white = new Player(this._fen, "w");
+    this._black = new Player(this._fen, "b");
+
+    this._current = this._fen.split(" ")[1]! == "w" ? this._white : this._black;
+
+    this._current.generate_valid_moves(this._white, this._black, this._fen);
+  }
+
+  get fen() {
+    return this._fen;
+  }
+
+  move(from: number, to: number, promote_to?: Exclude<PieceType, "k" | "p">) {
+    this._current.move(from, to, promote_to);
+
+    let moved_piece = this._current.pieces.find(
+      (piece) => piece.position == to
+    );
+
+    this._current = this._current.color == "w" ? this._black : this._white;
+
+    if (
+      moved_piece!.piece_type == "p" &&
+      to == Chess.algebraic_to_position(this._fen.split(" ")[3]!)
+    ) {
+      moved_piece!.color == "w"
+        ? this._current.remove_piece(to + 8)
+        : this._current.remove_piece(to - 8);
     } else {
-      this.current = this.black;
+      this._current.remove_piece(to);
     }
 
-    this.current.generate_moves(this.fen);
+    this.update_fen(from, moved_piece!);
+    this._current.generate_valid_moves(this._white, this._black, this._fen);
   }
 
-  debug(from: number) {
-    return this.current.get_valid_moves(from);
-  }
+  private update_fen(from: number, moved_piece: Piece) {
+    let [piece_placement, current_turn, castling_rights, en_passant] =
+      this._fen.split(" ");
 
-  move(from: number, to: number, promote_to?: "q" | "r" | "b" | "n") {
-    if (this.current.move(from, to, promote_to)) {
-      let en_passant = this.fen.split(" ")[3]!;
-      this.fen = Chess.update_fen(this.fen, from, to, promote_to);
-      this.current = this.current.color == "w" ? this.black : this.white;
+    piece_placement = "8/8/8/8/8/8/8/8";
 
-      if (Chess.algebric_to_pos(en_passant) == to) {
-        if (this.current.color == "w") {
-          this.current.capture(to - 8);
-        } else {
-          this.current.capture(to + 8);
-        }
-      } else {
-        this.current.capture(to);
-      }
-    }
-  }
-
-  static fen_to_board(fen: string) {
-    let piece_placement = fen.split(" ")[0]!.split("/");
-    let board: Board = new Array(64).fill("");
-
-    let position_counter = 0;
-    piece_placement.forEach((fen_row) => {
-      for (let i = 0; i < fen_row.length; i++) {
-        let current_character = fen_row[i]!;
-
-        if (isNaN(parseInt(current_character))) {
-          board[position_counter] = current_character as FenTypes;
-          position_counter++;
-          continue;
-        }
-
-        position_counter += parseInt(current_character);
-      }
+    this._white.pieces.forEach((piece) => {
+      piece_placement = Chess.insert_piece(piece_placement!, piece);
     });
 
-    return board;
-  }
+    this._black.pieces.forEach((piece) => {
+      piece_placement = Chess.insert_piece(piece_placement!, piece);
+    });
 
-  static update_piece_placement(
-    fen: string,
-    from: number,
-    to: number,
-    from_piece: string
-  ) {
-    let piece_placement = fen.split(" ")[0]!.split("/");
-
-    let from_row = piece_placement[Math.floor(from / 8)]!;
-    let to_row = piece_placement[Math.floor(to / 8)]!;
-
-    piece_placement[Math.floor(from / 8)] = Chess.delete_from_row(
-      from,
-      from_row
-    );
-    piece_placement[Math.floor(to / 8)] = Chess.insert_in_row(
-      to,
-      to_row,
-      from_piece
-    );
+    current_turn = current_turn! == "w" ? "b" : "w";
 
     if (
-      from_piece.toUpperCase() == "P" &&
-      to == Chess.algebric_to_pos(fen.split(" ")[3]!)
+      moved_piece!.piece_type == "p" &&
+      Math.abs(from - moved_piece.position) == 16
     ) {
-      if (Piece.get_color(from_piece) == "w") {
-        piece_placement[Math.floor((to + 8) / 8)] = Chess.delete_from_row(
-          to + 8,
-          piece_placement[Math.floor((to + 8) / 8)]!
-        );
-      } else {
-        piece_placement[Math.floor((to - 8) / 8)] = Chess.delete_from_row(
-          to - 8,
-          piece_placement[Math.floor((to - 8) / 8)]!
-        );
-      }
-    }
-
-    return piece_placement.join("/");
-  }
-
-  static update_fen(
-    fen: string,
-    from: number,
-    to: number,
-    promote_to?: "q" | "r" | "b" | "n"
-  ) {
-    let [piece_placement, current_turn, castling_rights, en_passant] =
-      fen.split(" ");
-
-    let from_piece = Chess.get_piece_at(from, fen);
-
-    if (
-      from_piece.toUpperCase() == "P" &&
-      ((Piece.get_color(from_piece) == "w" && Math.floor(to / 8) == 0) ||
-        (Piece.get_color(from_piece) == "b" && Math.floor(to / 8) == 7))
-    ) {
-      if (!promote_to) throw Error("Promotion piece not given");
-      from_piece =
-        Piece.get_color(from_piece) == "w"
-          ? promote_to.toUpperCase()
-          : promote_to;
-    }
-
-    piece_placement = Chess.update_piece_placement(fen, from, to, from_piece);
-
-    current_turn == "w" ? (current_turn = "b") : (current_turn = "w");
-
-    if (from_piece.toUpperCase() == "K") {
-      if (Piece.get_color(from_piece!) == "w") {
-        castling_rights!.replace("K", "");
-        castling_rights!.replace("Q", "");
-      } else {
-        castling_rights!.replace("k", "");
-        castling_rights!.replace("q", "");
-      }
-    }
-
-    if (from_piece.toUpperCase() == "R") {
-      switch (from) {
-        case 0:
-          castling_rights!.replace("q", "");
-          break;
-        case 7:
-          castling_rights!.replace("k", "");
-          break;
-        case 56:
-          castling_rights!.replace("Q", "");
-          break;
-        case 63:
-          castling_rights!.replace("K", "");
-          break;
-      }
-    }
-
-    let row_movement = Math.floor(to / 8) - Math.floor(from / 8);
-    if (from_piece.toUpperCase() == "P" && Math.abs(row_movement) == 2) {
-      if (row_movement < 0) {
-        en_passant = Chess.pos_to_algebric(from - 8);
-      } else {
-        en_passant = Chess.pos_to_algebric(from + 8);
-      }
+      en_passant =
+        from > moved_piece.position
+          ? Chess.position_to_algebraic(from - 8)
+          : Chess.position_to_algebraic(from + 8);
     } else {
       en_passant = "-";
     }
 
-    return (
+    if (moved_piece!.piece_type == "k" && moved_piece!.color == "w") {
+      castling_rights!.replace("KQ", "");
+    } else if (moved_piece!.piece_type == "k" && moved_piece!.color == "b") {
+      castling_rights!.replace("kq", "");
+    }
+
+    if (moved_piece!.piece_type == "r" && moved_piece!.color == "w") {
+      if (castling_rights!.includes("K") && from == 63)
+        castling_rights!.replace("K", "");
+      else if (castling_rights!.includes("Q") && from == 56)
+        castling_rights!.replace("Q", "");
+    } else if (moved_piece!.piece_type == "r" && moved_piece!.color == "b") {
+      if (castling_rights!.includes("k") && from == 7)
+        castling_rights!.replace("k", "");
+      else if (castling_rights!.includes("q") && from == 0)
+        castling_rights!.replace("q", "");
+    }
+
+    if (castling_rights == "") castling_rights = "-";
+
+    this._fen =
       piece_placement +
       " " +
       current_turn +
       " " +
       castling_rights +
       " " +
-      en_passant
-    );
+      en_passant;
   }
 
-  static algebric_to_pos(algebric_notation: string) {
-    let col = algebric_notation.charCodeAt(0) - "a".charCodeAt(0);
-    let row = parseInt(algebric_notation[1]!);
+  static algebraic_to_position(algebraic: string) {
+    let col = algebraic.charCodeAt(0) - 97;
+    let row = 8 - parseInt(algebraic[1]!);
 
-    return (8 - row) * 8 + col;
+    return row * 8 + col;
   }
 
-  static pos_to_algebric(position: number) {
+  static position_to_algebraic(position: number) {
     let row = Math.floor(position / 8);
     let col = position % 8;
 
-    let col_str = String.fromCharCode(97 + col);
-
-    return col_str + (8 - row).toString();
+    return String.fromCharCode(col + 97) + (8 - row).toString();
   }
 
-  static get_king_position(fen: string, color: "w" | "b") {
-    let piece_placement = fen.split(" ")[0]!.split("/");
-    let piece = color == "w" ? "K" : "k";
+  private static insert_piece(piece_placement: string, piece: Piece) {
+    let row_index = Math.floor(piece.position / 8);
+    let slash_counter = 0;
 
-    for (let row_index = 0; row_index < piece_placement.length; row_index++) {
-      let fen_row = piece_placement[row_index]!;
+    let row_start_index = -1;
+    let row_end_index = piece_placement.length;
 
-      if (fen_row.includes(piece)) {
-        let counter = row_index * 8;
-        for (let i = 0; i < fen_row.length; i++) {
-          let current_char = fen_row[i]!;
-          let parsed_char = parseInt(current_char);
-
-          if (isNaN(parsed_char)) {
-            if (current_char == piece) {
-              return counter;
-            }
-
-            counter++;
-            continue;
-          }
-
-          counter += parsed_char;
+    for (let i = 0; i < piece_placement.length; i++) {
+      if (piece_placement[i] == "/") {
+        slash_counter++;
+        if (slash_counter == row_index) row_start_index = i;
+        if (slash_counter == row_index + 1) {
+          row_end_index = i;
+          break;
         }
       }
     }
-    return -1;
-  }
 
-  static get_piece_at(position: number, fen: string) {
-    let piece_placement = fen.split(" ")[0]!.split("/");
-    let piece = "";
+    let row = piece_placement.substring(row_start_index + 1, row_end_index);
 
-    let row = piece_placement[Math.floor(position / 8)]!;
-
-    let counter = 0;
+    let current_position = 8 * row_index;
     for (let i = 0; i < row.length; i++) {
-      let current_char = row[i]!;
-      let parsed_char = parseInt(current_char);
+      let char = row[i]!;
+      let parsed_char = parseInt(char);
 
       if (isNaN(parsed_char)) {
-        if (counter == position % 8) {
-          piece = current_char;
-          return piece;
+        if (piece.position == current_position) {
+          row =
+            row.substring(0, i) + piece.fen_piece_string + row.substring(i + 1);
+          break;
         }
 
-        counter++;
+        current_position++;
         continue;
       }
 
-      counter += parsed_char;
-      if (counter > position) {
-        return piece;
-      }
-    }
-
-    return piece;
-  }
-
-  static insert_in_row(target: number, row: string, piece: string) {
-    let current_index = 8 * Math.floor(target / 8);
-    for (let i = 0; i < row.length; i++) {
-      let current_character = row[i]!;
-      let parsed_char = parseInt(current_character);
-
-      if (isNaN(parsed_char)) {
-        if (target == current_index) {
-          row = row.substring(0, i) + piece + row.substring(i + 1);
-          return row;
-        }
-
-        current_index++;
-        continue;
-      }
-
-      if (target <= current_index + parsed_char - 1) {
-        let left_num = target - current_index;
+      if (piece.position <= current_position + parsed_char - 1) {
+        let left_num = piece.position - current_position;
         let right_num = parsed_char - left_num - 1;
 
         if (left_num == 0 && right_num == 0) {
-          row = row.substring(0, i) + piece + row.substring(i + 1);
+          row =
+            row.substring(0, i) + piece.fen_piece_string + row.substring(i + 1);
         } else if (left_num == 0) {
           row =
             row.substring(0, i) +
-            piece +
+            piece.fen_piece_string +
             right_num.toString() +
             row.substring(i + 1);
         } else if (right_num == 0) {
           row =
             row.substring(0, i) +
             left_num.toString() +
-            piece +
+            piece.fen_piece_string +
             row.substring(i + 1);
         } else {
           row =
             row.substring(0, i) +
             left_num.toString() +
-            piece +
+            piece.fen_piece_string +
             right_num.toString() +
             row.substring(i + 1);
         }
 
-        return row;
+        break;
       }
 
-      current_index += parsed_char;
+      current_position += parsed_char;
     }
 
-    return row;
-  }
-
-  static delete_from_row(target: number, row: string) {
-    let current_index = 8 * Math.floor(target / 8);
-    for (let i = 0; i < row.length; i++) {
-      let current_character = row[i]!;
-      let parsed_char = parseInt(current_character);
-
-      if (isNaN(parsed_char)) {
-        if (target == current_index) {
-          if (isNaN(parseInt(row[i - 1]!))) {
-            if (i + 1 >= row.length) {
-              row = row.substring(0, i) + "1";
-              return row;
-            }
-
-            if (isNaN(parseInt(row[i + 1]!))) {
-              row = row.substring(0, i) + "1" + row.substring(i + 1);
-              return row;
-            }
-
-            row =
-              row.substring(0, i) +
-              (parseInt(row[i + 1]!) + 1).toString() +
-              row.substring(i + 2);
-            return row;
-          } else {
-            if (i + 1 >= row.length) {
-              row =
-                row.substring(0, i - 1) +
-                (parseInt(row[i - 1]!) + 1).toString();
-              return row;
-            }
-
-            if (isNaN(parseInt(row[i + 1]!))) {
-              row =
-                row.substring(0, i - 1) +
-                (parseInt(row[i - 1]!) + 1).toString() +
-                row.substring(i + 1);
-              return row;
-            }
-
-            row =
-              row.substring(0, i - 1) +
-              (parseInt(row[i - 1]!) + parseInt(row[i + 1]!) + 1).toString() +
-              row.substring(i + 2);
-            return row;
-          }
-        }
-        current_index++;
-        continue;
-      }
-
-      current_index += parsed_char;
-    }
-
-    return row;
+    return (
+      piece_placement.substring(0, row_start_index + 1) +
+      row +
+      piece_placement.substring(row_end_index)
+    );
   }
 }
-
-let a = new Chess(
-  "rn1q1rk1/pb1p1p2/1p1bp2p/2pP2pN/6P1/2NBPP2/PPP4P/R2Q1RK1 w - c6"
-);
-
-a.move(27, 18);

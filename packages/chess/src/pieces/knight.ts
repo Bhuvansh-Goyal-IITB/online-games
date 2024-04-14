@@ -1,9 +1,15 @@
-import { Board, Piece } from "../piece";
+import { Piece } from "../piece";
+import { Color } from "../types";
 
 export class Knight extends Piece {
-  constructor(initial_position: number, color: "w" | "b") {
-    super(initial_position, color, "n");
+  constructor(position: number, color: Color) {
+    super(position, color, "n");
   }
 
-  generate_moves(fen: string): void {}
+  protected generate_moves(
+    white_pieces: Piece[],
+    black_pieces: Piece[]
+  ): number[] {
+    throw new Error("Method not implemented.");
+  }
 }

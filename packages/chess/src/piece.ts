@@ -1,88 +1,66 @@
-export type FenTypes =
-  | "r"
-  | "n"
-  | "b"
-  | "k"
-  | "q"
-  | "p"
-  | "R"
-  | "N"
-  | "B"
-  | "K"
-  | "Q"
-  | "P"
-  | "";
-
-export type PieceType = "r" | "n" | "b" | "k" | "q" | "p";
-
-export type Board = Array<FenTypes>;
+import { Player } from "./player";
+import { Color, PieceType } from "./types";
 
 export abstract class Piece {
   private _valid_moves: number[] = [];
 
   constructor(
     private _position: number,
-    private _color: "w" | "b",
+    private _color: Color,
     private _piece_type: PieceType
   ) {}
-
-  static check_opponent_piece(
-    piece: string | undefined,
-    color: "w" | "b",
-    check_for: string[]
-  ) {
-    return (
-      piece &&
-      Piece.get_color(piece) != color &&
-      check_for.includes(piece.toUpperCase())
-    );
-  }
-
-  static get_color(fen_type: string) {
-    return fen_type == fen_type.toUpperCase() ? "w" : "b";
-  }
 
   get color() {
     return this._color;
   }
 
   get valid_moves() {
-    return [...this._valid_moves];
+    return this._valid_moves;
   }
 
   get position() {
     return this._position;
   }
 
+  set position(position: number) {
+    if (0 <= position && position <= 63) {
+      this._position = position;
+    } else {
+      throw Error(
+        `Wrong position: for the piece ${this.fen_piece_string} on position ${this.position}, position is being set to ${position}`
+      );
+    }
+  }
+
   get piece_type() {
     return this._piece_type;
   }
 
-  get fen_type() {
-    if (this._color == "w") return this._piece_type.toUpperCase();
-    return this._piece_type;
+  get fen_piece_string() {
+    if (this.color == "w") return this.piece_type.toUpperCase();
+    return this.piece_type;
   }
 
-  abstract generate_moves(fen: string): void;
+  protected abstract generate_moves(
+    white_pieces: Piece[],
+    black_pieces: Piece[],
+    fen: string
+  ): number[];
 
-  protected push_move(position: number) {
-    this._valid_moves.push(position);
-  }
+  generate_valid_moves(white: Player, black: Player, fen: string) {
+    let moves = this.generate_moves(white.pieces, black.pieces, fen);
 
-  remove_move(to: number) {
-    this._valid_moves = this._valid_moves.filter((move) => move != to);
+    moves.forEach((move) => {
+      this.position = move;
+      if (this.color == "w" && !white.is_in_check(black)) {
+        this.valid_moves.push(move);
+      } else if (this.color == "b" && !black.is_in_check(white)) {
+        this.valid_moves.push(move);
+      }
+    });
   }
 
   clear_moves() {
     this._valid_moves = [];
-  }
-
-  moveTo(to: number) {
-    if (this._valid_moves.includes(to)) {
-      this._position = to;
-      return true;
-    }
-
-    return false;
   }
 }

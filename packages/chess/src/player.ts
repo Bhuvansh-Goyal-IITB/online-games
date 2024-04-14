@@ -5,48 +5,54 @@ import { Pawn } from "./pieces/pawn";
 import { Piece } from "./piece";
 import { Queen } from "./pieces/queen";
 import { Rook } from "./pieces/rook";
-import { Chess } from "./chess";
+import { Color, PieceType } from "./types";
+import { TOP_LEFT_DIAGONAL_BIT_MASK } from "./precalculated";
 
 export class Player {
-  private pieces: Piece[] = [];
+  private _pieces: Piece[] = [];
 
   constructor(
-    initial_fen: string,
-    private _color: "w" | "b"
+    fen: string,
+    private _color: Color
   ) {
-    this.initialize_pieces(initial_fen);
+    this.initialize_pieces(fen);
   }
 
   get color() {
     return this._color;
   }
 
-  private initialize_pieces(initial_fen: string) {
-    let board = Chess.fen_to_board(initial_fen);
+  get pieces() {
+    return this._pieces;
+  }
 
-    Object.entries(board).forEach(([position, piece_type]) => {
-      let color = piece_type == piece_type.toUpperCase() ? "w" : "b";
-      if (color == this._color) {
-        switch (piece_type.toUpperCase()) {
-          case "P":
-            this.pieces.push(new Pawn(parseInt(position), color));
-            break;
-          case "R":
-            this.pieces.push(new Rook(parseInt(position), color));
-            break;
-          case "N":
-            this.pieces.push(new Knight(parseInt(position), color));
-            break;
-          case "B":
-            this.pieces.push(new Bishop(parseInt(position), color));
-            break;
-          case "Q":
-            this.pieces.push(new Queen(parseInt(position), color));
-            break;
-          case "K":
-            this.pieces.push(new King(parseInt(position), color));
-            break;
+  private initialize_pieces(fen: string) {
+    let fen_rows = fen.split(" ")[0]!.split("/");
+
+    fen_rows.forEach((row, index) => {
+      let position = index * 8;
+      for (let i = 0; i < row.length; i++) {
+        let char = row[i]!;
+        let parsed_char = parseInt(char);
+
+        if (isNaN(parsed_char)) {
+          switch (char.toLowerCase()) {
+            case "k":
+              this.pieces.push(new King(position, this.color));
+            case "q":
+              this.pieces.push(new Queen(position, this.color));
+            case "r":
+              this.pieces.push(new Rook(position, this.color));
+            case "b":
+              this.pieces.push(new Bishop(position, this.color));
+            case "n":
+              this.pieces.push(new Knight(position, this.color));
+            case "p":
+              this.pieces.push(new Pawn(position, this.color));
+          }
         }
+
+        position += parsed_char;
       }
     });
   }
@@ -59,249 +65,78 @@ export class Player {
     return piece.valid_moves;
   }
 
-  generate_moves(fen: string) {
+  generate_valid_moves(white: Player, black: Player, fen: string) {
     this.pieces.forEach((piece) => {
-      piece.generate_moves(fen);
-      piece.valid_moves.forEach((to) => {
-        if (
-          Player.isInCheck(
-            Chess.update_piece_placement(
-              fen,
-              piece.position,
-              to,
-              piece.fen_type
-            ),
-            this._color
-          )
-        ) {
-          piece.remove_move(to);
-        }
-      });
+      piece.generate_valid_moves(white, black, fen);
     });
   }
 
-  static isInCheck(fen: string, color: "w" | "b") {
-    let board = Chess.fen_to_board(fen);
-
-    let king_pos = Chess.get_king_position(fen, color);
-
-    let row = Math.floor(king_pos / 8);
-    let col = king_pos % 8;
-
-    for (let position = king_pos - 8; position >= 0; position -= 8) {
-      if (board[position] && Piece.get_color(board[position]!) == color) break;
-      if (Piece.check_opponent_piece(board[position]!, color, ["Q", "R"]))
-        return true;
-    }
-
-    for (let position = king_pos + 8; position <= 63; position += 8) {
-      if (board[position] && Piece.get_color(board[position]!) == color) break;
-      if (Piece.check_opponent_piece(board[position]!, color, ["Q", "R"]))
-        return true;
-    }
-
-    for (let position = king_pos + 1; position <= 8 * row + 7; position += 1) {
-      if (board[position] && Piece.get_color(board[position]!) == color) break;
-      if (Piece.check_opponent_piece(board[position]!, color, ["Q", "R"]))
-        return true;
-    }
-
-    for (let position = king_pos - 1; position >= 8 * row; position -= 1) {
-      if (board[position] && Piece.get_color(board[position]!) == color) break;
-      if (Piece.check_opponent_piece(board[position]!, color, ["Q", "R"]))
-        return true;
-    }
-
-    for (
-      let position = king_pos - 7;
-      position >= king_pos + Math.min(row, 7 - col) * -7;
-      position -= 7
-    ) {
-      if (board[position] && Piece.get_color(board[position]!) == color) break;
-      if (Piece.check_opponent_piece(board[position]!, color, ["Q", "B"]))
-        return true;
-    }
-
-    for (
-      let position = king_pos + 9;
-      position <= king_pos + Math.min(7 - row, 7 - col) * 9;
-      position += 9
-    ) {
-      if (board[position] && Piece.get_color(board[position]!) == color) break;
-      if (Piece.check_opponent_piece(board[position]!, color, ["Q", "B"]))
-        return true;
-    }
-
-    for (
-      let position = king_pos + 7;
-      position <= king_pos + Math.min(7 - row, col) * 7;
-      position += 7
-    ) {
-      if (board[position] && Piece.get_color(board[position]!) == color) break;
-      if (Piece.check_opponent_piece(board[position]!, color, ["Q", "B"]))
-        return true;
-    }
-
-    for (
-      let position = king_pos - 9;
-      position >= king_pos + Math.min(row, col) * -9;
-      position -= 9
-    ) {
-      if (board[position] && Piece.get_color(board[position]!) == color) break;
-      if (Piece.check_opponent_piece(board[position]!, color, ["Q", "B"]))
-        return true;
-    }
-
-    if (row - 2 >= 0 && col + 1 <= 7) {
-      if (Piece.check_opponent_piece(board[king_pos - 15], color, ["N"]))
-        return true;
-    }
-
-    if (row - 1 >= 0 && col + 2 <= 7) {
-      if (Piece.check_opponent_piece(board[king_pos - 6], color, ["N"]))
-        return true;
-    }
-
-    if (row + 1 <= 7 && col + 2 <= 7) {
-      if (Piece.check_opponent_piece(board[king_pos + 10], color, ["N"]))
-        return true;
-    }
-
-    if (row + 2 <= 7 && col + 1 <= 7) {
-      if (Piece.check_opponent_piece(board[king_pos + 17], color, ["N"]))
-        return true;
-    }
-
-    if (row + 2 <= 7 && col - 1 >= 0) {
-      if (Piece.check_opponent_piece(board[king_pos + 15], color, ["N"]))
-        return true;
-    }
-
-    if (row + 1 <= 7 && col - 2 >= 0) {
-      if (Piece.check_opponent_piece(board[king_pos + 6], color, ["N"]))
-        return true;
-    }
-
-    if (row - 1 >= 0 && col - 2 >= 0) {
-      if (Piece.check_opponent_piece(board[king_pos - 10], color, ["N"]))
-        return true;
-    }
-
-    if (row - 2 >= 0 && col - 1 >= 0) {
-      if (Piece.check_opponent_piece(board[king_pos - 17], color, ["N"]))
-        return true;
-    }
-
-    if (color == "w" && row - 1 >= 0 && col - 1 >= 0) {
-      if (Piece.check_opponent_piece(board[king_pos - 9], color, ["P"]))
-        return true;
-    }
-
-    if (color == "w" && row - 1 >= 0 && col + 1 <= 7) {
-      if (Piece.check_opponent_piece(board[king_pos - 7], color, ["P"]))
-        return true;
-    }
-
-    if (color == "b" && row + 1 <= 7 && col - 1 >= 0) {
-      if (Piece.check_opponent_piece(board[king_pos + 7], color, ["P"]))
-        return true;
-    }
-
-    if (color == "b" && row + 1 <= 7 && col + 1 <= 7) {
-      if (Piece.check_opponent_piece(board[king_pos + 9], color, ["P"]))
-        return true;
-    }
-
-    if (row - 1 >= 0) {
-      if (Piece.check_opponent_piece(board[king_pos - 8], color, ["K"]))
-        return true;
-    }
-
-    if (row - 1 >= 0 && col + 1 <= 7) {
-      if (Piece.check_opponent_piece(board[king_pos - 7], color, ["K"]))
-        return true;
-    }
-
-    if (col + 1 <= 7) {
-      if (Piece.check_opponent_piece(board[king_pos + 1], color, ["K"]))
-        return true;
-    }
-
-    if (row + 1 <= 7 && col + 1 <= 7) {
-      if (Piece.check_opponent_piece(board[king_pos + 9], color, ["K"]))
-        return true;
-    }
-
-    if (row + 1 <= 7) {
-      if (Piece.check_opponent_piece(board[king_pos + 8], color, ["K"]))
-        return true;
-    }
-
-    if (row + 1 <= 7 && col - 1 >= 0) {
-      if (Piece.check_opponent_piece(board[king_pos + 7], color, ["K"]))
-        return true;
-    }
-
-    if (col - 1 >= 0) {
-      if (Piece.check_opponent_piece(board[king_pos - 1], color, ["K"]))
-        return true;
-    }
-
-    if (row - 1 >= 0 && col - 1 >= 0) {
-      if (Piece.check_opponent_piece(board[king_pos - 9], color, ["K"]))
-        return true;
-    }
-
-    return false;
-  }
-
-  move(from: number, to: number, promote_to?: "q" | "r" | "b" | "n") {
+  move(from: number, to: number, promote_to?: Exclude<PieceType, "k" | "p">) {
     let piece = this.pieces.find((piece) => piece.position == from);
 
-    if (!piece) return false;
+    if (!piece || !piece.valid_moves.includes(to))
+      throw Error(
+        `Incorrect move: the move from position ${from} to position ${to} is invalid.`
+      );
 
-    let is_castling = false;
-
-    let is_pawn_promoting =
-      piece.piece_type.toUpperCase() == "P" &&
+    let is_pawn_promotion =
+      piece.piece_type == "p" &&
       ((piece.color == "w" && Math.floor(to / 8) == 0) ||
         (piece.color == "b" && Math.floor(to / 8) == 7));
 
-    if (is_pawn_promoting && !promote_to) {
-      return false;
+    if (is_pawn_promotion && !promote_to) {
+      throw Error("No promotion piece specified");
+    }
+    piece.position = to;
+
+    // Castling
+    if (piece.piece_type == "k" && Math.abs(from - to) == 2) {
+      let rook_from_position =
+        from > to ? Math.floor(from / 8) * 8 : Math.floor(from / 8) * 8 + 7;
+      let rook_to_position =
+        from > to ? rook_from_position + 3 : rook_from_position + 5;
+
+      this.move(rook_from_position, rook_to_position);
     }
 
-    if (piece.moveTo(to)) {
-      if (is_castling) {
-        // TODO implement castling
-      } else if (is_pawn_promoting) {
-        this.pieces = this.pieces.map((_piece) => {
-          if (_piece.position == to) {
-            switch (promote_to) {
-              case "q":
-                return new Queen(to, _piece.color);
-              case "r":
-                return new Bishop(to, _piece.color);
-              case "b":
-                return new Rook(to, _piece.color);
-              case "n":
-                return new Knight(to, _piece.color);
-            }
+    // Pawn Promotion
+    if (is_pawn_promotion) {
+      this._pieces = this.pieces.map((_piece) => {
+        if (piece!.position == _piece.position) {
+          switch (promote_to) {
+            case "n":
+              return new Knight(to, this.color);
+            case "b":
+              return new Bishop(to, this.color);
+            case "r":
+              return new Rook(to, this.color);
+            case "q":
+              return new Queen(to, this.color);
           }
-          return _piece;
-        });
-      }
+        }
 
-      this.pieces.forEach((_piece) => {
-        _piece.clear_moves();
+        return _piece;
       });
-      return true;
     }
 
-    return false;
+    this.pieces.forEach((piece) => piece.clear_moves());
   }
 
-  capture(position: number) {
-    this.pieces = this.pieces.filter((piece) => piece.position != position);
+  remove_piece(position: number) {
+    this._pieces = this.pieces.filter((piece) => piece.position != position);
+  }
+
+  is_in_check(opponent: Player): boolean {
+    let board = 0n;
+
+    this.pieces.forEach((piece) => {
+      board |= 1n << BigInt(63 - piece.position);
+    });
+
+    opponent.pieces.forEach((piece) => {
+      board |= 1n << BigInt(63 - piece.position);
+    });
+
+    return false;
   }
 }
