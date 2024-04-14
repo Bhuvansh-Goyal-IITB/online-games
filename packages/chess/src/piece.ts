@@ -47,13 +47,19 @@ export abstract class Piece {
   }
 
   protected abstract generate_moves(
-    white_pieces: Piece[],
-    black_pieces: Piece[],
+    white_bit_board: bigint,
+    black_bit_board: bigint,
     fen: string
   ): number[];
 
-  generate_valid_moves(white: Player, black: Player, fen: string) {
-    let moves = this.generate_moves(white.pieces, black.pieces, fen);
+  generate_valid_moves(
+    white_bit_board: bigint,
+    black_bit_board: bigint,
+    white: Player,
+    black: Player,
+    fen: string
+  ) {
+    let moves = this.generate_moves(white_bit_board, black_bit_board, fen);
 
     let from = this.position;
     let captured_piece: Piece | undefined;
@@ -102,14 +108,15 @@ export abstract class Piece {
           this.valid_moves.push(move);
         }
       }
+
+      if (captured_piece) {
+        this.color == "w"
+          ? black.pieces.push(captured_piece)
+          : white.pieces.push(captured_piece);
+      }
     });
 
     this.position = from;
-    if (captured_piece) {
-      this.color == "w"
-        ? black.pieces.push(captured_piece)
-        : white.pieces.push(captured_piece);
-    }
   }
 
   clear_moves() {
