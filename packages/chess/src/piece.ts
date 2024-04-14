@@ -18,6 +18,10 @@ export abstract class Piece {
     return this._valid_moves;
   }
 
+  get bit_position() {
+    return 1n << BigInt(63 - this.position);
+  }
+
   get position() {
     return this._position;
   }

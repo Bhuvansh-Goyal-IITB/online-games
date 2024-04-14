@@ -261,13 +261,59 @@ function black_king_pawn_bit_mask(position: number) {
     positions.push(position + 7);
   }
 
-  console.log(positions);
   positions.forEach((position) => {
     bit_mask |= 1n << BigInt(63 - position);
   });
 
   return bit_mask;
 }
+
+function king_bit_mask(position: number) {
+  let positions: number[] = [];
+  let bit_mask = 0n;
+
+  let row = Math.floor(position / 8);
+  let col = position % 8;
+
+  if (row - 1 >= 0) {
+    positions.push(position - 8);
+  }
+
+  if (row - 1 >= 0 && col + 1 <= 7) {
+    positions.push(position - 7);
+  }
+
+  if (col + 1 <= 7) {
+    positions.push(position + 1);
+  }
+
+  if (row + 1 <= 7 && col + 1 <= 7) {
+    positions.push(position + 9);
+  }
+
+  if (row + 1 <= 7) {
+    positions.push(position + 8);
+  }
+
+  if (row + 1 <= 7 && col - 1 >= 0) {
+    positions.push(position + 7);
+  }
+
+  if (col - 1 >= 0) {
+    positions.push(position - 1);
+  }
+
+  if (row - 1 >= 0 && col - 1 >= 0) {
+    positions.push(position - 9);
+  }
+
+  positions.forEach((position) => {
+    bit_mask |= 1n << BigInt(63 - position);
+  });
+
+  return bit_mask;
+}
+
 let TOP_LEFT_DIAGONAL_BIT_MASK: bigint[] = [];
 let TOP_RIGHT_DIAGONAL_BIT_MASK: bigint[] = [];
 let BOTTOM_LEFT_DIAGONAL_BIT_MASK: bigint[] = [];
@@ -296,8 +342,24 @@ for (let i = 0; i < 64; i++) {
   RIGHT_BIT_MASK.push(right_bit_mask(i));
 
   KNIGHT_BIT_MASK.push(knight_bit_mask(i));
+
   WHITE_KING_PAWN_BIT_MASK.push(white_king_pawn_bit_mask(i));
   BLACK_KING_PAWN_BIT_MASK.push(black_king_pawn_bit_mask(i));
+
+  KNIGHT_BIT_MASK.push(king_bit_mask(i));
 }
 
-export { TOP_LEFT_DIAGONAL_BIT_MASK };
+export {
+  TOP_LEFT_DIAGONAL_BIT_MASK,
+  TOP_RIGHT_DIAGONAL_BIT_MASK,
+  BOTTOM_LEFT_DIAGONAL_BIT_MASK,
+  BOTTOM_RIGHT_DIAGONAL_BIT_MASK,
+  UP_BIT_MASK,
+  DOWN_BIT_MASK,
+  LEFT_BIT_MASK,
+  RIGHT_BIT_MASK,
+  KNIGHT_BIT_MASK,
+  WHITE_KING_PAWN_BIT_MASK,
+  BLACK_KING_PAWN_BIT_MASK,
+  KING_BIT_MASK,
+};

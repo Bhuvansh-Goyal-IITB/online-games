@@ -6,7 +6,20 @@ import { Piece } from "./piece";
 import { Queen } from "./pieces/queen";
 import { Rook } from "./pieces/rook";
 import { Color, PieceType } from "./types";
-import { TOP_LEFT_DIAGONAL_BIT_MASK } from "./precalculated";
+import {
+  BLACK_KING_PAWN_BIT_MASK,
+  BOTTOM_LEFT_DIAGONAL_BIT_MASK,
+  BOTTOM_RIGHT_DIAGONAL_BIT_MASK,
+  DOWN_BIT_MASK,
+  KING_BIT_MASK,
+  KNIGHT_BIT_MASK,
+  LEFT_BIT_MASK,
+  RIGHT_BIT_MASK,
+  TOP_LEFT_DIAGONAL_BIT_MASK,
+  TOP_RIGHT_DIAGONAL_BIT_MASK,
+  UP_BIT_MASK,
+  WHITE_KING_PAWN_BIT_MASK,
+} from "./precalculated";
 
 export class Player {
   private _pieces: Piece[] = [];
@@ -128,6 +141,7 @@ export class Player {
 
   is_in_check(opponent: Player): boolean {
     let board = 0n;
+    let king = this.pieces.find((piece) => piece.piece_type == "k")!;
 
     this.pieces.forEach((piece) => {
       board |= 1n << BigInt(63 - piece.position);
@@ -136,6 +150,154 @@ export class Player {
     opponent.pieces.forEach((piece) => {
       board |= 1n << BigInt(63 - piece.position);
     });
+
+    for (let i = 0; i < opponent.pieces.length; i++) {
+      let opponent_piece = opponent.pieces[i]!;
+
+      switch (opponent_piece.piece_type) {
+        case "r":
+          if (
+            (UP_BIT_MASK[king.position]! & opponent_piece.bit_position &&
+              !(
+                DOWN_BIT_MASK[opponent_piece.position]! &
+                UP_BIT_MASK[king.position]! &
+                board
+              )) ||
+            (DOWN_BIT_MASK[king.position]! & opponent_piece.bit_position &&
+              !(
+                UP_BIT_MASK[opponent_piece.position]! &
+                DOWN_BIT_MASK[king.position]! &
+                board
+              )) ||
+            (LEFT_BIT_MASK[king.position]! & opponent_piece.bit_position &&
+              !(
+                RIGHT_BIT_MASK[opponent_piece.position]! &
+                LEFT_BIT_MASK[king.position]! &
+                board
+              )) ||
+            (RIGHT_BIT_MASK[king.position]! & opponent_piece.bit_position &&
+              !(
+                LEFT_BIT_MASK[opponent_piece.position]! &
+                RIGHT_BIT_MASK[king.position]! &
+                board
+              ))
+          ) {
+            return true;
+          }
+        case "n":
+          if (KNIGHT_BIT_MASK[king.position]! & opponent_piece.bit_position) {
+            return true;
+          }
+        case "b":
+          if (
+            (TOP_LEFT_DIAGONAL_BIT_MASK[king.position]! &
+              opponent_piece.bit_position &&
+              !(
+                BOTTOM_RIGHT_DIAGONAL_BIT_MASK[opponent_piece.position]! &
+                TOP_LEFT_DIAGONAL_BIT_MASK[king.position]! &
+                board
+              )) ||
+            (TOP_RIGHT_DIAGONAL_BIT_MASK[king.position]! &
+              opponent_piece.bit_position &&
+              !(
+                BOTTOM_LEFT_DIAGONAL_BIT_MASK[opponent_piece.position]! &
+                TOP_RIGHT_DIAGONAL_BIT_MASK[king.position]! &
+                board
+              )) ||
+            (BOTTOM_LEFT_DIAGONAL_BIT_MASK[king.position]! &
+              opponent_piece.bit_position &&
+              !(
+                TOP_RIGHT_DIAGONAL_BIT_MASK[opponent_piece.position]! &
+                BOTTOM_LEFT_DIAGONAL_BIT_MASK[king.position]! &
+                board
+              )) ||
+            (BOTTOM_RIGHT_DIAGONAL_BIT_MASK[king.position]! &
+              opponent_piece.bit_position &&
+              !(
+                TOP_LEFT_DIAGONAL_BIT_MASK[opponent_piece.position]! &
+                BOTTOM_RIGHT_DIAGONAL_BIT_MASK[king.position]! &
+                board
+              ))
+          ) {
+            return true;
+          }
+        case "k":
+          if (KING_BIT_MASK[king.position]! & opponent_piece.bit_position) {
+            return true;
+          }
+        case "q":
+          if (
+            (UP_BIT_MASK[king.position]! & opponent_piece.bit_position &&
+              !(
+                DOWN_BIT_MASK[opponent_piece.position]! &
+                UP_BIT_MASK[king.position]! &
+                board
+              )) ||
+            (DOWN_BIT_MASK[king.position]! & opponent_piece.bit_position &&
+              !(
+                UP_BIT_MASK[opponent_piece.position]! &
+                DOWN_BIT_MASK[king.position]! &
+                board
+              )) ||
+            (LEFT_BIT_MASK[king.position]! & opponent_piece.bit_position &&
+              !(
+                RIGHT_BIT_MASK[opponent_piece.position]! &
+                LEFT_BIT_MASK[king.position]! &
+                board
+              )) ||
+            (RIGHT_BIT_MASK[king.position]! & opponent_piece.bit_position &&
+              !(
+                LEFT_BIT_MASK[opponent_piece.position]! &
+                RIGHT_BIT_MASK[king.position]! &
+                board
+              )) ||
+            (TOP_LEFT_DIAGONAL_BIT_MASK[king.position]! &
+              opponent_piece.bit_position &&
+              !(
+                BOTTOM_RIGHT_DIAGONAL_BIT_MASK[opponent_piece.position]! &
+                TOP_LEFT_DIAGONAL_BIT_MASK[king.position]! &
+                board
+              )) ||
+            (TOP_RIGHT_DIAGONAL_BIT_MASK[king.position]! &
+              opponent_piece.bit_position &&
+              !(
+                BOTTOM_LEFT_DIAGONAL_BIT_MASK[opponent_piece.position]! &
+                TOP_RIGHT_DIAGONAL_BIT_MASK[king.position]! &
+                board
+              )) ||
+            (BOTTOM_LEFT_DIAGONAL_BIT_MASK[king.position]! &
+              opponent_piece.bit_position &&
+              !(
+                TOP_RIGHT_DIAGONAL_BIT_MASK[opponent_piece.position]! &
+                BOTTOM_LEFT_DIAGONAL_BIT_MASK[king.position]! &
+                board
+              )) ||
+            (BOTTOM_RIGHT_DIAGONAL_BIT_MASK[king.position]! &
+              opponent_piece.bit_position &&
+              !(
+                TOP_LEFT_DIAGONAL_BIT_MASK[opponent_piece.position]! &
+                BOTTOM_RIGHT_DIAGONAL_BIT_MASK[king.position]! &
+                board
+              ))
+          ) {
+            return true;
+          }
+        case "p":
+          if (
+            this.color == "w" &&
+            WHITE_KING_PAWN_BIT_MASK[king.position]! &
+              opponent_piece.bit_position
+          ) {
+            return true;
+          } else if (
+            this.color == "b" &&
+            BLACK_KING_PAWN_BIT_MASK[king.position]! &
+              opponent_piece.bit_position
+          ) {
+            return true;
+          }
+      }
+    }
 
     return false;
   }

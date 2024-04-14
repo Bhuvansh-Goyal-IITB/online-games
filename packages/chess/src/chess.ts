@@ -1,5 +1,4 @@
 import { Piece } from "./piece";
-import { Queen } from "./pieces/queen";
 import { Player } from "./player";
 import { PieceType } from "./types";
 
