@@ -19,7 +19,7 @@ import {
   TOP_RIGHT_DIAGONAL_BIT_MASK,
   UP_BIT_MASK,
   WHITE_KING_PAWN_BIT_MASK,
-} from "./precalculated";
+} from "./masks";
 
 export class Player {
   private _pieces: Piece[] = [];
