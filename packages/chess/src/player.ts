@@ -42,6 +42,7 @@ export class Player {
   private initialize_pieces(fen: string) {
     let fen_rows = fen.split(" ")[0]!.split("/");
 
+    let piece_id = this.color == "w" ? 0 : 16;
     fen_rows.forEach((row, index) => {
       let position = index * 8;
       for (let i = 0; i < row.length; i++) {
@@ -55,24 +56,26 @@ export class Player {
           ) {
             switch (char.toLowerCase()) {
               case "k":
-                this.pieces.push(new King(position, this.color));
+                this.pieces.push(new King(position, this.color, piece_id));
                 break;
               case "q":
-                this.pieces.push(new Queen(position, this.color));
+                this.pieces.push(new Queen(position, this.color, piece_id));
                 break;
               case "r":
-                this.pieces.push(new Rook(position, this.color));
+                this.pieces.push(new Rook(position, this.color, piece_id));
                 break;
               case "b":
-                this.pieces.push(new Bishop(position, this.color));
+                this.pieces.push(new Bishop(position, this.color, piece_id));
                 break;
               case "n":
-                this.pieces.push(new Knight(position, this.color));
+                this.pieces.push(new Knight(position, this.color, piece_id));
                 break;
               case "p":
-                this.pieces.push(new Pawn(position, this.color));
+                this.pieces.push(new Pawn(position, this.color, piece_id));
                 break;
             }
+
+            piece_id++;
           }
 
           position++;
@@ -137,7 +140,7 @@ export class Player {
       let rook_from_position =
         from > to ? Math.floor(from / 8) * 8 : Math.floor(from / 8) * 8 + 7;
       let rook_to_position =
-        from > to ? rook_from_position + 3 : rook_from_position + 5;
+        from > to ? rook_from_position + 3 : rook_from_position - 2;
 
       this.move(rook_from_position, rook_to_position);
     }
@@ -147,13 +150,13 @@ export class Player {
         if (piece!.position == _piece.position) {
           switch (promote_to) {
             case "n":
-              return new Knight(to, this.color);
+              return new Knight(to, this.color, piece!.id);
             case "b":
-              return new Bishop(to, this.color);
+              return new Bishop(to, this.color, piece!.id);
             case "r":
-              return new Rook(to, this.color);
+              return new Rook(to, this.color, piece!.id);
             case "q":
-              return new Queen(to, this.color);
+              return new Queen(to, this.color, piece!.id);
           }
         }
 
@@ -265,6 +268,7 @@ export class Player {
           if (KING_BIT_MASK[king.position]! & opponent_piece.bit_position) {
             return true;
           }
+          break;
         case "q":
           if (
             (UP_BIT_MASK[king.position]! & opponent_piece.bit_position &&

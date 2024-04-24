@@ -8,8 +8,13 @@ export abstract class Piece {
   constructor(
     private _position: number,
     private _color: Color,
-    private _piece_type: PieceType
+    private _piece_type: PieceType,
+    private _id: number
   ) {}
+
+  get id() {
+    return this._id;
+  }
 
   get color() {
     return this._color;
