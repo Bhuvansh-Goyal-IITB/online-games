@@ -3,8 +3,8 @@ import { Piece } from "../piece";
 import { Color } from "../types";
 
 export class Pawn extends Piece {
-  constructor(position: number, color: Color) {
-    super(position, color, "p");
+  constructor(position: number, color: Color, id: number) {
+    super(position, color, "p", id);
   }
 
   protected generate_moves(
@@ -72,7 +72,6 @@ export class Pawn extends Piece {
         moves.push(this.position + 16);
       }
     }
-
     return moves;
   }
 }

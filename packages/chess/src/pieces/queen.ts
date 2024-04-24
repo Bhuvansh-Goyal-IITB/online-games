@@ -2,8 +2,8 @@ import { Piece } from "../piece";
 import { Color } from "../types";
 
 export class Queen extends Piece {
-  constructor(position: number, color: Color) {
-    super(position, color, "q");
+  constructor(position: number, color: Color, id: number) {
+    super(position, color, "q", id);
   }
 
   protected generate_moves(

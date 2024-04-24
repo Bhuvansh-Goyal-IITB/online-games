@@ -2,8 +2,8 @@ import { Piece } from "../piece";
 import { Color } from "../types";
 
 export class Bishop extends Piece {
-  constructor(position: number, color: Color) {
-    super(position, color, "b");
+  constructor(position: number, color: Color, id: number) {
+    super(position, color, "b", id);
   }
 
   protected generate_moves(

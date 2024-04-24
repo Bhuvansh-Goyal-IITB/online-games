@@ -2,8 +2,8 @@ import { Piece } from "../piece";
 import { Color } from "../types";
 
 export class Rook extends Piece {
-  constructor(position: number, color: Color) {
-    super(position, color, "r");
+  constructor(position: number, color: Color, id: number) {
+    super(position, color, "r", id);
   }
 
   protected generate_moves(

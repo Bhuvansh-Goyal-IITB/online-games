@@ -2,8 +2,8 @@ import { Piece } from "../piece";
 import { Color } from "../types";
 
 export class Knight extends Piece {
-  constructor(position: number, color: Color) {
-    super(position, color, "n");
+  constructor(position: number, color: Color, id: number) {
+    super(position, color, "n", id);
   }
 
   protected generate_moves(
