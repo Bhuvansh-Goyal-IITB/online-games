@@ -1,6 +1,6 @@
 import { Piece } from "./piece";
 import { Player } from "./player";
-import { PieceType } from "./types";
+import { PieceInfo, PieceType } from "./types";
 
 export class Chess {
   private _white: Player;
@@ -14,6 +14,51 @@ export class Chess {
     this._current = this._fen.split(" ")[1]! == "w" ? this._white : this._black;
 
     this._current.generate_valid_moves(this._white, this._black, this._fen);
+  }
+
+  get valid_moves() {
+    let valid_moves: {
+      from: number;
+      to: number;
+    }[] = [];
+
+    this._current.pieces.forEach((piece) => {
+      piece.valid_moves.forEach((move) => {
+        valid_moves.push({
+          from: piece.position,
+          to: move,
+        });
+      });
+    });
+
+    return valid_moves;
+  }
+
+  get board() {
+    let pieces: PieceInfo[] = [];
+
+    this._white.pieces.forEach((piece) => {
+      pieces.push({
+        pieceType: piece.piece_type,
+        position: piece.position,
+        color: piece.color,
+        id: piece.id,
+      });
+    });
+
+    this._black.pieces.forEach((piece) => {
+      pieces.push({
+        pieceType: piece.piece_type,
+        position: piece.position,
+        color: piece.color,
+        id: piece.id,
+      });
+    });
+
+    return {
+      currentTurn: this._current.color,
+      pieces,
+    };
   }
 
   get fen() {
@@ -73,21 +118,23 @@ export class Chess {
     }
 
     if (moved_piece!.piece_type == "k" && moved_piece!.color == "w") {
-      castling_rights!.replace("KQ", "");
+      castling_rights = castling_rights!.replace("K", "");
+      castling_rights = castling_rights!.replace("Q", "");
     } else if (moved_piece!.piece_type == "k" && moved_piece!.color == "b") {
-      castling_rights!.replace("kq", "");
+      castling_rights = castling_rights!.replace("k", "");
+      castling_rights = castling_rights!.replace("q", "");
     }
 
     if (moved_piece!.piece_type == "r" && moved_piece!.color == "w") {
       if (castling_rights!.includes("K") && from == 63)
-        castling_rights!.replace("K", "");
+        castling_rights = castling_rights!.replace("K", "");
       else if (castling_rights!.includes("Q") && from == 56)
-        castling_rights!.replace("Q", "");
+        castling_rights = castling_rights!.replace("Q", "");
     } else if (moved_piece!.piece_type == "r" && moved_piece!.color == "b") {
       if (castling_rights!.includes("k") && from == 7)
-        castling_rights!.replace("k", "");
+        castling_rights = castling_rights!.replace("k", "");
       else if (castling_rights!.includes("q") && from == 0)
-        castling_rights!.replace("q", "");
+        castling_rights = castling_rights!.replace("q", "");
     }
 
     if (castling_rights == "") castling_rights = "-";
