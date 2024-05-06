@@ -1,37 +1,40 @@
 import { Piece } from "./piece";
 import { Player } from "./player";
-import { PieceInfo, PieceType } from "./types";
+import { Move, PieceInfo, PieceType } from "./types";
 
 export class Chess {
   private _white: Player;
   private _black: Player;
   private _current: Player;
+  private _fen: string;
+  private _outcome: "" | "w" | "b" | "d" = "";
+  private _outcomeMethod:
+    | ""
+    | "checkmate"
+    | "stalemate"
+    | "three fold repetetion"
+    | "insufficient material"
+    | "resignation"
+    | "agreement"
+    | "repetetion" = "";
 
-  constructor(private _fen: string) {
+  private _repetetionHistory: string[] = [];
+
+  constructor(fen?: string) {
+    this._fen =
+      fen ?? "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
     this._white = new Player(this._fen, "w");
     this._black = new Player(this._fen, "b");
 
     this._current = this._fen.split(" ")[1]! == "w" ? this._white : this._black;
 
     this._current.generate_valid_moves(this._white, this._black, this._fen);
+    this.pushToRepetetionHistory();
   }
 
-  get valid_moves() {
-    let valid_moves: {
-      from: number;
-      to: number;
-    }[] = [];
-
-    this._current.pieces.forEach((piece) => {
-      piece.valid_moves.forEach((move) => {
-        valid_moves.push({
-          from: piece.position,
-          to: move,
-        });
-      });
-    });
-
-    return valid_moves;
+  get outcome() {
+    return [this._outcome, this._outcomeMethod];
   }
 
   get board() {
@@ -55,8 +58,43 @@ export class Chess {
       });
     });
 
+    let validMoves: Move[] = [];
+
+    const currentColor = this._current.color;
+
+    this._current.pieces.forEach((piece) => {
+      piece.valid_moves.forEach((move) => {
+        let isPromoting = false;
+
+        if (piece.piece_type == "p") {
+          if (piece.color == "w" && Math.floor(move / 8) == 0) {
+            isPromoting = true;
+          } else if (piece.color == "b" && Math.floor(move / 8) == 7) {
+            isPromoting = true;
+          }
+        }
+
+        validMoves.push({
+          from: piece.position,
+          to: move,
+          isCapturing:
+            move == Chess.algebraic_to_position(this.fen.split(" ")[3]!) ||
+            (currentColor == "w"
+              ? (this._black.bitBoard & (1n << BigInt(63 - move))) != 0n
+              : (this._white.bitBoard & (1n << BigInt(63 - move))) != 0n),
+          isCastling:
+            piece.piece_type == "k" && Math.abs(piece.position - move) == 2,
+          isPromoting,
+        });
+      });
+    });
+
     return {
       currentTurn: this._current.color,
+      isInCheck: this._current.is_in_check(
+        this._current.color == "w" ? this._black : this._white
+      ),
+      validMoves,
       pieces,
     };
   }
@@ -66,6 +104,8 @@ export class Chess {
   }
 
   move(from: number, to: number, promote_to?: Exclude<PieceType, "k" | "p">) {
+    if (this._outcome != "") return;
+
     this._current.move(from, to, promote_to);
 
     let moved_piece = this._current.pieces.find(
@@ -74,24 +114,128 @@ export class Chess {
 
     this._current = this._current.color == "w" ? this._black : this._white;
 
-    if (
+    let capturedPiece =
       moved_piece!.piece_type == "p" &&
       to == Chess.algebraic_to_position(this._fen.split(" ")[3]!)
-    ) {
-      moved_piece!.color == "w"
-        ? this._current.remove_piece(to + 8)
-        : this._current.remove_piece(to - 8);
-    } else {
-      this._current.remove_piece(to);
-    }
+        ? moved_piece!.color == "w"
+          ? this._current.remove_piece(to + 8)
+          : this._current.remove_piece(to - 8)
+        : this._current.remove_piece(to);
 
-    this.update_fen(from, moved_piece!);
+    this.update_fen(from, moved_piece!, capturedPiece);
     this._current.generate_valid_moves(this._white, this._black, this._fen);
+
+    this.pushToRepetetionHistory();
+    this.checkOutcome();
   }
 
-  private update_fen(from: number, moved_piece: Piece) {
-    let [piece_placement, current_turn, castling_rights, en_passant] =
-      this._fen.split(" ");
+  private pushToRepetetionHistory() {
+    let repetetionHistory = this.fen.split(" ").slice(0, 3).join(" ");
+
+    const enPassant = this.fen.split(" ")[3]!;
+
+    if (enPassant != "-") {
+      const enPassantPosition = Chess.algebraic_to_position(enPassant);
+
+      const row = Math.floor(enPassantPosition / 8);
+      const col = enPassantPosition % 8;
+
+      let direction = this._current.color == "w" ? 1 : -1;
+
+      if (0 < col && col < 7) {
+        if (
+          this._current.pieces.find(
+            (piece) =>
+              piece.piece_type == "p" &&
+              (piece.position == (row + direction) * 8 + (col - 1) ||
+                piece.position == (row + direction) * 8 + (col + 1))
+          )
+        ) {
+          repetetionHistory += ` ${enPassant}`;
+        }
+      } else if (col == 0) {
+        if (
+          this._current.pieces.find(
+            (piece) =>
+              piece.piece_type == "p" &&
+              piece.position == (row + direction) * 8 + (col + 1)
+          )
+        ) {
+          repetetionHistory += ` ${enPassant}`;
+        }
+      } else {
+        if (
+          this._current.pieces.find(
+            (piece) =>
+              piece.piece_type == "p" &&
+              piece.position == (row + direction) * 8 + (col - 1)
+          )
+        ) {
+          repetetionHistory += ` ${enPassant}`;
+        }
+      }
+    }
+
+    this._repetetionHistory.push(repetetionHistory);
+  }
+
+  private checkOutcome() {
+    let hasValidMoves = false;
+
+    for (let i = 0; i < this._current.pieces.length; i++) {
+      const piece = this._current.pieces[i]!;
+
+      if (piece.valid_moves.length > 0) {
+        hasValidMoves = true;
+        break;
+      }
+    }
+
+    if (!hasValidMoves) {
+      if (
+        this._current.is_in_check(
+          this._current.color == "w" ? this._black : this._white
+        )
+      ) {
+        this._outcome = this._current.color == "w" ? "b" : "w";
+        this._outcomeMethod = "checkmate";
+        return;
+      } else {
+        this._outcome = "d";
+        this._outcomeMethod = "stalemate";
+        return;
+      }
+    }
+
+    let frequency = 0;
+    this._repetetionHistory.forEach((position) => {
+      if (position == this._repetetionHistory.at(-1)) frequency++;
+    });
+
+    if (frequency == 3) {
+      this._outcome = "d";
+      this._outcomeMethod = "three fold repetetion";
+      return;
+    }
+
+    const halfMove = parseInt(this.fen.split(" ")[4]!);
+
+    if (halfMove == 100) {
+      this._outcome = "d";
+      this._outcomeMethod = "repetetion";
+      return;
+    }
+  }
+
+  private update_fen(from: number, moved_piece: Piece, capturedPiece?: Piece) {
+    let [
+      piece_placement,
+      current_turn,
+      castling_rights,
+      en_passant,
+      halfMove,
+      fullMove,
+    ] = this._fen.split(" ");
 
     piece_placement = "8/8/8/8/8/8/8/8";
 
@@ -139,6 +283,16 @@ export class Chess {
 
     if (castling_rights == "") castling_rights = "-";
 
+    if (moved_piece.piece_type == "p" || capturedPiece) {
+      halfMove = "0";
+    } else {
+      halfMove = (parseInt(halfMove!) + 1).toString();
+    }
+
+    if (current_turn == "w") {
+      fullMove = (parseInt(fullMove!) + 1).toString();
+    }
+
     this._fen =
       piece_placement +
       " " +
@@ -146,7 +300,11 @@ export class Chess {
       " " +
       castling_rights +
       " " +
-      en_passant;
+      en_passant +
+      " " +
+      halfMove +
+      " " +
+      fullMove;
   }
 
   static algebraic_to_position(algebraic: string) {

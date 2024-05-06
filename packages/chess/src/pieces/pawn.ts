@@ -22,6 +22,9 @@ export class Pawn extends Piece {
     if (this.color == "w") {
       if (row - 1 >= 0 && !(full_bit_board & (this.bit_position << 8n))) {
         moves.push(this.position - 8);
+        if (row == 6 && !(full_bit_board & (this.bit_position << 16n))) {
+          moves.push(this.position - 16);
+        }
       }
 
       if (
@@ -41,13 +44,12 @@ export class Pawn extends Piece {
       ) {
         moves.push(this.position - 9);
       }
-
-      if (row == 6 && !(full_bit_board & (this.bit_position << 16n))) {
-        moves.push(this.position - 16);
-      }
     } else {
       if (row + 1 <= 7 && !(full_bit_board & (this.bit_position >> 8n))) {
         moves.push(this.position + 8);
+        if (row == 1 && !(full_bit_board & (this.bit_position >> 16n))) {
+          moves.push(this.position + 16);
+        }
       }
 
       if (
@@ -66,10 +68,6 @@ export class Pawn extends Piece {
           this.position + 7 == Chess.algebraic_to_position(fen.split(" ")[3]!))
       ) {
         moves.push(this.position + 7);
-      }
-
-      if (row == 1 && !(full_bit_board & (this.bit_position >> 16n))) {
-        moves.push(this.position + 16);
       }
     }
     return moves;
