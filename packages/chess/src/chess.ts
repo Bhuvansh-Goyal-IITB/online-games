@@ -104,13 +104,39 @@ export class Chess {
   }
 
   move(from: number, to: number, promote_to?: Exclude<PieceType, "k" | "p">) {
+    let notation = "";
+
     if (this._outcome != "") return;
 
-    this._current.move(from, to, promote_to);
-
     let moved_piece = this._current.pieces.find(
-      (piece) => piece.position == to
+      (piece) => piece.position == from
     );
+
+    let ambiguityResolver = "";
+
+    this._current.pieces.forEach((piece) => {
+      if (
+        piece.piece_type != "p" &&
+        piece.piece_type == moved_piece!.piece_type
+      ) {
+        if (
+          piece.valid_moves.includes(to) &&
+          piece.position != moved_piece!.position
+        ) {
+          if (piece.position % 8 != moved_piece!.position % 8) {
+            ambiguityResolver = Chess.position_to_algebraic(
+              moved_piece!.position
+            )[0]!;
+          } else {
+            ambiguityResolver = Chess.position_to_algebraic(
+              moved_piece!.position
+            )[1]!;
+          }
+        }
+      }
+    });
+
+    this._current.move(from, to, promote_to);
 
     this._current = this._current.color == "w" ? this._black : this._white;
 
@@ -122,11 +148,65 @@ export class Chess {
           : this._current.remove_piece(to - 8)
         : this._current.remove_piece(to);
 
+    if (moved_piece!.piece_type == "p" && capturedPiece != null) {
+      notation += Chess.position_to_algebraic(from)[0];
+    } else if (moved_piece!.piece_type != "p") {
+      notation += moved_piece!.piece_type.toUpperCase();
+    }
+
+    notation += ambiguityResolver;
+
+    if (capturedPiece != null) {
+      notation += "x";
+    }
+
+    notation += Chess.position_to_algebraic(to);
+
+    if (moved_piece!.piece_type == "k" && Math.abs(from - to) == 2) {
+      if (from > to) {
+        notation = "O-O-O";
+      } else {
+        notation = "O-O";
+      }
+    }
+
     this.update_fen(from, moved_piece!, capturedPiece);
     this._current.generate_valid_moves(this._white, this._black, this._fen);
 
+    if (
+      this._current.is_in_check(
+        this._current.color == "w" ? this._black : this._white
+      )
+    ) {
+      let hasValidMoves = false;
+
+      for (let i = 0; i < this._current.pieces.length; i++) {
+        const piece = this._current.pieces[i]!;
+
+        if (piece.valid_moves.length > 0) {
+          hasValidMoves = true;
+          break;
+        }
+      }
+      if (hasValidMoves) {
+        notation += "+";
+      } else {
+        notation += "#";
+      }
+    }
+
+    if (moved_piece!.piece_type == "p") {
+      if (moved_piece!.color == "w" && Math.floor(to / 8) == 0) {
+        notation += `=${promote_to!.toUpperCase()}`;
+      } else if (moved_piece!.color == "b" && Math.floor(to / 8) == 7) {
+        notation += `=${promote_to!.toUpperCase()}`;
+      }
+    }
+
     this.pushToRepetetionHistory();
     this.checkOutcome();
+
+    return notation;
   }
 
   private pushToRepetetionHistory() {
