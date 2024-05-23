@@ -31,7 +31,7 @@ import {
   Settings,
   Undo2,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Page() {
   const [chess, setChess] = useState(new Chess());
@@ -46,19 +46,101 @@ export default function Page() {
   const [flip, setFlip] = useState(false);
   const [pieceSet, setPieceSet] = useState<PieceSet>("cardinal");
 
+  const moveListDivRef = useRef<HTMLDivElement | null>(null);
+
   const [animatedPiecePositions, setAnimatedPiecePositions] = useState<
     number[] | null
   >(null);
 
+  const animationControl = (move: Move | null, isPrev: boolean) => {
+    if (move == null) {
+      setAnimatedPiecePositions(null);
+      return;
+    }
+
+    if (move.isCastling) {
+      if (move.from > move.to) {
+        isPrev
+          ? setAnimatedPiecePositions([move.from, move.to - 2])
+          : setAnimatedPiecePositions([move.to, move.to + 1]);
+      } else {
+        isPrev
+          ? setAnimatedPiecePositions([move.from, move.to + 1])
+          : setAnimatedPiecePositions([move.to, move.to - 1]);
+      }
+    } else {
+      isPrev
+        ? setAnimatedPiecePositions([move.from])
+        : setAnimatedPiecePositions([move.to]);
+    }
+  };
+
   const handleFirst = () => {
     setIndex(0);
     setBoard(boardHistory.current[0]!);
+    setLastMove(null);
+    setAnimatedPiecePositions(null);
   };
-  const handlePrevious = () => {};
-  const handleNext = () => {};
+  const handlePrevious = () => {
+    if (index > 0) {
+      setIndex((prev) => prev - 1);
+      setBoard(boardHistory.current[index - 1]!);
+
+      if (index == 1) {
+        setLastMove(null);
+      } else {
+        setLastMove(moveHistory.current[index - 2]!);
+      }
+    }
+    animationControl(moveHistory.current[index - 1]!, true);
+  };
+  const handleNext = () => {
+    if (index < boardHistory.current.length - 1) {
+      setIndex((prev) => prev + 1);
+      setBoard(boardHistory.current[index + 1]!);
+      setLastMove(moveHistory.current[index]!);
+
+      animationControl(moveHistory.current[index]!, false);
+    }
+  };
   const handleLast = () => {
     setIndex(boardHistory.current.length - 1);
     setBoard(boardHistory.current.at(-1)!);
+    setLastMove(moveHistory.current.at(-1) ?? null);
+
+    setAnimatedPiecePositions(null);
+  };
+
+  //TODO: Figure out undo and animations as the piece's previous location are getting reset
+  // const undo = () => {
+  //   if (boardHistory.current.length == 1) return;
+
+  //   let newIndex = boardHistory.current.length - 2;
+
+  //   setIndex(newIndex);
+
+  //   boardHistory.current.pop();
+  //   moveHistory.current.pop();
+
+  //   setChess(new Chess(boardHistory.current.at(-1)!.fen));
+  //   if (moveNotationList.current.at(-1)!.length == 1) {
+  //     moveNotationList.current.pop();
+  //   } else {
+  //     moveNotationList.current.at(-1)!.pop();
+  //   }
+
+  //   setBoard(boardHistory.current.at(-1)!);
+  //   setLastMove(moveHistory.current.at(-1) ?? null);
+
+  //   animationControl(moveHistory.current.at(-1) ?? null, false);
+  // };
+
+  const goToMove = (moveIndex: number) => {
+    setIndex(moveIndex + 1);
+    setBoard(boardHistory.current.at(moveIndex + 1)!);
+    setLastMove(moveHistory.current.at(moveIndex)!);
+
+    setAnimatedPiecePositions(null);
   };
 
   const movePiece = (move: Move, promoteTo?: Exclude<PieceType, "k" | "p">) => {
@@ -104,10 +186,14 @@ export default function Page() {
             <Card className="h-full">
               <CardContent className="h-full">
                 <div className="flex flex-col h-full">
-                  <div className="flex flex-col gap-4 pb-4 mt-6 grow max-h-[700px] overflow-auto">
+                  <div
+                    ref={moveListDivRef}
+                    className="flex flex-col gap-4 pb-4 mt-6 grow max-h-[700px] overflow-auto"
+                  >
                     <MoveList
                       currentIndex={index}
                       moveList={moveNotationList.current}
+                      goToMove={goToMove}
                     />
                   </div>
                   <div className="flex justify-center items-center gap-2">
@@ -121,12 +207,14 @@ export default function Page() {
                     <Button
                       className="p-4 py-2 lg:p-6 grow"
                       variant="secondary"
+                      onClick={handlePrevious}
                     >
                       <ChevronLeft className="w-6 h-6 lg:w-8 lg:h-8" />
                     </Button>
                     <Button
                       className="p-4 py-2 lg:p-6 grow"
                       variant="secondary"
+                      onClick={handleNext}
                     >
                       <ChevronRight className="w-6 h-6 lg:w-8 lg:h-8" />
                     </Button>
