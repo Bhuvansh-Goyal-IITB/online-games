@@ -3,11 +3,12 @@ import { Button } from "@ui/components/ui/button";
 function MoveList({
   moveList,
   currentIndex,
+  goToMove,
 }: {
   moveList: string[][];
   currentIndex: number;
+  goToMove: (moveIndex: number) => void;
 }) {
-  console.log(currentIndex);
   return (
     <div className="flex flex-col gap-4 pb-4 mt-6 grow">
       {moveList.map(([white_move, black_move], index) => {
@@ -18,6 +19,7 @@ function MoveList({
               <Button
                 variant="link"
                 className={currentIndex - 1 == index * 2 ? "bg-secondary" : ""}
+                onClick={() => goToMove(index * 2)}
               >
                 {white_move}
               </Button>
@@ -28,6 +30,7 @@ function MoveList({
                 className={
                   currentIndex - 1 == index * 2 + 1 ? "bg-secondary" : ""
                 }
+                onClick={() => goToMove(index * 2 + 1)}
               >
                 {black_move}
               </Button>
