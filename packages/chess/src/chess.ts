@@ -96,6 +96,7 @@ export class Chess {
       ),
       validMoves,
       pieces,
+      fen: this.fen,
     };
   }
 
@@ -170,6 +171,14 @@ export class Chess {
       }
     }
 
+    if (moved_piece!.piece_type == "p") {
+      if (moved_piece!.color == "w" && Math.floor(to / 8) == 0) {
+        notation += `=${promote_to!.toUpperCase()}`;
+      } else if (moved_piece!.color == "b" && Math.floor(to / 8) == 7) {
+        notation += `=${promote_to!.toUpperCase()}`;
+      }
+    }
+
     this.update_fen(from, moved_piece!, capturedPiece);
     this._current.generate_valid_moves(this._white, this._black, this._fen);
 
@@ -192,14 +201,6 @@ export class Chess {
         notation += "+";
       } else {
         notation += "#";
-      }
-    }
-
-    if (moved_piece!.piece_type == "p") {
-      if (moved_piece!.color == "w" && Math.floor(to / 8) == 0) {
-        notation += `=${promote_to!.toUpperCase()}`;
-      } else if (moved_piece!.color == "b" && Math.floor(to / 8) == 7) {
-        notation += `=${promote_to!.toUpperCase()}`;
       }
     }
 

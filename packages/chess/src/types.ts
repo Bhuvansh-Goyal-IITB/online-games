@@ -6,6 +6,14 @@ export interface PieceInfo {
   id: number;
 }
 
+export interface Board {
+  currentTurn: Color;
+  validMoves: Move[];
+  isInCheck: boolean;
+  pieces: PieceInfo[];
+  fen: string;
+}
+
 export interface Move {
   from: number;
   to: number;
