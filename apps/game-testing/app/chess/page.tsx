@@ -112,28 +112,27 @@ export default function Page() {
   };
 
   //TODO: Figure out undo and animations as the piece's previous location are getting reset
-  // const undo = () => {
-  //   if (boardHistory.current.length == 1) return;
+  const undo = () => {
+    if (boardHistory.current.length == 1) return;
 
-  //   let newIndex = boardHistory.current.length - 2;
+    let newIndex = boardHistory.current.length - 2;
 
-  //   setIndex(newIndex);
+    setIndex(newIndex);
 
-  //   boardHistory.current.pop();
-  //   moveHistory.current.pop();
+    boardHistory.current.pop();
+    moveHistory.current.pop();
 
-  //   setChess(new Chess(boardHistory.current.at(-1)!.fen));
-  //   if (moveNotationList.current.at(-1)!.length == 1) {
-  //     moveNotationList.current.pop();
-  //   } else {
-  //     moveNotationList.current.at(-1)!.pop();
-  //   }
+    if (moveNotationList.current.at(-1)!.length == 1) {
+      moveNotationList.current.pop();
+    } else {
+      moveNotationList.current.at(-1)!.pop();
+    }
 
-  //   setBoard(boardHistory.current.at(-1)!);
-  //   setLastMove(moveHistory.current.at(-1) ?? null);
-
-  //   animationControl(moveHistory.current.at(-1) ?? null, false);
-  // };
+    setChess(new Chess(boardHistory.current.at(-1)!.fen));
+    setBoard(boardHistory.current.at(-1)!);
+    setLastMove(moveHistory.current.at(-1) ?? null);
+    setAnimatedPiecePositions(null);
+  };
 
   const goToMove = (moveIndex: number) => {
     setIndex(moveIndex + 1);
@@ -143,7 +142,10 @@ export default function Page() {
     setAnimatedPiecePositions(null);
   };
 
+  const canMakeMoves = index == boardHistory.current.length - 1;
+
   const movePiece = (move: Move, promoteTo?: Exclude<PieceType, "k" | "p">) => {
+    if (!canMakeMoves) return;
     let moveNotation = chess.move(move.from, move.to, promoteTo)!;
 
     setBoard(chess.board);
@@ -171,7 +173,7 @@ export default function Page() {
           <div className="aspect-square w-fit h-fit rounded-md overflow-hidden border-neutral-900 border-4">
             <ChessBoard
               board={board}
-              canMakeMoves={index == boardHistory.current.length - 1}
+              canMakeMoves={canMakeMoves}
               flip={flip}
               pieceSet={pieceSet}
               lastMove={lastMove}
@@ -277,7 +279,7 @@ export default function Page() {
               </DialogContent>
             </Dialog>
             <div>
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" onClick={undo}>
                 <Undo2 className="w-5 h-5" />
               </Button>
             </div>
