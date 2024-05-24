@@ -66,6 +66,18 @@ img {
 }
 
 @layer utilities {
+  .move-select-grid-lg {
+    display: grid;
+    grid-template-columns: 7rem 7rem;
+    column-gap: 2rem;
+  }
+
+  .move-select-grid-sm {
+    display: grid;
+    grid-template-columns: 4rem 4rem;
+    column-gap: 1rem;
+  }
+
   .scale-transition {
     transition: transform 0.1s;
   }
