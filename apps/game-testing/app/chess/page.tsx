@@ -187,10 +187,10 @@ export default function Page() {
           <div className="grow h-full">
             <Card className="h-full">
               <CardContent className="h-full">
-                <div className="flex flex-col h-full">
+                <div className="flex flex-col justify-between h-full">
                   <div
                     ref={moveListDivRef}
-                    className="flex flex-col gap-4 pb-4 mt-6 grow max-h-[700px] overflow-auto"
+                    className="flex flex-col gap-4 pb-4 mt-6 mb-4 max-h-[300px] lg:max-h-[690px] overflow-auto"
                   >
                     <MoveList
                       currentIndex={index}
