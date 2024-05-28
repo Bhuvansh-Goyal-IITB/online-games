@@ -1,6 +1,7 @@
+import { djb2Hash } from "./djb2";
 import { Piece } from "./piece";
 import { Player } from "./player";
-import { Move, PieceInfo, PieceType } from "./types";
+import { Color, Move, PieceInfo, PieceType } from "./types";
 
 export class Chess {
   private _white: Player;
@@ -18,7 +19,17 @@ export class Chess {
     | "agreement"
     | "repetetion" = "";
 
-  private _repetetionHistory: string[] = [];
+  private _boardHistory: {
+    repetetionHash: number;
+    pieceList: {
+      id: string;
+      pieceType: PieceType;
+      color: Color;
+      position: number;
+    }[];
+    fen: string;
+  }[] = [];
+  private _moveHistory: { move: number[]; notation: string }[] = [];
 
   constructor(fen?: string) {
     this._fen =
@@ -30,78 +41,67 @@ export class Chess {
     this._current = this._fen.split(" ")[1]! == "w" ? this._white : this._black;
 
     this._current.generate_valid_moves(this._white, this._black, this._fen);
-    this.pushToRepetetionHistory();
+    this.pushToHistory();
+  }
+
+  get validMoves() {
+    let validMoves: number[][] = [];
+    this._current.pieces.forEach((piece) => {
+      piece.valid_moves.forEach((move) => {
+        validMoves.push([piece.position, move]);
+      });
+    });
+    return validMoves;
   }
 
   get outcome() {
     return [this._outcome, this._outcomeMethod];
   }
 
-  get board() {
-    let pieces: PieceInfo[] = [];
+  get fen() {
+    return this._fen;
+  }
 
-    this._white.pieces.forEach((piece) => {
-      pieces.push({
-        pieceType: piece.piece_type,
-        position: piece.position,
-        color: piece.color,
-        id: piece.id,
-      });
-    });
+  private initializeBoard(fen: string) {
+    this._fen = fen;
+    this._white = new Player(fen, "w");
+    this._black = new Player(fen, "b");
 
-    this._black.pieces.forEach((piece) => {
-      pieces.push({
-        pieceType: piece.piece_type,
-        position: piece.position,
-        color: piece.color,
-        id: piece.id,
-      });
-    });
+    this._current = fen.split(" ")[1]! == "w" ? this._white : this._black;
+  }
 
-    let validMoves: Move[] = [];
-
-    const currentColor = this._current.color;
-
-    this._current.pieces.forEach((piece) => {
-      piece.valid_moves.forEach((move) => {
-        let isPromoting = false;
-
-        if (piece.piece_type == "p") {
-          if (piece.color == "w" && Math.floor(move / 8) == 0) {
-            isPromoting = true;
-          } else if (piece.color == "b" && Math.floor(move / 8) == 7) {
-            isPromoting = true;
-          }
-        }
-
-        validMoves.push({
-          from: piece.position,
-          to: move,
-          isCapturing:
-            move == Chess.algebraic_to_position(this.fen.split(" ")[3]!) ||
-            (currentColor == "w"
-              ? (this._black.bitBoard & (1n << BigInt(63 - move))) != 0n
-              : (this._white.bitBoard & (1n << BigInt(63 - move))) != 0n),
-          isCastling:
-            piece.piece_type == "k" && Math.abs(piece.position - move) == 2,
-          isPromoting,
-        });
-      });
-    });
-
+  getBoardInfoAt(index: number) {
+    let boardInfo = this._boardHistory.at(index);
+    if (!boardInfo) {
+      throw Error("Index out of bounds");
+    }
     return {
-      currentTurn: this._current.color,
-      isInCheck: this._current.is_in_check(
-        this._current.color == "w" ? this._black : this._white
-      ),
-      validMoves,
-      pieces,
-      fen: this.fen,
+      pieceList: boardInfo.pieceList,
+      fen: boardInfo.fen,
     };
   }
 
-  get fen() {
-    return this._fen;
+  getMoveAt(index: number) {
+    let move = this._moveHistory.at(index);
+    if (!move) {
+      throw Error("Index out of bounds");
+    }
+    return move;
+  }
+
+  getMoveNotations() {
+    return this._moveHistory.map((move) => move.notation);
+  }
+
+  undo() {
+    if (this._boardHistory.length <= 1) return;
+
+    this._boardHistory.pop();
+    this._moveHistory.pop();
+
+    this.initializeBoard(this._boardHistory.at(-1)!.fen);
+
+    this._current.generate_valid_moves(this._white, this._black, this._fen);
   }
 
   move(from: number, to: number, promote_to?: Exclude<PieceType, "k" | "p">) {
@@ -204,13 +204,15 @@ export class Chess {
       }
     }
 
-    this.pushToRepetetionHistory();
+    this.pushToHistory();
     this.checkOutcome();
-
-    return notation;
+    this._moveHistory.push({
+      move: [from, to],
+      notation,
+    });
   }
 
-  private pushToRepetetionHistory() {
+  private pushToHistory() {
     let repetetionHistory = this.fen.split(" ").slice(0, 3).join(" ");
 
     const enPassant = this.fen.split(" ")[3]!;
@@ -257,7 +259,36 @@ export class Chess {
       }
     }
 
-    this._repetetionHistory.push(repetetionHistory);
+    const pieceList: {
+      id: string;
+      pieceType: PieceType;
+      color: Color;
+      position: number;
+    }[] = [];
+
+    this._white.pieces.forEach((piece) => {
+      pieceList.push({
+        id: piece.id,
+        pieceType: piece.piece_type,
+        color: piece.color,
+        position: piece.position,
+      });
+    });
+
+    this._black.pieces.forEach((piece) => {
+      pieceList.push({
+        id: piece.id,
+        pieceType: piece.piece_type,
+        color: piece.color,
+        position: piece.position,
+      });
+    });
+
+    this._boardHistory.push({
+      repetetionHash: djb2Hash(repetetionHistory),
+      pieceList,
+      fen: this._fen,
+    });
   }
 
   private checkOutcome() {
@@ -289,8 +320,9 @@ export class Chess {
     }
 
     let frequency = 0;
-    this._repetetionHistory.forEach((position) => {
-      if (position == this._repetetionHistory.at(-1)) frequency++;
+    this._boardHistory.forEach(({ repetetionHash }) => {
+      if (repetetionHash == this._boardHistory.at(-1)!.repetetionHash)
+        frequency++;
     });
 
     if (frequency == 3) {

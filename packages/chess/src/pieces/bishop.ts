@@ -2,7 +2,7 @@ import { Piece } from "../piece";
 import { Color } from "../types";
 
 export class Bishop extends Piece {
-  constructor(position: number, color: Color, id: number) {
+  constructor(position: number, color: Color, id?: string) {
     super(position, color, "b", id);
   }
 

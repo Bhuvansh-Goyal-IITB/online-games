@@ -1,16 +1,20 @@
 import { Chess } from "./chess";
 import { Player } from "./player";
 import { Color, PieceType } from "./types";
+import { v4 as uuidv4 } from "uuid";
 
 export abstract class Piece {
   private _valid_moves: number[] = [];
+  private _id: string;
 
   constructor(
     private _position: number,
     private _color: Color,
     private _piece_type: PieceType,
-    private _id: number
-  ) {}
+    id?: string
+  ) {
+    this._id = id ?? uuidv4();
+  }
 
   get id() {
     return this._id;

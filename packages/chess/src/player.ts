@@ -52,7 +52,6 @@ export class Player {
   private initialize_pieces(fen: string) {
     let fen_rows = fen.split(" ")[0]!.split("/");
 
-    let piece_id = this.color == "w" ? 0 : 16;
     fen_rows.forEach((row, index) => {
       let position = index * 8;
       for (let i = 0; i < row.length; i++) {
@@ -66,26 +65,24 @@ export class Player {
           ) {
             switch (char.toLowerCase()) {
               case "k":
-                this.pieces.push(new King(position, this.color, piece_id));
+                this.pieces.push(new King(position, this.color));
                 break;
               case "q":
-                this.pieces.push(new Queen(position, this.color, piece_id));
+                this.pieces.push(new Queen(position, this.color));
                 break;
               case "r":
-                this.pieces.push(new Rook(position, this.color, piece_id));
+                this.pieces.push(new Rook(position, this.color));
                 break;
               case "b":
-                this.pieces.push(new Bishop(position, this.color, piece_id));
+                this.pieces.push(new Bishop(position, this.color));
                 break;
               case "n":
-                this.pieces.push(new Knight(position, this.color, piece_id));
+                this.pieces.push(new Knight(position, this.color));
                 break;
               case "p":
-                this.pieces.push(new Pawn(position, this.color, piece_id));
+                this.pieces.push(new Pawn(position, this.color));
                 break;
             }
-
-            piece_id++;
           }
 
           position++;
@@ -149,13 +146,13 @@ export class Player {
         if (piece!.position == _piece.position) {
           switch (promote_to) {
             case "n":
-              return new Knight(to, this.color, piece!.id);
+              return new Knight(to, this.color, _piece.id);
             case "b":
-              return new Bishop(to, this.color, piece!.id);
+              return new Bishop(to, this.color, _piece.id);
             case "r":
-              return new Rook(to, this.color, piece!.id);
+              return new Rook(to, this.color, _piece.id);
             case "q":
-              return new Queen(to, this.color, piece!.id);
+              return new Queen(to, this.color, _piece.id);
           }
         }
 
