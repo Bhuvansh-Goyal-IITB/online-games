@@ -291,7 +291,7 @@ function ChessBoard({
   return (
     <>
       <div
-        className="relative max-w-[800px] max-h-[800px]"
+        className="relative max-w-[760px] max-h-[760px]"
         onDragStart={(e) => {
           e.preventDefault();
         }}

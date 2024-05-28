@@ -145,7 +145,7 @@ export default function Page() {
                 <CardTitle>Move History</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col h-full grow">
-                <div className="flex flex-col gap-4 pb-4 px-3 mb-4 grow max-h-[300px] lg:max-h-[640px] overflow-auto">
+                <div className="flex flex-col gap-4 pb-4 px-3 mb-4 grow max-h-[300px] lg:max-h-[600px] overflow-auto">
                   <div>
                     <MoveList
                       currentIndex={index}
