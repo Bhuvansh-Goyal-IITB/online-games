@@ -1,28 +1,106 @@
 "use client";
 
-import { Board, Color, Move, PieceInfo, PieceType } from "@repo/chess";
+import { Color, PieceType } from "@repo/chess";
+import Piece from "./Piece";
+import { Button } from "@ui/components/ui/button";
 import {
   Dispatch,
   MouseEventHandler,
   SetStateAction,
   memo,
   useEffect,
+  useReducer,
+  useRef,
   useState,
 } from "react";
-import Piece from "./Piece";
 import { PieceSet } from "./types";
 
-function Hover({ position, flip }: { position: number; flip: boolean }) {
-  const showPosition = flip ? 63 - position : position;
-
+function PromotionMenu({
+  currentTurn,
+  promotionMove,
+  pieceSet,
+  flip,
+  setPromotionMove,
+  move,
+}: {
+  currentTurn: Color;
+  promotionMove: number[];
+  flip: boolean;
+  pieceSet: PieceSet;
+  setPromotionMove: Dispatch<SetStateAction<number[] | null>>;
+  move: (
+    from: number,
+    to: number,
+    promoteTo?: Exclude<PieceType, "k" | "p">
+  ) => void;
+}) {
+  const graphicalPromotionPosition = flip
+    ? 63 - promotionMove[1]!
+    : promotionMove[1]!;
   return (
     <div
-      style={{
-        left: `${((showPosition % 8) * 100) / 8}%`,
-        top: `${(Math.floor(showPosition / 8) * 100) / 8}%`,
+      className="w-full h-full bg-black bg-opacity-50"
+      onClick={() => {
+        setPromotionMove(null);
       }}
-      className="absolute w-[12.5%] h-[12.5%] z-10 pointer-events-none bg-opacity-10 bg-neutral-950"
-    />
+    >
+      <div
+        style={{
+          left: `${((graphicalPromotionPosition % 8) * 100) / 8}%`,
+        }}
+        className={`absolute flex flex-col bg-white shadow-md shadow-black ${currentTurn == "w" ? (!flip ? "top-0" : "bottom-0") : !flip ? "bottom-0" : "top-0"} w-[12.5%] h-[50%]`}
+      >
+        <div
+          onClick={() => {
+            setPromotionMove(null);
+            move(promotionMove[0]!, promotionMove[1]!, "q");
+          }}
+        >
+          <img
+            className="w-[95%] h-[95%] hover:cursor-pointer"
+            src={`/${pieceSet}/${currentTurn}/q.svg`}
+            alt="chess piece"
+          />
+        </div>
+        <div
+          onClick={() => {
+            setPromotionMove(null);
+            move(promotionMove[0]!, promotionMove[1]!, "r");
+          }}
+        >
+          <img
+            className="w-[95%] h-[95%] hover:cursor-pointer"
+            src={`/${pieceSet}/${currentTurn}/r.svg`}
+            alt="chess piece"
+          />
+        </div>
+        <div
+          onClick={() => {
+            setPromotionMove(null);
+            move(promotionMove[0]!, promotionMove[1]!, "b");
+          }}
+        >
+          <img
+            className="w-[95%] h-[95%] hover:cursor-pointer"
+            src={`/${pieceSet}/${currentTurn}/b.svg`}
+            alt="chess piece"
+          />
+        </div>
+
+        <div
+          onClick={() => {
+            setPromotionMove(null);
+            move(promotionMove[0]!, promotionMove[1]!, "n");
+          }}
+        >
+          <img
+            className="w-[95%] h-[95%] hover:cursor-pointer"
+            src={`/${pieceSet}/${currentTurn}/n.svg`}
+            alt="chess piece"
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -46,9 +124,13 @@ function ValidMoveSquare({
       className="absolute flex justify-center items-center w-[12.5%] h-[12.5%] z-0 scale-transition"
     >
       {isCapturing ? (
-        <div className="w-full h-full opacity-40">
-          <img className="w-full h-full" src="/capture.svg" alt="capture" />
-        </div>
+        <div
+          className="w-full h-full"
+          style={{
+            background:
+              "radial-gradient(transparent 0%, transparent 80%, rgba(0, 0, 0, 0.4) 80%)",
+          }}
+        />
       ) : (
         <div className="w-[30%] h-[30%] rounded-full bg-[#000] bg-opacity-40"></div>
       )}
@@ -56,7 +138,27 @@ function ValidMoveSquare({
   );
 }
 
-function MovedPieceSquare({
+function SelectedPiece({
+  position,
+  flip,
+}: {
+  position: number;
+  flip: boolean;
+}) {
+  const graphicalPosition = flip ? 63 - position : position;
+
+  return (
+    <div
+      style={{
+        left: `${((graphicalPosition % 8) * 100) / 8}%`,
+        top: `${(Math.floor(graphicalPosition / 8) * 100) / 8}%`,
+      }}
+      className="absolute w-[12.5%] h-[12.5%] z-0 bg-yellow-500 bg-opacity-60"
+    />
+  );
+}
+
+function LastMove({
   fromPosition,
   toPosition,
   flip,
@@ -88,26 +190,6 @@ function MovedPieceSquare({
   );
 }
 
-function SelectedPieceSquare({
-  position,
-  flip,
-}: {
-  position: number;
-  flip: boolean;
-}) {
-  const showPosition = flip ? 63 - position : position;
-
-  return (
-    <div
-      style={{
-        left: `${((showPosition % 8) * 100) / 8}%`,
-        top: `${(Math.floor(showPosition / 8) * 100) / 8}%`,
-      }}
-      className="absolute w-[12.5%] h-[12.5%] z-0 bg-yellow-500 bg-opacity-60"
-    />
-  );
-}
-
 function Check({ position, flip }: { position: number; flip: boolean }) {
   const showPosition = flip ? 63 - position : position;
 
@@ -125,138 +207,77 @@ function Check({ position, flip }: { position: number; flip: boolean }) {
   );
 }
 
-interface PiecesProps {
-  board: Board;
-  flip: boolean;
-  pieceSet: PieceSet;
-  promotionMove: Move | null;
-  animatedPiecePositions: number[] | null;
-  setHoverPosition: Dispatch<SetStateAction<number | null>>;
-  setSelectedPiece: Dispatch<SetStateAction<PieceInfo | null>>;
-  setAnimatedPiecePositions: Dispatch<SetStateAction<number[] | null>>;
-  setPromotionMove: Dispatch<SetStateAction<Move | null>>;
-  movePiece: (move: Move, promoteTo?: Exclude<PieceType, "k" | "p">) => void;
-}
-
-const Pieces = memo(
-  ({
-    board,
-    promotionMove,
-    pieceSet,
-    animatedPiecePositions,
-    flip,
-    setHoverPosition,
-    setSelectedPiece,
-    setAnimatedPiecePositions,
-    setPromotionMove,
-    movePiece,
-  }: PiecesProps) => {
-    return (
-      <>
-        {board.pieces.map((piece) => {
-          let { id, position, color } = piece;
-          let pieceValidMoves = board.validMoves.filter(
-            (move) => position == move.from
-          );
-
-          return (
-            <Piece
-              key={id}
-              pieceSet={pieceSet}
-              piece={piece}
-              promotePosition={
-                promotionMove
-                  ? promotionMove.from == position
-                    ? promotionMove.to
-                    : null
-                  : null
-              }
-              setHoverPosition={setHoverPosition}
-              setSelectedPiece={setSelectedPiece}
-              setAnimatedPiecePositions={setAnimatedPiecePositions}
-              setPromotionMove={setPromotionMove}
-              validMoves={pieceValidMoves}
-              flip={flip}
-              movePiece={movePiece}
-              animate={
-                animatedPiecePositions != null &&
-                animatedPiecePositions.includes(position)
-              }
-            />
-          );
-        })}
-      </>
-    );
-  },
-  (prev, next) => {
-    return (
-      prev.board == next.board &&
-      prev.flip == next.flip &&
-      prev.pieceSet == next.pieceSet &&
-      prev.promotionMove == next.promotionMove &&
-      prev.animatedPiecePositions == next.animatedPiecePositions
-    );
-  }
-);
-
 function ChessBoard({
-  board,
-  canMakeMoves,
+  pieceList,
+  enPassantPosition,
+  currentTurn,
   flip,
   lastMove,
-  pieceSet,
-  animatedPiecePositions,
-  movePiece,
-  setAnimatedPiecePositions,
+  dontAnimate,
+  validMoves,
+  canMakeMoves,
+  move,
 }: {
-  board: Board;
-  pieceSet: PieceSet;
-  canMakeMoves: boolean;
+  pieceList: {
+    id: string;
+    pieceType: PieceType;
+    color: Color;
+    position: number;
+  }[];
+  enPassantPosition: number | null;
+  currentTurn: Color;
   flip: boolean;
-  lastMove: Move | null;
-  animatedPiecePositions: number[] | null;
-  movePiece: (move: Move, promoteTo?: Exclude<PieceType, "k" | "p">) => void;
-  setAnimatedPiecePositions: Dispatch<SetStateAction<number[] | null>>;
+  lastMove: { move: number[]; notation: string } | null;
+  validMoves: number[][];
+  dontAnimate: boolean;
+  canMakeMoves: boolean;
+  move: (
+    from: number,
+    to: number,
+    promoteTo?: Exclude<PieceType, "k" | "p">
+  ) => void;
 }) {
-  const [promotionMove, setPromotionMove] = useState<Move | null>(null);
-  const [hoverPosition, setHoverPosition] = useState<number | null>(null);
-  const [selectedPiece, setSelectedPiece] = useState<PieceInfo | null>(null);
+  const [promotionMove, setPromotionMove] = useState<number[] | null>(null);
+  const [selectedPiece, setSelectedPiece] = useState<{
+    id: string;
+    pieceType: PieceType;
+    color: Color;
+    position: number;
+  } | null>(null);
 
   const handleMouseDown: MouseEventHandler<HTMLDivElement> = (event) => {
     const { top, left, right } = event.currentTarget.getBoundingClientRect();
 
     const pieceWidth = Math.abs(right - left) / 8;
 
-    let col = Math.floor((event.clientX - left) / pieceWidth);
-    let row = Math.floor((event.clientY - top) / pieceWidth);
+    const col = Math.floor((event.clientX - left) / pieceWidth);
+    const row = Math.floor((event.clientY - top) / pieceWidth);
 
-    let clickPosition = flip ? 63 - (row * 8 + col) : row * 8 + col;
+    const graphicalMouseUpPosition = row * 8 + col;
+    const mouseUpPosition = flip
+      ? 63 - graphicalMouseUpPosition
+      : graphicalMouseUpPosition;
 
     if (0 <= row && row <= 7 && 0 <= col && col <= 7 && selectedPiece) {
-      const move = board.validMoves
-        .filter((move) => selectedPiece.position == move.from)
-        .find((move) => move.to == clickPosition);
+      const selectedMove = validMoves
+        .filter((move) => move[0] == selectedPiece.position)
+        .find((move) => move[1] == mouseUpPosition);
 
-      if (move) {
-        if (move.isPromoting) {
-          setPromotionMove(move);
+      if (selectedMove) {
+        if (
+          selectedPiece.pieceType == "p" &&
+          ((selectedPiece.color == "w" && mouseUpPosition <= 7) ||
+            (selectedPiece.color == "b" && mouseUpPosition >= 56))
+        ) {
+          setPromotionMove([selectedMove[0]!, selectedMove[1]!]);
           setSelectedPiece(null);
-          return;
         } else {
-          movePiece(move);
+          move(selectedMove[0]!, selectedMove[1]!);
+          setSelectedPiece(null);
         }
-
-        if (move.isCastling) {
-          move.from > move.to
-            ? setAnimatedPiecePositions([move.to + 1, move.to])
-            : setAnimatedPiecePositions([move.to - 1, move.to]);
-        } else {
-          setAnimatedPiecePositions([move.to]);
-        }
-
-        setSelectedPiece(null);
       } else if (
-        !board.pieces.map((piece) => piece.position).includes(clickPosition)
+        pieceList.find((piece) => piece.position == mouseUpPosition) ==
+        undefined
       ) {
         setSelectedPiece(null);
       }
@@ -265,7 +286,7 @@ function ChessBoard({
 
   useEffect(() => {
     setSelectedPiece(null);
-  }, [board]);
+  }, [pieceList]);
 
   return (
     <>
@@ -279,57 +300,74 @@ function ChessBoard({
         }}
         onMouseDown={handleMouseDown}
       >
+        {promotionMove && (
+          <div className="absolute w-full h-full z-[3]">
+            <PromotionMenu
+              currentTurn={currentTurn}
+              flip={flip}
+              promotionMove={promotionMove}
+              move={move}
+              pieceSet="cardinal"
+              setPromotionMove={setPromotionMove}
+            />
+          </div>
+        )}
         <img
           className="w-full h-full z-0"
           src={flip ? "/board-flip.svg" : "/board.svg"}
         />
-        {selectedPiece && (
-          <SelectedPieceSquare position={selectedPiece.position} flip={flip} />
-        )}
-        {hoverPosition && <Hover position={hoverPosition} flip={flip} />}
-        {selectedPiece &&
-          canMakeMoves &&
-          board.validMoves
-            .filter((move) => move.from == selectedPiece.position)
-            .map(({ from, to, isCapturing }) => (
-              <ValidMoveSquare
-                key={from.toString() + "," + to.toString()}
-                position={to}
-                flip={flip}
-                isCapturing={isCapturing}
-              />
-            ))}
-        {board.isInCheck && (
+        {(lastMove?.notation.includes("+") ||
+          lastMove?.notation.includes("#")) && (
           <Check
             position={
-              board.pieces.find(
-                (piece) =>
-                  piece.color == board.currentTurn && piece.pieceType == "k"
+              pieceList.find(
+                (piece) => piece.color == currentTurn && piece.pieceType == "k"
               )!.position
             }
             flip={flip}
           />
         )}
+        {selectedPiece &&
+          canMakeMoves &&
+          validMoves
+            .filter((move) => move[0]! == selectedPiece.position)
+            .map((move) => (
+              <ValidMoveSquare
+                position={move[1]!}
+                isCapturing={
+                  move[1]! == enPassantPosition ||
+                  pieceList.find((piece) => piece.position == move[1]!) !=
+                    undefined
+                }
+                flip={flip}
+              />
+            ))}
+        {selectedPiece && (
+          <SelectedPiece position={selectedPiece.position} flip={flip} />
+        )}
         {lastMove && (
-          <MovedPieceSquare
-            fromPosition={lastMove.from}
-            toPosition={lastMove.to}
+          <LastMove
+            fromPosition={lastMove.move[0]!}
+            toPosition={lastMove.move[1]!}
             flip={flip}
           />
         )}
-
-        <Pieces
-          board={board}
-          animatedPiecePositions={animatedPiecePositions}
-          pieceSet={pieceSet}
-          setAnimatedPiecePositions={setAnimatedPiecePositions}
-          setPromotionMove={setPromotionMove}
-          setHoverPosition={setHoverPosition}
-          setSelectedPiece={setSelectedPiece}
-          promotionMove={promotionMove}
-          flip={flip}
-          movePiece={movePiece}
-        />
+        {pieceList.map((piece) => (
+          <Piece
+            key={piece.id}
+            piece={piece}
+            dontAnimate={dontAnimate}
+            pieceSet="cardinal"
+            validMoves={validMoves
+              .filter((move) => move[0] == piece.position)
+              .map((move) => move[1]!)}
+            flip={flip}
+            promotionMove={promotionMove}
+            setSelectedPiece={setSelectedPiece}
+            setPromotionMove={setPromotionMove}
+            move={move}
+          />
+        ))}
       </div>
     </>
   );
