@@ -333,6 +333,7 @@ function ChessBoard({
             .filter((move) => move[0]! == selectedPiece.position)
             .map((move) => (
               <ValidMoveSquare
+                key={selectedPiece.id + `${move[0]!} to ${move[1]!}`}
                 position={move[1]!}
                 isCapturing={
                   move[1]! == enPassantPosition ||
@@ -357,6 +358,7 @@ function ChessBoard({
             key={piece.id}
             piece={piece}
             dontAnimate={dontAnimate}
+            currentTurn={currentTurn}
             pieceSet="cardinal"
             validMoves={validMoves
               .filter((move) => move[0] == piece.position)

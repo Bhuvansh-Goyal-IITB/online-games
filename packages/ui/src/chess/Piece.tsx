@@ -14,87 +14,11 @@ import {
 } from "react";
 import { PieceSet } from "./types";
 
-function usePreviousPosition(piece: {
-  id: string;
-  pieceType: PieceType;
-  color: Color;
-  position: number;
-}) {
-  const [previousValue, setPreviousValue] = useState(piece.position);
-  const [valueBuffer, setValueBuffer] = useState<number | null>(null);
-  const [counter, setCounter] = useState<number>(0);
-
-  useLayoutEffect(() => {
-    if (valueBuffer == null) {
-      if (counter == 1) {
-        setValueBuffer(piece.position);
-      }
-    } else {
-      setPreviousValue(valueBuffer);
-      setValueBuffer(piece.position);
-    }
-
-    if (counter == 2) {
-      setCounter(0);
-    } else {
-      setCounter(counter + 1);
-    }
-  }, [piece]);
-
-  return previousValue;
-}
-
-interface AnimatedDivProps extends HTMLAttributes<HTMLDivElement> {
-  animate: boolean;
-  flip: boolean;
-  dontAnimate: boolean;
-  piece: {
-    id: string;
-    pieceType: PieceType;
-    color: Color;
-    position: number;
-  };
-}
-
-const AnimatedDiv = forwardRef<HTMLDivElement, AnimatedDivProps>(
-  ({ animate, dontAnimate, piece, flip, style, children, ...rest }, ref) => {
-    const previousPosition = usePreviousPosition(piece);
-
-    const showPreviousPosition = flip
-      ? 63 - previousPosition
-      : previousPosition;
-    const showPosition = flip ? 63 - piece.position : piece.position;
-
-    const animationKeyFrames = `
-      @keyframes tween-from-${showPreviousPosition}-to-${showPosition} {
-        0% { transform: translate(${((showPreviousPosition % 8) - (showPosition % 8)) * 100}%, ${
-          (Math.floor(showPreviousPosition / 8) -
-            Math.floor(showPosition / 8)) *
-          100
-        }%); }
-        100% { transform: translate(0%, 0%); }
-      }
-    `;
-    return (
-      <div
-        ref={ref}
-        style={{
-          animation: `tween-from-${showPreviousPosition}-to-${showPosition} 0.1s`,
-          ...style,
-        }}
-        {...rest}
-      >
-        {animate && !dontAnimate && <style>{animationKeyFrames}</style>}
-        {children}
-      </div>
-    );
-  }
-);
-
 function Piece({
   piece,
   pieceSet,
   validMoves,
+  currentTurn,
   flip,
   dontAnimate,
   promotionMove,
@@ -108,6 +32,7 @@ function Piece({
     color: Color;
     position: number;
   };
+  currentTurn: Color;
   pieceSet: PieceSet;
   validMoves: number[];
   dontAnimate: boolean;
@@ -353,17 +278,36 @@ function Piece({
     }
   }, []);
 
+  const [previousValue, setPreviousValue] = useState(position);
+  const [currentValue, setCurrentValue] = useState(position);
+
+  useLayoutEffect(() => {
+    setPreviousValue(currentValue);
+    setCurrentValue(position);
+  }, [position, currentTurn, dontAnimate]);
+
+  const showPreviousPosition = flip ? 63 - previousValue : previousValue;
+  const showPosition = flip ? 63 - position : position;
+
+  const animationKeyFrames = `
+      @keyframes tween-from-${showPreviousPosition}-to-${showPosition} {
+        0% { transform: translate(${((showPreviousPosition % 8) - (showPosition % 8)) * 100}%, ${
+          (Math.floor(showPreviousPosition / 8) -
+            Math.floor(showPosition / 8)) *
+          100
+        }%); }
+        100% { transform: translate(0%, 0%); }
+      }
+    `;
+
   return (
-    <AnimatedDiv
+    <div
       ref={divRef}
-      flip={flip}
       style={{
         left: `calc(${((graphicalPosition % 8) * 100) / 8}% + ${translate.x}px)`,
         top: `calc(${(Math.floor(graphicalPosition / 8) * 100) / 8}% + ${translate.y}px)`,
+        animation: `tween-from-${showPreviousPosition}-to-${showPosition} 0.1s`,
       }}
-      animate={animate}
-      dontAnimate={dontAnimate}
-      piece={piece}
       className={`absolute flex justify-center z-[1] items-center ${held ? "pointer-events-none" : ""} left-0 top-0 w-[12.5%] h-[12.5%] ${held || inPromotion ? "z-[2]" : ""}`}
       onDragStart={(e) => {
         e.preventDefault();
@@ -373,12 +317,15 @@ function Piece({
       }}
       onMouseDown={handleMouseDown}
     >
+      {animate && !dontAnimate && previousValue != position && (
+        <style>{animationKeyFrames}</style>
+      )}
       <img
         className="w-[95%] h-[95%] pointer-events-none"
         src={`/${pieceSet}/${color}/${pieceType}.svg`}
         alt="chess piece"
       />
-    </AnimatedDiv>
+    </div>
   );
 }
 
