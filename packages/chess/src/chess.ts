@@ -29,7 +29,11 @@ export class Chess {
     }[];
     fen: string;
   }[] = [];
-  private _moveHistory: { move: number[]; notation: string }[] = [];
+  private _moveHistory: {
+    move: number[];
+    notation: string;
+    capturedPiece: Piece | null;
+  }[] = [];
 
   constructor(fen?: string) {
     this._fen =
@@ -62,14 +66,6 @@ export class Chess {
     return this._fen;
   }
 
-  private initializeBoard(fen: string) {
-    this._fen = fen;
-    this._white = new Player(fen, "w");
-    this._black = new Player(fen, "b");
-
-    this._current = fen.split(" ")[1]! == "w" ? this._white : this._black;
-  }
-
   getBoardInfoAt(index: number) {
     let boardInfo = this._boardHistory.at(index);
     if (!boardInfo) {
@@ -86,7 +82,10 @@ export class Chess {
     if (!move) {
       throw Error("Index out of bounds");
     }
-    return move;
+    return {
+      move: move.move,
+      notation: move.notation,
+    };
   }
 
   getMoveNotations() {
@@ -97,11 +96,25 @@ export class Chess {
     if (this._boardHistory.length <= 1) return;
 
     this._boardHistory.pop();
-    this._moveHistory.pop();
+    const lastMove = this._moveHistory.pop();
 
-    this.initializeBoard(this._boardHistory.at(-1)!.fen);
+    this._current.color == "w"
+      ? this._black.undoMove(lastMove!.move, lastMove!.notation)
+      : this._white.undoMove(lastMove!.move, lastMove!.notation);
+
+    if (lastMove!.capturedPiece) {
+      this._current.addPiece(lastMove!.capturedPiece);
+    }
+
+    this._current.pieces.forEach((piece) => piece.clear_moves());
+
+    this._fen = this._boardHistory.at(-1)!.fen;
+    this._current = this._fen.split(" ")[1]! == "w" ? this._white : this._black;
 
     this._current.generate_valid_moves(this._white, this._black, this._fen);
+
+    this._outcome = "";
+    this._outcomeMethod = "";
   }
 
   move(from: number, to: number, promote_to?: Exclude<PieceType, "k" | "p">) {
@@ -209,6 +222,7 @@ export class Chess {
     this._moveHistory.push({
       move: [from, to],
       notation,
+      capturedPiece: capturedPiece ?? null,
     });
   }
 

@@ -163,6 +163,26 @@ export class Player {
     this.pieces.forEach((piece) => piece.clear_moves());
   }
 
+  addPiece(piece: Piece) {
+    this.pieces.push(piece);
+  }
+
+  undoMove(move: number[], notation: string) {
+    let piece = this.pieces.find((piece) => piece.position == move[1]!);
+
+    if (piece) {
+      piece.position = move[0]!;
+
+      if (notation == "O-O-O") {
+        let rook = this.pieces.find((piece) => piece.position == move[1]! + 1)!;
+        rook.position = this.color == "w" ? 56 : 0;
+      } else if (notation == "O-O") {
+        let rook = this.pieces.find((piece) => piece.position == move[1]! - 1)!;
+        rook.position = this.color == "w" ? 63 : 7;
+      }
+    }
+  }
+
   remove_piece(position: number) {
     let removed_piece: Piece | undefined;
     this._pieces = this.pieces.filter((piece) => {
