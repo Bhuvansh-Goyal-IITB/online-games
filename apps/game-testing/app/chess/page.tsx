@@ -9,6 +9,7 @@ import { Button } from "@ui/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@ui/components/ui/card";
@@ -36,7 +37,47 @@ import {
   Settings,
   Undo2,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+
+function GameOverScreen({
+  outcome,
+  outcomeMethod,
+  setGameOverScreen,
+}: {
+  outcome: string;
+  outcomeMethod: string;
+  setGameOverScreen: Dispatch<SetStateAction<boolean>>;
+}) {
+  return (
+    <>
+      <div
+        className="absolute overflow-hidden flex justify-center items-center left-0 top-0 w-full h-full z-[5] bg-black bg-opacity-50"
+        onClick={() => {
+          setGameOverScreen(false);
+        }}
+      >
+        <div className="flex flex-col">
+          <Card className="p-6">
+            <CardHeader>
+              <div className="flex flex-col gap-4 justify-center items-center">
+                <CardTitle className="text-4xl">
+                  {outcome == "w"
+                    ? "White Wins"
+                    : outcome == "b"
+                      ? "Black Wins"
+                      : "Draw"}
+                </CardTitle>
+                <CardDescription className="text-lg">
+                  by {outcomeMethod}
+                </CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+        </div>
+      </div>
+    </>
+  );
+}
 
 export default function Page() {
   const chessRef = useRef(new Chess());
@@ -46,6 +87,7 @@ export default function Page() {
   );
 
   const [pieceSet, setPieceSet] = useState<PieceSet>("cardinal");
+  const [gameOverScreen, setGameOverScreen] = useState(false);
 
   const [lastMove, setLastMove] = useState<{
     move: number[];
@@ -55,6 +97,8 @@ export default function Page() {
   const [dontAnimate, setDontAnimate] = useState(false);
   const [index, setIndex] = useState(0);
   const [movesMade, setMovesMade] = useState(0);
+
+  const [animationPreference, setAnimationPreference] = useState(true);
 
   const canMakeMoves = index == movesMade && chessRef.current.outcome[0] == "";
 
@@ -70,6 +114,10 @@ export default function Page() {
     setBoardInfo(chessRef.current.getBoardInfoAt(index + 1));
     setLastMove(chessRef.current.getMoveAt(index));
     setDontAnimate(false);
+
+    if (chessRef.current.outcome[0] != "") {
+      setGameOverScreen(true);
+    }
   };
 
   const handleFirst = () => {
@@ -77,12 +125,18 @@ export default function Page() {
     setBoardInfo(chessRef.current.getBoardInfoAt(0));
     setDontAnimate(true);
     setLastMove(null);
+    if (gameOverScreen) {
+      setGameOverScreen(false);
+    }
   };
   const handlePrevious = () => {
     if (index > 0) {
       setIndex((prev) => prev - 1);
       setBoardInfo(chessRef.current.getBoardInfoAt(index - 1));
       setDontAnimate(false);
+      if (gameOverScreen) {
+        setGameOverScreen(false);
+      }
       if (index == 1) {
         setLastMove(null);
       } else {
@@ -96,6 +150,9 @@ export default function Page() {
       setBoardInfo(chessRef.current.getBoardInfoAt(index + 1));
       setDontAnimate(false);
       setLastMove(chessRef.current.getMoveAt(index));
+      if (gameOverScreen) {
+        setGameOverScreen(false);
+      }
     }
   };
   const handleLast = () => {
@@ -107,6 +164,26 @@ export default function Page() {
       setLastMove(chessRef.current.getMoveAt(movesMade - 1));
     }
     setDontAnimate(true);
+
+    if (gameOverScreen) {
+      setGameOverScreen(false);
+    }
+  };
+
+  const handleUndo = () => {
+    if (movesMade > 0) {
+      chessRef.current.undo();
+      setIndex(movesMade - 1);
+      setMovesMade((prev) => prev - 1);
+      setBoardInfo(chessRef.current.getBoardInfoAt(movesMade - 1));
+      setDontAnimate(true);
+
+      if (movesMade == 1) {
+        setLastMove(null);
+      } else {
+        setLastMove(chessRef.current.getMoveAt(movesMade - 2));
+      }
+    }
   };
 
   const goToMove = (index: number) => {
@@ -114,13 +191,24 @@ export default function Page() {
     setBoardInfo(chessRef.current.getBoardInfoAt(index + 1));
     setLastMove(chessRef.current.getMoveAt(index));
     setDontAnimate(true);
+
+    if (gameOverScreen) {
+      setGameOverScreen(false);
+    }
   };
 
   return (
-    <div className="min-h-[100%] flex justify-center lg:items-center bg-neutral-600 p-4">
+    <div className="min-h-[100%] flex justify-center lg:items-center bg-background p-4">
       <div className="flex flex-col lg:flex-row gap-6">
         <div>
-          <div className="aspect-square w-fit h-fit rounded-md overflow-hidden border-neutral-900 border-4">
+          <div className="relative aspect-square w-fit h-fit rounded-md overflow-hidden">
+            {gameOverScreen && (
+              <GameOverScreen
+                setGameOverScreen={setGameOverScreen}
+                outcome={chessRef.current.outcome[0]!}
+                outcomeMethod={chessRef.current.outcome[1]!}
+              />
+            )}
             <ChessBoard
               pieceList={boardInfo.pieceList}
               enPassantPosition={
@@ -130,7 +218,7 @@ export default function Page() {
               }
               currentTurn={boardInfo.fen.split(" ")[1] as Color}
               move={move}
-              dontAnimate={dontAnimate}
+              dontAnimate={dontAnimate || !animationPreference}
               lastMove={lastMove}
               flip={flip}
               validMoves={chessRef.current.validMoves}
@@ -210,6 +298,17 @@ export default function Page() {
                     </div>
                   </div>
                   <div className="flex w-full justify-between">
+                    <span>Animations</span>
+                    <div>
+                      <Switch
+                        checked={animationPreference}
+                        onCheckedChange={(value) =>
+                          setAnimationPreference(value)
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="flex w-full justify-between">
                     <span>Piece Set</span>
                     <div>
                       <Select
@@ -234,7 +333,7 @@ export default function Page() {
               </DialogContent>
             </Dialog>
             <div>
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" onClick={handleUndo}>
                 <Undo2 className="w-5 h-5" />
               </Button>
             </div>
