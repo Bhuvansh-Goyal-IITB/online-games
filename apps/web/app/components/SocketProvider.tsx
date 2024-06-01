@@ -5,18 +5,20 @@ import {
   createContext,
   useContext,
   useEffect,
-  useRef,
   useState,
 } from "react";
+import useWebSocket, { SendMessage } from "react-use-websocket";
 
-interface SocketContext {
-  socket: WebSocket | null;
+interface IWebSocketContext {
+  sendMessage: SendMessage;
   message: string | null;
 }
 
-const WebSocketContext = createContext<SocketContext | undefined>(undefined);
+const WebSocketContext = createContext<IWebSocketContext | undefined>(
+  undefined
+);
 
-export function useWebSocket() {
+export function useSocketContext() {
   const context = useContext(WebSocketContext);
 
   if (!context) {
@@ -27,53 +29,44 @@ export function useWebSocket() {
 }
 
 export function SocketProvider({ children }: { children: ReactNode }) {
-  const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const { sendMessage, lastMessage } = useWebSocket(
+    process.env.NEXT_PUBLIC_BACKEND_URL!,
+    {
+      onOpen: () => {
+        const id = localStorage.getItem("id");
+        if (id) {
+          sendMessage(
+            JSON.stringify({
+              event: "connect",
+              data: { playerId: id },
+            })
+          );
+        } else {
+          sendMessage(
+            JSON.stringify({
+              event: "connect",
+              data: {},
+            })
+          );
+        }
+      },
+    }
+  );
 
   useEffect(() => {
-    const socket = new WebSocket(process.env.NEXT_PUBLIC_BACKEND_URL!);
-    setSocket(socket);
-
-    const handleOpen = () => {
-      const id = localStorage.getItem("id");
-      if (id) {
-        socket.send(
-          JSON.stringify({
-            event: "connect",
-            data: { playerId: id },
-          })
-        );
-      } else {
-        socket.send(
-          JSON.stringify({
-            event: "connect",
-            data: {},
-          })
-        );
-      }
-    };
-
-    const handleMessage = (event: MessageEvent) => {
-      setMessage(event.data);
-
-      const parsedData = JSON.parse(event.data);
+    if (lastMessage != null) {
+      const parsedData = JSON.parse(lastMessage.data);
 
       if (parsedData.event == "id") {
         localStorage.setItem("id", parsedData.data.id);
       }
-    };
-
-    socket.addEventListener("open", handleOpen);
-    socket.addEventListener("message", handleMessage);
-    return () => {
-      socket.removeEventListener("open", handleOpen);
-      socket.removeEventListener("message", handleMessage);
-      socket.close();
-    };
-  }, []);
+    }
+  }, [lastMessage]);
 
   return (
-    <WebSocketContext.Provider value={{ socket, message }}>
+    <WebSocketContext.Provider
+      value={{ sendMessage, message: lastMessage ? lastMessage.data : null }}
+    >
       {children}
     </WebSocketContext.Provider>
   );

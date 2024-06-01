@@ -1,6 +1,8 @@
 "use client";
 
-import { useWebSocket } from "@/app/components/SocketProvider";
+export const runtime = "edge";
+
+import { useSocketContext } from "@/app/components/SocketProvider";
 import { Chess, Color, Move, PieceType } from "@repo/chess";
 import ChessBoard from "@repo/ui/chess/ChessBoard";
 import MoveList from "@repo/ui/chess/MoveList";
@@ -81,7 +83,7 @@ function GameOverScreen({
 }
 
 export default function Page({ params }: { params: { id: string } }) {
-  const { socket, message } = useWebSocket();
+  const { sendMessage, message } = useSocketContext();
 
   const chessRef = useRef(new Chess());
 
@@ -130,7 +132,7 @@ export default function Page({ params }: { params: { id: string } }) {
     }
 
     if (promoteTo) {
-      socket?.send(
+      sendMessage(
         JSON.stringify({
           event: "move",
           data: {
@@ -140,7 +142,7 @@ export default function Page({ params }: { params: { id: string } }) {
         })
       );
     } else {
-      socket?.send(
+      sendMessage(
         JSON.stringify({
           event: "move",
           data: {
@@ -214,7 +216,7 @@ export default function Page({ params }: { params: { id: string } }) {
   };
 
   useEffect(() => {
-    socket?.send(
+    sendMessage(
       JSON.stringify({
         event: "join game",
         data: {
@@ -233,7 +235,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
         const moveList = moves.split(",");
 
-        if (moveList.length > 1) {
+        if (moveList.length > 1 && movesMade == 0) {
           moveList.forEach((move) => {
             const from = Chess.algebraic_to_position(move.substring(0, 2));
             const to = Chess.algebraic_to_position(move.substring(2));
@@ -275,7 +277,7 @@ export default function Page({ params }: { params: { id: string } }) {
         setMovesMade((prev) => prev + 1);
         setBoardInfo(chessRef.current.getBoardInfoAt(movesMade + 1));
         setLastMove(chessRef.current.getMoveAt(movesMade));
-        setDontAnimate(false);
+        setDontAnimate(true);
 
         if (chessRef.current.outcome[0] != "") {
           setGameOverScreen(true);

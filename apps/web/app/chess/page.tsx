@@ -1,12 +1,12 @@
 "use client";
 
 import { Button } from "@repo/ui/components/ui/button";
-import { useWebSocket } from "@/app/components/SocketProvider";
+import { useSocketContext } from "@/app/components/SocketProvider";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function Page() {
-  const { socket, message } = useWebSocket();
+  const { sendMessage, message } = useSocketContext();
   const router = useRouter();
 
   useEffect(() => {
@@ -25,15 +25,11 @@ export default function Page() {
       <div className="flex flex-col gap-4">
         <Button
           onClick={() => {
-            if (socket && socket.readyState == 1) {
-              socket.send(
-                JSON.stringify({
-                  event: "create game",
-                })
-              );
-            } else {
-              alert("Cannot connect to server");
-            }
+            sendMessage(
+              JSON.stringify({
+                event: "create game",
+              })
+            );
           }}
           size="lg"
         >
@@ -42,15 +38,11 @@ export default function Page() {
         <Button
           size="lg"
           onClick={() => {
-            if (socket && socket.readyState == 1) {
-              socket.send(
-                JSON.stringify({
-                  event: "random game",
-                })
-              );
-            } else {
-              alert("Cannot connect to server");
-            }
+            sendMessage(
+              JSON.stringify({
+                event: "random game",
+              })
+            );
           }}
         >
           Vs Random
