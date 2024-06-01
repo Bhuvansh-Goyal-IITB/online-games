@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div><input type="text" /></div>
+    <br />
+    <div><button onclick="onSend()">send</button></div>
+  </body>
+  <script>
+    const input = document.querySelector("input");
+
+    const socket = new WebSocket("ws://localhost:3000");
+
+    socket.onopen = () => {
+      const id = localStorage.getItem("id");
+      if (id) {
+        socket.send(
+          JSON.stringify({
+            event: "connect",
+            data: { playerId: id },
+          })
+        );
+      } else {
+        socket.send(
+          JSON.stringify({
+            event: "connect",
+            data: {},
+          })
+        );
+      }
+    };
+
+    socket.onmessage = (event) => {
+      console.log(event.data);
+
+      const parsedData = JSON.parse(event.data);
+
+      if (parsedData.event == "id") {
+        localStorage.setItem("id", parsedData.data.id);
+      }
+    };
+    function onSend() {
+      socket.send(input.value);
+    }
+  </script>
+</html>
