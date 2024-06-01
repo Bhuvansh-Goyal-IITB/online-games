@@ -48,6 +48,10 @@ export class Chess {
     this.pushToHistory();
   }
 
+  get currentTurn() {
+    return this._current.color;
+  }
+
   get validMoves() {
     let validMoves: number[][] = [];
     this._current.pieces.forEach((piece) => {
