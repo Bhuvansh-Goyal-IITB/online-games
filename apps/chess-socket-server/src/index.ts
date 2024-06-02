@@ -1,8 +1,9 @@
 import { WebSocket, WebSocketServer } from "ws";
 import { nanoid } from "nanoid";
 import { createServer } from "http";
+import "dotenv/config";
 
-const port = 3002;
+const port = process.env.PORT || 3000;
 
 const server = createServer();
 
