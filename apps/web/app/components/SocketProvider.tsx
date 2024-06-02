@@ -7,11 +7,12 @@ import {
   useEffect,
   useState,
 } from "react";
-import useWebSocket, { SendMessage } from "react-use-websocket";
+import useWebSocket, { ReadyState, SendMessage } from "react-use-websocket";
 
 interface IWebSocketContext {
   sendMessage: SendMessage;
   message: string | null;
+  readyState: ReadyState;
 }
 
 const WebSocketContext = createContext<IWebSocketContext | undefined>(
@@ -29,7 +30,7 @@ export function useSocketContext() {
 }
 
 export function SocketProvider({ children }: { children: ReactNode }) {
-  const { sendMessage, lastMessage } = useWebSocket(
+  const { sendMessage, lastMessage, readyState } = useWebSocket(
     process.env.NEXT_PUBLIC_BACKEND_URL!,
     {
       onOpen: () => {
@@ -65,7 +66,11 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
   return (
     <WebSocketContext.Provider
-      value={{ sendMessage, message: lastMessage ? lastMessage.data : null }}
+      value={{
+        sendMessage,
+        message: lastMessage ? lastMessage.data : null,
+        readyState,
+      }}
     >
       {children}
     </WebSocketContext.Provider>
