@@ -5,6 +5,9 @@ interface IChessContext {
   pieceList: PieceInfo[];
   lastMove: Omit<Move, "capturedPiece"> | null;
   validMoves: number[][];
+  movePiece: (moveString: string) => void;
+  previous: () => void;
+  next: () => void;
 }
 
 export const ChessContext = createContext<IChessContext | null>(null);
