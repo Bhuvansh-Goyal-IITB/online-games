@@ -21,19 +21,10 @@ export class Chess {
 
   private _boardHistory: {
     repetetionHash: number;
-    pieceList: {
-      id: string;
-      pieceType: PieceType;
-      color: Color;
-      position: number;
-    }[];
+    pieceList: PieceInfo[];
     fen: string;
   }[] = [];
-  private _moveHistory: {
-    move: number[];
-    notation: string;
-    capturedPiece: Piece | null;
-  }[] = [];
+  private _moveHistory: Move[] = [];
 
   constructor(fen?: string) {
     this._fen =
@@ -277,12 +268,7 @@ export class Chess {
       }
     }
 
-    const pieceList: {
-      id: string;
-      pieceType: PieceType;
-      color: Color;
-      position: number;
-    }[] = [];
+    const pieceList: PieceInfo[] = [];
 
     this._white.pieces.forEach((piece) => {
       pieceList.push({
