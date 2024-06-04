@@ -7,11 +7,21 @@ import { Button } from "@ui/components/ui/button";
 import { ChessContextProvider } from "@ui/chess/ChessContextProvider";
 
 const SideButtons: FC = () => {
-  const { previous, next } = useChessContext();
+  const { previous, next, setPreferences } = useChessContext();
   return (
     <div className="flex gap-2">
       <Button onClick={previous}>Prev</Button>
       <Button onClick={next}>Next</Button>
+      <Button
+        onClick={() => {
+          setPreferences((prev) => ({
+            ...prev,
+            flip: !prev.flip,
+          }));
+        }}
+      >
+        Flip
+      </Button>
     </div>
   );
 };

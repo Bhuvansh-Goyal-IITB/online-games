@@ -2,8 +2,13 @@ import { Chess } from "@repo/chess";
 import { useChessContext } from "./chessContext";
 
 export const PromotionMenu = () => {
-  const { setPromotionMove, currentTurn, promotionMove, movePiece } =
-    useChessContext();
+  const {
+    preferences: { flip },
+    currentTurn,
+    promotionMove,
+    movePiece,
+    setPromotionMove,
+  } = useChessContext();
 
   return (
     <>
@@ -16,9 +21,9 @@ export const PromotionMenu = () => {
         >
           <div
             style={{
-              left: `${((promotionMove[1]! % 8) * 100) / 8}%`,
+              left: `${(((flip ? 63 - promotionMove[1]! : promotionMove[1]!) % 8) * 100) / 8}%`,
             }}
-            className={`absolute flex flex-col bg-white shadow-md shadow-black ${currentTurn == "w" ? "top-0" : "bottom-0"} w-[12.5%] h-[50%]`}
+            className={`absolute flex flex-col bg-white shadow-md shadow-black ${currentTurn == "w" ? (!flip ? "top-0" : "bottom-0") : !flip ? "bottom-0" : "top-0"} w-[12.5%] h-[50%]`}
           >
             <div
               onClick={() => {

@@ -8,8 +8,9 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Chess, Color, Move, PieceType } from "@repo/chess";
+import { Chess, Color, Move, PieceInfo, PieceType } from "@repo/chess";
 import { ChessContext } from "./chessContext";
+import { PieceSet } from "./types";
 
 const parseMoveString = (moveString: string) => {
   const from = Chess.algebraic_to_position(moveString.substring(0, 2));
@@ -23,9 +24,22 @@ const parseMoveString = (moveString: string) => {
   return { from, to, promoteTo };
 };
 
+export interface IChessPreferences {
+  flip: boolean;
+  animations: boolean;
+  pieceSet: PieceSet;
+  showValidMoves: boolean;
+}
+
 export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
   const chessRef = useRef(new Chess());
 
+  const [preferences, setPreferences] = useState<IChessPreferences>({
+    flip: false,
+    animations: true,
+    pieceSet: "cardinal",
+    showValidMoves: true,
+  });
   const [fen, setFen] = useState(chessRef.current.getBoardInfoAt(0).fen);
   const [pieceList, setPieceList] = useState(
     chessRef.current.getBoardInfoAt(0).pieceList
@@ -36,6 +50,11 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
   );
   const [validMoves, setValidMoves] = useState(chessRef.current.validMoves);
   const [promotionMove, setPromotionMove] = useState<number[] | null>(null);
+
+  const [selectedPiece, setSelectedPiece] = useState<Omit<
+    PieceInfo,
+    "id"
+  > | null>(null);
 
   const currentTurn = fen.split(" ")[1]! as Color;
 
@@ -120,10 +139,14 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
       value={{
         pieceList,
         lastMove,
+        selectedPiece,
         validMoves,
         currentTurn,
         outcome,
         promotionMove,
+        preferences,
+        setSelectedPiece,
+        setPreferences,
         setPromotionMove,
         loadFen,
         loadMoves,
