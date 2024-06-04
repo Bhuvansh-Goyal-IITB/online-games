@@ -8,7 +8,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Chess, Move, PieceType } from "@repo/chess";
+import { Chess, Color, Move, PieceType } from "@repo/chess";
 import { ChessContext } from "./chessContext";
 
 const parseMoveString = (moveString: string) => {
@@ -26,6 +26,7 @@ const parseMoveString = (moveString: string) => {
 export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
   const chessRef = useRef(new Chess());
 
+  const [fen, setFen] = useState(chessRef.current.getBoardInfoAt(0).fen);
   const [pieceList, setPieceList] = useState(
     chessRef.current.getBoardInfoAt(0).pieceList
   );
@@ -34,6 +35,8 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
     null
   );
   const [validMoves, setValidMoves] = useState(chessRef.current.validMoves);
+
+  const currentTurn = fen.split(" ")[1]! as Color;
 
   const moveMultiple = (moveList: string[]) => {
     moveList.forEach((moveString) => {
@@ -48,7 +51,9 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
 
     const newIndex = index + moveList.length;
 
-    setPieceList(chessRef.current.getBoardInfoAt(newIndex).pieceList);
+    const boardInfo = chessRef.current.getBoardInfoAt(newIndex);
+    setFen(boardInfo.fen);
+    setPieceList(boardInfo.pieceList);
     setLastMove(chessRef.current.getMoveAt(newIndex - 1));
     setValidMoves(chessRef.current.validMoves);
     setIndex(newIndex);
@@ -60,7 +65,9 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const loadFen = (fen: string) => {
     chessRef.current = new Chess(fen);
-    setPieceList(chessRef.current.getBoardInfoAt(0).pieceList);
+    const boardInfo = chessRef.current.getBoardInfoAt(0);
+    setFen(boardInfo.fen);
+    setPieceList(boardInfo.pieceList);
     setLastMove(null);
     setValidMoves(chessRef.current.validMoves);
     setIndex(0);
@@ -73,7 +80,9 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const previous = () => {
     if (index > 0) {
-      setPieceList(chessRef.current.getBoardInfoAt(index - 1).pieceList);
+      const boardInfo = chessRef.current.getBoardInfoAt(index - 1);
+      setFen(boardInfo.fen);
+      setPieceList(boardInfo.pieceList);
 
       if (index == 1) {
         setLastMove(null);
@@ -88,7 +97,9 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
   const next = () => {
     const movesMade = chessRef.current.getMoveNotations().length;
     if (index < movesMade) {
-      setPieceList(chessRef.current.getBoardInfoAt(index + 1).pieceList);
+      const boardInfo = chessRef.current.getBoardInfoAt(index + 1);
+      setFen(boardInfo.fen);
+      setPieceList(boardInfo.pieceList);
       setLastMove(chessRef.current.getMoveAt(index));
 
       if (index + 1 == movesMade) {
@@ -103,6 +114,7 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
         pieceList,
         lastMove,
         validMoves,
+        currentTurn,
         movePiece,
         previous,
         next,

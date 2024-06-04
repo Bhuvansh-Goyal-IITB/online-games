@@ -1,7 +1,14 @@
 "use client";
 
 import { Chess, Color, PieceType } from "@repo/chess";
-import { FC, MouseEventHandler, useEffect, useRef, useState } from "react";
+import {
+  FC,
+  MouseEventHandler,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { useChessContext } from "./chessContext";
 
 interface PieceProps {
@@ -15,23 +22,27 @@ const generateAnimationKeyframes = (
   previousPosition: number,
   position: number
 ) => {
-  return `
+  return {
+    name: `tween-from-${previousPosition}-to-${position}`,
+    keyframes: `
+
       @keyframes tween-from-${previousPosition}-to-${position} {
         0% { transform: translate(${((previousPosition % 8) - (position % 8)) * 100}%, ${
           (Math.floor(previousPosition / 8) - Math.floor(position / 8)) * 100
         }%); }
         100% { transform: translate(0%, 0%); }
       }
-    `;
+    `,
+  };
 };
 
-const usePreviousPosition = (position: number) => {
+const usePreviousPosition = (position: number, currentTurn: Color) => {
   const [previousPosition, setPreviousPosition] = useState(position);
   const [currentPosition, setCurrentPosition] = useState(position);
   useEffect(() => {
     setPreviousPosition(currentPosition);
     setCurrentPosition(position);
-  }, [position]);
+  }, [position, currentTurn]);
 
   return previousPosition;
 };
@@ -55,15 +66,17 @@ export const Piece: FC<PieceProps> = ({
   pieceType,
   validMoves,
 }) => {
-  const { movePiece } = useChessContext();
+  const { currentTurn, movePiece } = useChessContext();
 
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
-  const [animationKeyframes, setAnimationKeyframes] = useState("");
+  // const [animationKeyframes, setAnimationKeyframes] = useState("");
   const [held, setHeld] = useState(false);
 
   const divRef = useRef<HTMLDivElement>(null);
 
-  const previousPosition = usePreviousPosition(position);
+  const [selfMove, setSelfMove] = useState(false);
+  const [animate, setAnimate] = useState(false);
+  const previousPosition = usePreviousPosition(position, currentTurn);
   const [pieceCoordinates, setPieceCoordinates] = useState({
     centerX: 0,
     centerY: 0,
@@ -122,10 +135,12 @@ export const Piece: FC<PieceProps> = ({
           ((color == "w" && mouseUpPosition <= 7) ||
             (color == "b" && mouseUpPosition >= 56))
         ) {
+          setSelfMove(true);
           movePiece(
             `${Chess.position_to_algebraic(position)}${Chess.position_to_algebraic(mouseUpPosition)}q`
           );
         } else {
+          setSelfMove(true);
           movePiece(
             `${Chess.position_to_algebraic(position)}${Chess.position_to_algebraic(mouseUpPosition)}`
           );
@@ -140,6 +155,16 @@ export const Piece: FC<PieceProps> = ({
     });
   };
 
+  useLayoutEffect(() => {
+    if (selfMove) {
+      setAnimate(false);
+    } else {
+      setAnimate(true);
+    }
+
+    setSelfMove(false);
+  }, [position]);
+
   useEffect(() => {
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
@@ -150,7 +175,17 @@ export const Piece: FC<PieceProps> = ({
     };
   }, [held, pieceCoordinates]);
 
-  useEffect(() => {});
+  let animationName = "";
+  let animationKeyframes = "";
+
+  if (animate) {
+    const { name, keyframes } = generateAnimationKeyframes(
+      previousPosition,
+      position
+    );
+    animationName = name;
+    animationKeyframes = keyframes;
+  }
 
   return (
     <div
@@ -159,6 +194,7 @@ export const Piece: FC<PieceProps> = ({
         transform: `translate(${translate.x}px, ${translate.y}px)`,
         left: `${((position % 8) * 100) / 8}%`,
         top: `${(Math.floor(position / 8) * 100) / 8}%`,
+        animation: `${animationName} 0.2s`,
       }}
       className="absolute flex justify-center items-center w-[12.5%] h-[12.5%]"
       onDragStart={(e) => {
@@ -169,6 +205,7 @@ export const Piece: FC<PieceProps> = ({
       }}
       onMouseDown={handleMouseDown}
     >
+      <style>{animationKeyframes}</style>
       <img src={`/cardinal/${color}/${pieceType}.svg`} />
     </div>
   );

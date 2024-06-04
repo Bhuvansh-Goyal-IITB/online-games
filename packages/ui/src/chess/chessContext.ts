@@ -1,10 +1,11 @@
-import { Move, PieceInfo } from "@repo/chess";
+import { Color, Move, PieceInfo } from "@repo/chess";
 import { createContext, useContext } from "react";
 
 interface IChessContext {
   pieceList: PieceInfo[];
   lastMove: Omit<Move, "capturedPiece"> | null;
   validMoves: number[][];
+  currentTurn: Color;
   movePiece: (moveString: string) => void;
   previous: () => void;
   next: () => void;
