@@ -66,17 +66,22 @@ export const Piece: FC<PieceProps> = ({
   pieceType,
   validMoves,
 }) => {
-  const { currentTurn, movePiece } = useChessContext();
+  const { currentTurn, promotionMove, movePiece, setPromotionMove } =
+    useChessContext();
 
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
-  // const [animationKeyframes, setAnimationKeyframes] = useState("");
+  const [promotionTranslate, setPromotionTranslate] = useState({ x: 0, y: 0 });
   const [held, setHeld] = useState(false);
 
   const divRef = useRef<HTMLDivElement>(null);
 
   const [selfMove, setSelfMove] = useState(false);
   const [animate, setAnimate] = useState(false);
+  const [promotionAnimate, setPromotionAnimate] = useState(false);
   const previousPosition = usePreviousPosition(position, currentTurn);
+  const [promotionPosition, setPromotionPosition] = useState<number | null>(
+    null
+  );
   const [pieceCoordinates, setPieceCoordinates] = useState({
     centerX: 0,
     centerY: 0,
@@ -135,10 +140,16 @@ export const Piece: FC<PieceProps> = ({
           ((color == "w" && mouseUpPosition <= 7) ||
             (color == "b" && mouseUpPosition >= 56))
         ) {
+          setPromotionAnimate(false);
+          setPromotionPosition(mouseUpPosition);
           setSelfMove(true);
-          movePiece(
-            `${Chess.position_to_algebraic(position)}${Chess.position_to_algebraic(mouseUpPosition)}q`
-          );
+          setPromotionTranslate({
+            x: ((mouseUpPosition % 8) - (position % 8)) * width,
+            y:
+              (Math.floor(mouseUpPosition / 8) - Math.floor(position / 8)) *
+              width,
+          });
+          setPromotionMove([position, mouseUpPosition]);
         } else {
           setSelfMove(true);
           movePiece(
@@ -146,6 +157,7 @@ export const Piece: FC<PieceProps> = ({
           );
         }
       }
+    } else {
     }
 
     setHeld(false);
@@ -154,6 +166,30 @@ export const Piece: FC<PieceProps> = ({
       y: 0,
     });
   };
+
+  useLayoutEffect(() => {
+    if (promotionMove && promotionMove[0] == position && !selfMove) {
+      const { width } = pieceCoordinates;
+
+      setPromotionAnimate(true);
+      setPromotionPosition(promotionMove[1]!);
+      setPromotionTranslate({
+        x: ((promotionMove[1]! % 8) - (position % 8)) * width,
+        y:
+          (Math.floor(promotionMove[1]! / 8) - Math.floor(position / 8)) *
+          width,
+      });
+    } else if (promotionMove == null && promotionPosition != null) {
+      if (position != promotionPosition) {
+        setPromotionAnimate(true);
+      }
+      setPromotionPosition(null);
+      setPromotionTranslate({
+        x: 0,
+        y: 0,
+      });
+    }
+  }, [promotionMove]);
 
   useLayoutEffect(() => {
     if (selfMove) {
@@ -191,12 +227,12 @@ export const Piece: FC<PieceProps> = ({
     <div
       ref={divRef}
       style={{
-        transform: `translate(${translate.x}px, ${translate.y}px)`,
-        left: `${((position % 8) * 100) / 8}%`,
-        top: `${(Math.floor(position / 8) * 100) / 8}%`,
+        transform: `translate(${promotionTranslate.x}px, ${promotionTranslate.y}px) ${held ? "scale(1.1)" : ""}`,
+        left: `calc(${((position % 8) * 100) / 8}% + ${translate.x}px) `,
+        top: `calc(${(Math.floor(position / 8) * 100) / 8}% + ${translate.y}px)`,
         animation: `${animationName} 0.2s`,
       }}
-      className="absolute flex justify-center items-center w-[12.5%] h-[12.5%]"
+      className={`absolute flex justify-center items-center w-[12.5%] h-[12.5%] ${held ? "z-[2] grow-animation" : ""} ${animate ? "z-[1]" : ""} ${promotionAnimate ? "translate-animation" : ""}`}
       onDragStart={(e) => {
         e.preventDefault();
       }}

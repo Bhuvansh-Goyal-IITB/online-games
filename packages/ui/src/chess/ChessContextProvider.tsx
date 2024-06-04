@@ -35,21 +35,26 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
     null
   );
   const [validMoves, setValidMoves] = useState(chessRef.current.validMoves);
+  const [promotionMove, setPromotionMove] = useState<number[] | null>(null);
 
   const currentTurn = fen.split(" ")[1]! as Color;
 
   const moveMultiple = (moveList: string[]) => {
-    moveList.forEach((moveString) => {
-      const { from, to, promoteTo } = parseMoveString(moveString);
+    let movesMade = 0;
+    for (let i = 0; i < moveList.length; i++) {
+      const { from, to, promoteTo } = parseMoveString(moveList[i]!);
 
       if (promoteTo) {
         chessRef.current.move(from, to, promoteTo);
       } else {
         chessRef.current.move(from, to);
       }
-    });
 
-    const newIndex = index + moveList.length;
+      movesMade++;
+      if (chessRef.current.outcome[0] != "") break;
+    }
+
+    const newIndex = index + movesMade;
 
     const boardInfo = chessRef.current.getBoardInfoAt(newIndex);
     setFen(boardInfo.fen);
@@ -108,6 +113,8 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
       setIndex((prev) => prev + 1);
     }
   };
+
+  const outcome = chessRef.current.outcome;
   return (
     <ChessContext.Provider
       value={{
@@ -115,6 +122,11 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
         lastMove,
         validMoves,
         currentTurn,
+        outcome,
+        promotionMove,
+        setPromotionMove,
+        loadFen,
+        loadMoves,
         movePiece,
         previous,
         next,

@@ -1,12 +1,17 @@
 import { Color, Move, PieceInfo } from "@repo/chess";
-import { createContext, useContext } from "react";
+import { Dispatch, SetStateAction, createContext, useContext } from "react";
 
 interface IChessContext {
   pieceList: PieceInfo[];
   lastMove: Omit<Move, "capturedPiece"> | null;
+  promotionMove: number[] | null;
   validMoves: number[][];
   currentTurn: Color;
+  outcome: string[];
+  setPromotionMove: Dispatch<SetStateAction<number[] | null>>;
   movePiece: (moveString: string) => void;
+  loadMoves: (moveList: string[]) => void;
+  loadFen: (fen: string) => void;
   previous: () => void;
   next: () => void;
 }

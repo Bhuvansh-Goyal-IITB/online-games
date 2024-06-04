@@ -49,6 +49,15 @@
   }
 }
 
+@layer utilities {
+  .translate-animation {
+    transition: transform 0.2s;
+  }
+  .grow-animation {
+    transition: transform 0.05s;
+  }
+}
+
 @layer base {
   * {
     @apply border-border box-border p-0 m-0;

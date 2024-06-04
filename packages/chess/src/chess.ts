@@ -214,11 +214,20 @@ export class Chess {
 
     this.pushToHistory();
     this.checkOutcome();
+
+    if (this._outcome != "") {
+      this.clearValidMoves();
+    }
+
     this._moveHistory.push({
       move: [from, to],
       notation,
       capturedPiece: capturedPiece ?? null,
     });
+  }
+
+  private clearValidMoves() {
+    this._current.pieces.forEach((piece) => piece.clear_moves());
   }
 
   private pushToHistory() {

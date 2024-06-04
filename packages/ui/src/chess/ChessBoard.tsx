@@ -1,13 +1,12 @@
 "use client";
 
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { useChessContext } from "./chessContext";
 import { Piece } from "./Piece";
+import { PromotionMenu } from "./PromotionMenu";
 
-interface ChessBoardProps {}
-
-export const ChessBoard: FC<ChessBoardProps> = () => {
-  const { pieceList, validMoves, lastMove } = useChessContext();
+export const ChessBoard: FC = () => {
+  const { pieceList, validMoves, outcome } = useChessContext();
 
   return (
     <div
@@ -20,7 +19,7 @@ export const ChessBoard: FC<ChessBoardProps> = () => {
       }}
     >
       <img src="/board.svg" />
-
+      <PromotionMenu />
       {pieceList.map((piece) => (
         <Piece
           key={piece.id}
