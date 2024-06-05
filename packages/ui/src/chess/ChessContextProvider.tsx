@@ -139,6 +139,7 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
       value={{
         pieceList,
         lastMove,
+        fen,
         selectedPiece,
         validMoves,
         currentTurn,

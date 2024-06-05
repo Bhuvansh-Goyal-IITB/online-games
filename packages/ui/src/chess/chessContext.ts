@@ -5,6 +5,7 @@ import { IChessPreferences } from "./ChessContextProvider";
 interface IChessContext {
   pieceList: PieceInfo[];
   lastMove: Omit<Move, "capturedPiece"> | null;
+  fen: string;
   selectedPiece: Omit<PieceInfo, "id"> | null;
   promotionMove: number[] | null;
   validMoves: number[][];
