@@ -25,9 +25,7 @@ export interface IChessPreferences {
 }
 
 export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
-  const chessRef = useRef(
-    new Chess("r1bqk2r/pppp1Npp/8/2bnP3/8/6K1/PB4PP/RN1Q3R b kq - 0 1")
-  );
+  const chessRef = useRef(new Chess());
 
   const [preferences, setPreferences] = useState<IChessPreferences>({
     flip: false,
