@@ -1,15 +1,9 @@
 import { Button } from "@ui/components/ui/button";
-import React from "react";
+import React, { FC } from "react";
+import { useChessContext } from "./chessContext";
 
-function MoveList({
-  moveList,
-  currentIndex,
-  goToMove,
-}: {
-  moveList: string[];
-  currentIndex: number;
-  goToMove: (moveIndex: number) => void;
-}) {
+const MoveList: FC = () => {
+  const { moveList, currentIndex, goToMove } = useChessContext();
   return (
     <div className="grid grid-cols-7 w-full h-full gap-2">
       {moveList.map((move, index) =>
@@ -40,6 +34,6 @@ function MoveList({
       )}
     </div>
   );
-}
+};
 
 export default MoveList;

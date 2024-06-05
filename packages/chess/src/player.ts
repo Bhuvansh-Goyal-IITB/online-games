@@ -171,14 +171,28 @@ export class Player {
     let piece = this.pieces.find((piece) => piece.position == move[1]!);
 
     if (piece) {
-      piece.position = move[0]!;
+      if (notation.includes("=")) {
+        this._pieces = this._pieces.map((_piece) => {
+          if (_piece == piece) {
+            return new Pawn(move[0]!, this._color, piece.id);
+          } else {
+            return _piece;
+          }
+        });
+      } else {
+        piece.position = move[0]!;
 
-      if (notation == "O-O-O") {
-        let rook = this.pieces.find((piece) => piece.position == move[1]! + 1)!;
-        rook.position = this.color == "w" ? 56 : 0;
-      } else if (notation == "O-O") {
-        let rook = this.pieces.find((piece) => piece.position == move[1]! - 1)!;
-        rook.position = this.color == "w" ? 63 : 7;
+        if (notation == "O-O-O") {
+          let rook = this.pieces.find(
+            (piece) => piece.position == move[1]! + 1
+          )!;
+          rook.position = this.color == "w" ? 56 : 0;
+        } else if (notation == "O-O") {
+          let rook = this.pieces.find(
+            (piece) => piece.position == move[1]! - 1
+          )!;
+          rook.position = this.color == "w" ? 63 : 7;
+        }
       }
     }
   }

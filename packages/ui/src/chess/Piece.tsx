@@ -371,6 +371,7 @@ export const Piece: FC<PieceProps> = ({
     displayPreviousPosition,
     displayPosition
   );
+
   return (
     <div
       ref={divRef}

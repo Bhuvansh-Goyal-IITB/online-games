@@ -13,16 +13,20 @@ interface IChessContext {
   currentTurn: Color;
   outcome: string[];
   preferences: IChessPreferences;
+  currentIndex: number;
+  moveList: string[];
   setPreferences: Dispatch<SetStateAction<IChessPreferences>>;
   setSelectedPiece: Dispatch<SetStateAction<Omit<PieceInfo, "id"> | null>>;
   setPromotionMove: Dispatch<SetStateAction<number[] | null>>;
   movePiece: (moveString: string) => void;
   loadMoves: (moveList: string[]) => void;
   loadFen: (fen: string) => void;
+  undo: () => void;
   previous: () => void;
   next: () => void;
   first: () => void;
   last: () => void;
+  goToMove: (moveIndex: number) => void;
 }
 
 export const ChessContext = createContext<IChessContext | null>(null);
