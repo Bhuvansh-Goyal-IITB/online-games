@@ -24,8 +24,8 @@ const generateAnimationKeyframes = (
   position: number
 ) => {
   return {
-    name: `tween-from-${previousPosition}-to-${position}`,
-    keyframes: `
+    animationName: `tween-from-${previousPosition}-to-${position}`,
+    animationKeyframes: `
 
       @keyframes tween-from-${previousPosition}-to-${position} {
         0% { transform: translate(${((previousPosition % 8) - (position % 8)) * 100}%, ${
@@ -71,7 +71,6 @@ export const Piece: FC<PieceProps> = ({
   validMoves,
 }) => {
   const {
-    currentTurn,
     promotionMove,
     preferences: { pieceSet, flip },
     movePiece,
@@ -79,7 +78,6 @@ export const Piece: FC<PieceProps> = ({
     setPromotionMove,
   } = useChessContext();
 
-  const [translate, setTranslate] = useState({ x: 0, y: 0 });
   const [promotionTranslate, setPromotionTranslate] = useState({ x: 0, y: 0 });
   const [held, setHeld] = useState(false);
 
@@ -106,22 +104,25 @@ export const Piece: FC<PieceProps> = ({
   const handleMouseDown: MouseEventHandler = (event) => {
     if (!divRef.current) return;
 
-    const { centerX, centerY } = getPieceCoordinates(divRef.current);
-    setTranslate({
+    const { centerX, centerY, width } = getPieceCoordinates(divRef.current);
+    const translate = {
       x: event.clientX - centerX,
       y: event.clientY - centerY,
-    });
+    };
+
+    divRef.current.style.left = `calc(${((displayPosition % 8) * 100) / 8}% + ${translate.x}px)`;
+    divRef.current.style.top = `calc(${(Math.floor(displayPosition / 8) * 100) / 8}% + ${translate.y}px)`;
     setHeld(true);
     setSelectedPiece({
       pieceType,
       color,
       position,
     });
-    setPieceCoordinates(getPieceCoordinates(divRef.current));
+    setPieceCoordinates({ centerX, centerY, width });
   };
 
   const handleMouseMove = (event: MouseEvent) => {
-    if (!held) return;
+    if (!held || !divRef.current) return;
     const { centerX, centerY, width } = pieceCoordinates;
 
     const minX = -width / 2 - (displayPosition % 8) * width;
@@ -130,109 +131,16 @@ export const Piece: FC<PieceProps> = ({
     const minY = -width / 2 - Math.floor(displayPosition / 8) * width;
     const maxY = width / 2 + (7 - Math.floor(displayPosition / 8)) * width;
 
-    setTranslate({
+    const translate = {
       x: Math.min(maxX, Math.max(event.clientX - centerX, minX)),
       y: Math.min(maxY, Math.max(event.clientY - centerY, minY)),
-    });
-  };
-
-  const handleTouchStart: TouchEventHandler = (event) => {
-    if (!divRef.current || event.touches.length == 0) return;
-
-    const { centerX, centerY } = getPieceCoordinates(divRef.current);
-    const touchX = event.touches[0]!.clientX;
-    const touchY = event.touches[0]!.clientY;
-
-    setTranslate({
-      x: touchX - centerX,
-      y: touchY - centerY,
-    });
-    setHeld(true);
-    setSelectedPiece({
-      pieceType,
-      color,
-      position,
-    });
-    setPieceCoordinates(getPieceCoordinates(divRef.current));
-  };
-
-  const handleTouchEnd = (event: TouchEvent) => {
-    if (!held || event.changedTouches.length == 0) return;
-    const { centerX, centerY, width } = pieceCoordinates;
-    const touchX = event.changedTouches[0]!.clientX;
-    const touchY = event.changedTouches[0]!.clientY;
-
-    const xDisplacement = Math.ceil((touchX - centerX - width / 2) / width);
-    const yDisplacement = Math.ceil((touchY - centerY - width / 2) / width);
-
-    const col = (displayPosition % 8) + xDisplacement;
-    const row = Math.floor(displayPosition / 8) + yDisplacement;
-
-    const displayTouchUpPosition = row * 8 + col;
-    const touchUpPosition = flip
-      ? 63 - displayTouchUpPosition
-      : displayTouchUpPosition;
-
-    if (0 <= row && row <= 7 && 0 <= col && col <= 7) {
-      if (validMoves.includes(touchUpPosition)) {
-        if (
-          pieceType == "p" &&
-          ((color == "w" && touchUpPosition <= 7) ||
-            (color == "b" && touchUpPosition >= 56))
-        ) {
-          setPromotionAnimate(false);
-          setPromotionPosition(touchUpPosition);
-          setSelfMove(true);
-          setPromotionTranslate({
-            x: ((displayTouchUpPosition % 8) - (displayPosition % 8)) * width,
-            y:
-              (Math.floor(displayTouchUpPosition / 8) -
-                Math.floor(displayPosition / 8)) *
-              width,
-          });
-          setPromotionMove([position, touchUpPosition]);
-        } else {
-          setSelfMove(true);
-          movePiece(
-            `${Chess.position_to_algebraic(position)}${Chess.position_to_algebraic(touchUpPosition)}`
-          );
-        }
-      }
-    }
-
-    setHeld(false);
-    setTranslate({
-      x: 0,
-      y: 0,
-    });
-
-    if (touchUpPosition != position) {
-      setSelectedPiece(null);
-    }
-  };
-
-  const handleTouchMove = (event: TouchEvent) => {
-    if (!held || event.touches.length == 0) return;
-
-    const { centerX, centerY, width } = pieceCoordinates;
-
-    const touchX = event.touches[0]!.clientX;
-    const touchY = event.touches[0]!.clientY;
-
-    const minX = -width / 2 - (displayPosition % 8) * width;
-    const maxX = width / 2 + (7 - (displayPosition % 8)) * width;
-
-    const minY = -width / 2 - Math.floor(displayPosition / 8) * width;
-    const maxY = width / 2 + (7 - Math.floor(displayPosition / 8)) * width;
-
-    setTranslate({
-      x: Math.min(maxX, Math.max(touchX - centerX, minX)),
-      y: Math.min(maxY, Math.max(touchY - centerY, minY)),
-    });
+    };
+    divRef.current.style.left = `calc(${((displayPosition % 8) * 100) / 8}% + ${translate.x}px)`;
+    divRef.current.style.top = `calc(${(Math.floor(displayPosition / 8) * 100) / 8}% + ${translate.y}px)`;
   };
 
   const handleMouseUp = (event: MouseEvent) => {
-    if (!held) return;
+    if (!held || !divRef.current) return;
     const { centerX, centerY, width } = pieceCoordinates;
 
     const xDisplacement = Math.ceil(
@@ -278,12 +186,108 @@ export const Piece: FC<PieceProps> = ({
     }
 
     setHeld(false);
-    setTranslate({
-      x: 0,
-      y: 0,
-    });
+    divRef.current.style.left = `${((displayPosition % 8) * 100) / 8}%`;
+    divRef.current.style.top = `${(Math.floor(displayPosition / 8) * 100) / 8}% `;
 
     if (mouseUpPosition != position) {
+      setSelectedPiece(null);
+    }
+  };
+
+  const handleTouchStart: TouchEventHandler = (event) => {
+    if (!divRef.current || event.touches.length == 0) return;
+
+    const { centerX, centerY, width } = getPieceCoordinates(divRef.current);
+    const touchX = event.touches[0]!.clientX;
+    const touchY = event.touches[0]!.clientY;
+
+    const translate = {
+      x: touchX - centerX,
+      y: touchY - centerY,
+    };
+
+    divRef.current.style.left = `calc(${((displayPosition % 8) * 100) / 8}% + ${translate.x}px)`;
+    divRef.current.style.top = `calc(${(Math.floor(displayPosition / 8) * 100) / 8}% + ${translate.y}px)`;
+    setHeld(true);
+    setSelectedPiece({
+      pieceType,
+      color,
+      position,
+    });
+    setPieceCoordinates({ centerX, centerY, width });
+  };
+
+  const handleTouchMove = (event: TouchEvent) => {
+    if (!held || !divRef.current || event.touches.length == 0) return;
+
+    const { centerX, centerY, width } = pieceCoordinates;
+
+    const touchX = event.touches[0]!.clientX;
+    const touchY = event.touches[0]!.clientY;
+
+    const minX = -width / 2 - (displayPosition % 8) * width;
+    const maxX = width / 2 + (7 - (displayPosition % 8)) * width;
+
+    const minY = -width / 2 - Math.floor(displayPosition / 8) * width;
+    const maxY = width / 2 + (7 - Math.floor(displayPosition / 8)) * width;
+
+    const translate = {
+      x: Math.min(maxX, Math.max(touchX - centerX, minX)),
+      y: Math.min(maxY, Math.max(touchY - centerY, minY)),
+    };
+    divRef.current.style.left = `calc(${((displayPosition % 8) * 100) / 8}% + ${translate.x}px)`;
+    divRef.current.style.top = `calc(${(Math.floor(displayPosition / 8) * 100) / 8}% + ${translate.y}px)`;
+  };
+
+  const handleTouchEnd = (event: TouchEvent) => {
+    if (!held || !divRef.current || event.changedTouches.length == 0) return;
+    const { centerX, centerY, width } = pieceCoordinates;
+    const touchX = event.changedTouches[0]!.clientX;
+    const touchY = event.changedTouches[0]!.clientY;
+
+    const xDisplacement = Math.ceil((touchX - centerX - width / 2) / width);
+    const yDisplacement = Math.ceil((touchY - centerY - width / 2) / width);
+
+    const col = (displayPosition % 8) + xDisplacement;
+    const row = Math.floor(displayPosition / 8) + yDisplacement;
+
+    const displayTouchUpPosition = row * 8 + col;
+    const touchUpPosition = flip
+      ? 63 - displayTouchUpPosition
+      : displayTouchUpPosition;
+
+    if (0 <= row && row <= 7 && 0 <= col && col <= 7) {
+      if (validMoves.includes(touchUpPosition)) {
+        if (
+          pieceType == "p" &&
+          ((color == "w" && touchUpPosition <= 7) ||
+            (color == "b" && touchUpPosition >= 56))
+        ) {
+          setPromotionAnimate(false);
+          setPromotionPosition(touchUpPosition);
+          setSelfMove(true);
+          setPromotionTranslate({
+            x: ((displayTouchUpPosition % 8) - (displayPosition % 8)) * width,
+            y:
+              (Math.floor(displayTouchUpPosition / 8) -
+                Math.floor(displayPosition / 8)) *
+              width,
+          });
+          setPromotionMove([position, touchUpPosition]);
+        } else {
+          setSelfMove(true);
+          movePiece(
+            `${Chess.position_to_algebraic(position)}${Chess.position_to_algebraic(touchUpPosition)}`
+          );
+        }
+      }
+    }
+
+    setHeld(false);
+    divRef.current.style.left = `${((displayPosition % 8) * 100) / 8}%`;
+    divRef.current.style.top = `${(Math.floor(displayPosition / 8) * 100) / 8}% `;
+
+    if (touchUpPosition != position) {
       setSelectedPiece(null);
     }
   };
@@ -310,6 +314,7 @@ export const Piece: FC<PieceProps> = ({
       } else {
         setPromotionAnimate(false);
       }
+      setSelfMove(false);
       setPromotionPosition(null);
       setPromotionTranslate({
         x: 0,
@@ -361,25 +366,17 @@ export const Piece: FC<PieceProps> = ({
     }
   }, [flip]);
 
-  let animationName = "";
-  let animationKeyframes = "";
-
-  if (animate) {
-    const { name, keyframes } = generateAnimationKeyframes(
-      displayPreviousPosition,
-      displayPosition
-    );
-    animationName = name;
-    animationKeyframes = keyframes;
-  }
-
+  const { animationName, animationKeyframes } = generateAnimationKeyframes(
+    displayPreviousPosition,
+    displayPosition
+  );
   return (
     <div
       ref={divRef}
       style={{
         transform: `translate(${promotionTranslate.x}px, ${promotionTranslate.y}px) ${held ? "scale(1.1)" : ""}`,
-        left: `calc(${((displayPosition % 8) * 100) / 8}% + ${translate.x}px) `,
-        top: `calc(${(Math.floor(displayPosition / 8) * 100) / 8}% + ${translate.y}px)`,
+        left: `${((displayPosition % 8) * 100) / 8}%`,
+        top: `${(Math.floor(displayPosition / 8) * 100) / 8}%`,
         animation: `${animationName} 0.2s`,
       }}
       className={`absolute flex justify-center items-center w-[12.5%] h-[12.5%] ${held ? "z-[2] grow-animation" : ""} ${animate ? "z-[1]" : ""} ${promotionAnimate ? "translate-animation" : ""}`}
@@ -392,7 +389,7 @@ export const Piece: FC<PieceProps> = ({
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
     >
-      <style>{animationKeyframes}</style>
+      {animate && <style>{animationKeyframes}</style>}
       <img src={`/${pieceSet}/${color}/${pieceType}.svg`} />
     </div>
   );
