@@ -6,6 +6,41 @@ import { Piece } from "./Piece";
 import { PromotionMenu } from "./PromotionMenu";
 import { Chess } from "@repo/chess";
 
+const LastMove: FC = () => {
+  const {
+    lastMove,
+    preferences: { flip },
+  } = useChessContext();
+
+  if (lastMove) {
+    const displayFromPosition = flip
+      ? 63 - lastMove.move[0]!
+      : lastMove.move[0]!;
+    const displayToPosition = flip ? 63 - lastMove.move[1]! : lastMove.move[1]!;
+
+    return (
+      <>
+        <div
+          style={{
+            left: `${((displayFromPosition % 8) * 100) / 8}%`,
+            top: `${(Math.floor(displayFromPosition / 8) * 100) / 8}%`,
+          }}
+          className="absolute w-[12.5%] h-[12.5%] z-0 bg-yellow-500 bg-opacity-60"
+        />
+        <div
+          style={{
+            left: `${((displayToPosition % 8) * 100) / 8}%`,
+            top: `${(Math.floor(displayToPosition / 8) * 100) / 8}%`,
+          }}
+          className="absolute w-[12.5%] h-[12.5%] z-0 bg-yellow-500 bg-opacity-60"
+        />
+      </>
+    );
+  } else {
+    return <></>;
+  }
+};
+
 const ValidMoves: FC = () => {
   const {
     preferences: { flip, showValidMoves },
@@ -167,6 +202,7 @@ export const ChessBoard: FC = () => {
             .map((move) => move[1]!)}
         />
       ))}
+      <LastMove />
       <SelectedPiece />
       <ValidMoves />
     </div>
