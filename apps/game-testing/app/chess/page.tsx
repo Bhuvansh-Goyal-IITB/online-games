@@ -7,11 +7,13 @@ import { Button } from "@ui/components/ui/button";
 import { ChessContextProvider } from "@ui/chess/ChessContextProvider";
 
 const SideButtons: FC = () => {
-  const { previous, next, setPreferences } = useChessContext();
+  const { previous, next, first, last, setPreferences } = useChessContext();
   return (
     <div className="flex gap-2">
+      <Button onClick={first}>First</Button>
       <Button onClick={previous}>Prev</Button>
       <Button onClick={next}>Next</Button>
+      <Button onClick={last}>Last</Button>
       <Button
         onClick={() => {
           setPreferences((prev) => ({
@@ -21,6 +23,26 @@ const SideButtons: FC = () => {
         }}
       >
         Flip
+      </Button>
+      <Button
+        onClick={() => {
+          setPreferences((prev) => ({
+            ...prev,
+            animation: !prev.animation,
+          }));
+        }}
+      >
+        Animation
+      </Button>
+      <Button
+        onClick={() => {
+          setPreferences((prev) => ({
+            ...prev,
+            showValidMoves: !prev.showValidMoves,
+          }));
+        }}
+      >
+        Valid Moves
       </Button>
     </div>
   );

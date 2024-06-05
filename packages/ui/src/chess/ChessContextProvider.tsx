@@ -1,13 +1,6 @@
 "use client";
 
-import React, {
-  FC,
-  PropsWithChildren,
-  ReactNode,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 import { Chess, Color, Move, PieceInfo, PieceType } from "@repo/chess";
 import { ChessContext } from "./chessContext";
 import { PieceSet } from "./types";
@@ -26,7 +19,7 @@ const parseMoveString = (moveString: string) => {
 
 export interface IChessPreferences {
   flip: boolean;
-  animations: boolean;
+  animation: boolean;
   pieceSet: PieceSet;
   showValidMoves: boolean;
 }
@@ -36,7 +29,7 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const [preferences, setPreferences] = useState<IChessPreferences>({
     flip: false,
-    animations: true,
+    animation: true,
     pieceSet: "cardinal",
     showValidMoves: true,
   });
@@ -49,6 +42,7 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
     null
   );
   const [validMoves, setValidMoves] = useState(chessRef.current.validMoves);
+  const [canAnimate, setCanAnimate] = useState(true);
   const [promotionMove, setPromotionMove] = useState<number[] | null>(null);
 
   const [selectedPiece, setSelectedPiece] = useState<Omit<
@@ -115,6 +109,7 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
       }
       setValidMoves([]);
       setIndex((prev) => prev - 1);
+      setCanAnimate(true);
     }
   };
 
@@ -130,6 +125,42 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
         setValidMoves(chessRef.current.validMoves);
       }
       setIndex((prev) => prev + 1);
+      setCanAnimate(true);
+    }
+  };
+
+  const last = () => {
+    const movesMade = chessRef.current.getMoveNotations().length;
+    if (index != movesMade) {
+      const boardInfo = chessRef.current.getBoardInfoAt(movesMade);
+      setFen(boardInfo.fen);
+      setPieceList(boardInfo.pieceList);
+
+      if (movesMade > 0) {
+        setLastMove(chessRef.current.getMoveAt(movesMade - 1));
+      }
+      setValidMoves(chessRef.current.validMoves);
+      setIndex(movesMade);
+      setCanAnimate(false);
+    }
+  };
+
+  const first = () => {
+    if (index != 0) {
+      const movesMade = chessRef.current.getMoveNotations().length;
+
+      const boardInfo = chessRef.current.getBoardInfoAt(0);
+      setFen(boardInfo.fen);
+      setPieceList(boardInfo.pieceList);
+      setLastMove(null);
+
+      if (movesMade == 0) {
+        setValidMoves(chessRef.current.validMoves);
+      } else {
+        setValidMoves([]);
+      }
+      setIndex(0);
+      setCanAnimate(false);
     }
   };
 
@@ -141,6 +172,7 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
         lastMove,
         fen,
         selectedPiece,
+        canAnimate: canAnimate && preferences.animation,
         validMoves,
         currentTurn,
         outcome,
@@ -154,6 +186,8 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
         movePiece,
         previous,
         next,
+        first,
+        last,
       }}
     >
       {children}

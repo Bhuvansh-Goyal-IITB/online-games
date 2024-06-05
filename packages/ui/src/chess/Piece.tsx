@@ -38,7 +38,7 @@ const generateAnimationKeyframes = (
 };
 
 const usePreviousPosition = (position: number) => {
-  const { currentTurn } = useChessContext();
+  const { currentTurn, preferences } = useChessContext();
 
   const [previousPosition, setPreviousPosition] = useState(position);
   const [currentPosition, setCurrentPosition] = useState(position);
@@ -46,7 +46,7 @@ const usePreviousPosition = (position: number) => {
   useEffect(() => {
     setPreviousPosition(currentPosition);
     setCurrentPosition(position);
-  }, [position, currentTurn]);
+  }, [position, currentTurn, preferences]);
 
   return previousPosition;
 };
@@ -72,6 +72,7 @@ export const Piece: FC<PieceProps> = ({
 }) => {
   const {
     promotionMove,
+    canAnimate,
     preferences: { pieceSet, flip },
     movePiece,
     setSelectedPiece,
@@ -379,7 +380,7 @@ export const Piece: FC<PieceProps> = ({
         top: `${(Math.floor(displayPosition / 8) * 100) / 8}%`,
         animation: `${animationName} 0.2s`,
       }}
-      className={`absolute flex justify-center items-center w-[12.5%] h-[12.5%] z-[1] ${held ? "z-[2] grow-animation" : ""} ${promotionAnimate ? "translate-animation z-[2]" : ""}`}
+      className={`absolute flex justify-center items-center w-[12.5%] h-[12.5%] z-[1] ${held ? "z-[2] grow-animation" : ""} ${promotionAnimate && canAnimate ? "translate-animation z-[2]" : ""}`}
       onDragStart={(e) => {
         e.preventDefault();
       }}
@@ -389,7 +390,7 @@ export const Piece: FC<PieceProps> = ({
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
     >
-      {animate && <style>{animationKeyframes}</style>}
+      {animate && canAnimate && <style>{animationKeyframes}</style>}
       <img src={`/${pieceSet}/${color}/${pieceType}.svg`} />
     </div>
   );

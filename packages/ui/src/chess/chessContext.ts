@@ -6,6 +6,7 @@ interface IChessContext {
   pieceList: PieceInfo[];
   lastMove: Omit<Move, "capturedPiece"> | null;
   fen: string;
+  canAnimate: boolean;
   selectedPiece: Omit<PieceInfo, "id"> | null;
   promotionMove: number[] | null;
   validMoves: number[][];
@@ -20,6 +21,8 @@ interface IChessContext {
   loadFen: (fen: string) => void;
   previous: () => void;
   next: () => void;
+  first: () => void;
+  last: () => void;
 }
 
 export const ChessContext = createContext<IChessContext | null>(null);

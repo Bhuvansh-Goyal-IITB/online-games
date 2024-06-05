@@ -8,7 +8,7 @@ import { Chess } from "@repo/chess";
 
 const ValidMoves: FC = () => {
   const {
-    preferences: { flip },
+    preferences: { flip, showValidMoves },
     pieceList,
     selectedPiece,
     fen,
@@ -22,6 +22,7 @@ const ValidMoves: FC = () => {
   return (
     <>
       {selectedPiece &&
+        showValidMoves &&
         validMoves
           .filter((move) => move[0] == selectedPiece.position)
           .map((move) => {
