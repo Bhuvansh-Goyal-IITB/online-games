@@ -8,9 +8,19 @@ interface OutcomeSymbolProps {
   position: number;
 }
 
-// const ContainerDiv: FC<PropsWithChildren> = () => {
+interface ContainerDivProps extends PropsWithChildren {
+  position: number;
+}
 
-// }
+const ContainerDiv: FC<ContainerDivProps> = ({ position, children }) => {
+  return (
+    <div
+      className={`absolute ${position % 8 != 7 ? "-right-4" : "right-1"} ${Math.floor(position / 8) != 0 ? "-top-4" : "top-1"} w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10`}
+    >
+      {children}
+    </div>
+  );
+};
 
 export const OutcomeSymbol: FC<OutcomeSymbolProps> = ({
   pieceType,
@@ -24,45 +34,33 @@ export const OutcomeSymbol: FC<OutcomeSymbolProps> = ({
         currentIndex == moveList.length &&
         (outcome[0] == "w" ? (
           color == "w" ? (
-            <div
-              className={`absolute ${position % 8 != 7 ? "-right-4" : "right-1"} ${Math.floor(position / 8) != 0 ? "-top-4" : "top-1"} w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10`}
-            >
+            <ContainerDiv position={position}>
               <img className="w-full h-full" src="/crown.svg" />
-            </div>
+            </ContainerDiv>
           ) : (
-            <div
-              className={`absolute ${position % 8 != 7 ? "-right-4" : "right-1"} ${Math.floor(position / 8) != 0 ? "-top-4" : "top-1"} w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10`}
-            >
+            <ContainerDiv position={position}>
               <img src="/black-mate.svg" />
-            </div>
+            </ContainerDiv>
           )
         ) : outcome[0] == "b" ? (
           color == "w" ? (
-            <div
-              className={`absolute ${position % 8 != 7 ? "-right-4" : "right-1"} ${Math.floor(position / 8) != 0 ? "-top-4" : "top-1"} w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10`}
-            >
+            <ContainerDiv position={position}>
               <img src="/white-mate.svg" />
-            </div>
+            </ContainerDiv>
           ) : (
-            <div
-              className={`absolute ${position % 8 != 7 ? "-right-4" : "right-1"} ${Math.floor(position / 8) != 0 ? "-top-4" : "top-1"} w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10`}
-            >
+            <ContainerDiv position={position}>
               <img src="/crown.svg" />
-            </div>
+            </ContainerDiv>
           )
         ) : outcome[0] == "d" ? (
           color == "w" ? (
-            <div
-              className={`absolute ${position % 8 != 7 ? "-right-4" : "right-1"} ${Math.floor(position / 8) != 0 ? "-top-4" : "top-1"} w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10`}
-            >
+            <ContainerDiv position={position}>
               <img src="/draw-white.svg" />
-            </div>
+            </ContainerDiv>
           ) : (
-            <div
-              className={`absolute ${position % 8 != 7 ? "-right-4" : "right-1"} ${Math.floor(position / 8) != 0 ? "-top-4" : "top-1"} w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10`}
-            >
+            <ContainerDiv position={position}>
               <img src="/draw-black.svg" />
-            </div>
+            </ContainerDiv>
           )
         ) : (
           <></>

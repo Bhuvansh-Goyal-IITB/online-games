@@ -7,7 +7,7 @@ import { GameSidePanel } from "@ui/chess/GameSidePanel";
 
 const Page: FC = () => {
   return (
-    <div className="w-full min-h-[100%] p-8 bg-background flex justify-center lg:items-center">
+    <div className="w-full min-h-[100%] p-8 bg-background-muted flex justify-center lg:items-center">
       <ChessContextProvider>
         <div className="flex flex-col lg:flex-row gap-4">
           <div>

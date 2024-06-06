@@ -26,7 +26,7 @@ const PlayerInfo: FC<PlayerInfoProps> = ({
           />
         ) : (
           <AvatarImage
-            className="rounded-md bg-muted"
+            className="rounded-md bg-muted-foreground"
             src={playerColor == "w" ? "/cardinal/w/p.svg" : "/cardinal/b/p.svg"}
             alt="profile pic"
           />

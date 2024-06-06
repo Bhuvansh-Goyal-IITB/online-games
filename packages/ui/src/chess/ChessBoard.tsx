@@ -7,6 +7,7 @@ import { PromotionMenu } from "./PromotionMenu";
 import { Chess } from "@repo/chess";
 import PlayerInfo from "./PlayerInfo";
 import { Check, LastMove, SelectedPiece, ValidMoves } from "./BoardHighlights";
+import { GameOverScreen } from "./GameOverScreen";
 
 export const ChessBoard: FC = () => {
   const {
@@ -106,7 +107,7 @@ export const ChessBoard: FC = () => {
         <PlayerInfo materialAdvantage={materialAdvantage} playerColor="w" />
       )}
       <div
-        className="relative max-w-[760px] max-h-[760px] border-muted border-[6px] overflow-hidden rounded-md"
+        className="relative max-w-[760px] max-h-[760px] border-yellow-900 border-[6px] overflow-hidden rounded-md"
         onDragStart={(e) => {
           e.preventDefault();
         }}
@@ -116,6 +117,7 @@ export const ChessBoard: FC = () => {
         onMouseDown={handleMouseDown}
       >
         <img src={flip ? "/board-flip.svg" : "/board.svg"} />
+        <GameOverScreen />
         <PromotionMenu />
         {pieceList.map((piece) => (
           <Piece
