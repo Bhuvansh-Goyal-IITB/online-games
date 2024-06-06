@@ -47,10 +47,10 @@ const SideButtons: FC = () => {
       <Dialog>
         <DialogTrigger asChild>
           <Button variant="outline" size="icon">
-            <Settings className="w-5 h-5" />
+            <Settings className="w-4 h-4 lg:w-5 lg:h-5" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="w-[340px]">
+        <DialogContent className="w-[360px]">
           <DialogHeader>
             <DialogTitle className="text-xl">Settings</DialogTitle>
           </DialogHeader>
@@ -137,7 +137,7 @@ const SideButtons: FC = () => {
       </Dialog>
       <div>
         <Button variant="outline" size="icon" onClick={undo}>
-          <Undo2 className="w-5 h-5" />
+          <Undo2 className="w-4 h-4 lg:w-5 lg:h-5" />
         </Button>
       </div>
       <div>
