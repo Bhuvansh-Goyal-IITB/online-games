@@ -21,7 +21,8 @@ export interface IChessPreferences {
   flip: boolean;
   animation: boolean;
   pieceSet: PieceSet;
-  showValidMoves: boolean;
+  showLegalMoves: boolean;
+  highlightMoves: boolean;
 }
 
 export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
@@ -31,7 +32,8 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
     flip: false,
     animation: true,
     pieceSet: "cardinal",
-    showValidMoves: true,
+    showLegalMoves: true,
+    highlightMoves: true,
   });
   const [fen, setFen] = useState(chessRef.current.getBoardInfoAt(0).fen);
   const [pieceList, setPieceList] = useState(

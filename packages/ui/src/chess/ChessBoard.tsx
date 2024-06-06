@@ -6,13 +6,45 @@ import { Piece } from "./Piece";
 import { PromotionMenu } from "./PromotionMenu";
 import { Chess } from "@repo/chess";
 
-const LastMove: FC = () => {
+const Check: FC = () => {
   const {
     lastMove,
+    pieceList,
+    currentTurn,
     preferences: { flip },
   } = useChessContext();
 
-  if (lastMove) {
+  if (
+    lastMove &&
+    (lastMove.notation.includes("+") || lastMove.notation.includes("#"))
+  ) {
+    const currentColorKing = pieceList.find(
+      (piece) => piece.pieceType == "k" && piece.color == currentTurn
+    )!;
+    const displayPosition = flip
+      ? 63 - currentColorKing.position
+      : currentColorKing.position;
+    return (
+      <div
+        style={{
+          left: `${((displayPosition % 8) * 100) / 8}%`,
+          top: `${(Math.floor(displayPosition / 8) * 100) / 8}%`,
+        }}
+        className="absolute w-[12.5%] h-[12.5%] z-0 bg-red-600 bg-opacity-60"
+      />
+    );
+  } else {
+    return <></>;
+  }
+};
+
+const LastMove: FC = () => {
+  const {
+    lastMove,
+    preferences: { flip, highlightMoves },
+  } = useChessContext();
+
+  if (lastMove && highlightMoves) {
     const displayFromPosition = flip
       ? 63 - lastMove.move[0]!
       : lastMove.move[0]!;
@@ -43,7 +75,7 @@ const LastMove: FC = () => {
 
 const ValidMoves: FC = () => {
   const {
-    preferences: { flip, showValidMoves },
+    preferences: { flip, showLegalMoves },
     pieceList,
     selectedPiece,
     fen,
@@ -57,7 +89,7 @@ const ValidMoves: FC = () => {
   return (
     <>
       {selectedPiece &&
-        showValidMoves &&
+        showLegalMoves &&
         validMoves
           .filter((move) => move[0] == selectedPiece.position)
           .map((move) => {
@@ -189,7 +221,7 @@ export const ChessBoard: FC = () => {
       }}
       onMouseDown={handleMouseDown}
     >
-      <img src="/board.svg" />
+      <img src={flip ? "/board-flip.svg" : "/board.svg"} />
       <PromotionMenu />
       {pieceList.map((piece) => (
         <Piece
@@ -202,6 +234,7 @@ export const ChessBoard: FC = () => {
             .map((move) => move[1]!)}
         />
       ))}
+      <Check />
       <LastMove />
       <SelectedPiece />
       <ValidMoves />

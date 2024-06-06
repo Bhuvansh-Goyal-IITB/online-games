@@ -39,7 +39,7 @@ import { FC } from "react";
 const SideButtons: FC = () => {
   const {
     undo,
-    preferences: { flip, animation, showValidMoves, pieceSet },
+    preferences: { flip, animation, showLegalMoves, highlightMoves, pieceSet },
     setPreferences,
   } = useChessContext();
   return (
@@ -75,6 +75,34 @@ const SideButtons: FC = () => {
                     setPreferences((prev) => ({
                       ...prev,
                       animation: value,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+            <div className="flex w-full justify-between">
+              <span>Show Legal Moves</span>
+              <div>
+                <Switch
+                  checked={showLegalMoves}
+                  onCheckedChange={(value) =>
+                    setPreferences((prev) => ({
+                      ...prev,
+                      showLegalMoves: value,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+            <div className="flex w-full justify-between">
+              <span>Highlight Moves</span>
+              <div>
+                <Switch
+                  checked={highlightMoves}
+                  onCheckedChange={(value) =>
+                    setPreferences((prev) => ({
+                      ...prev,
+                      highlightMoves: value,
                     }))
                   }
                 />
