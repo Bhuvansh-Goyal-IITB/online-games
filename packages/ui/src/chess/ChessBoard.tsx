@@ -5,154 +5,8 @@ import { useChessContext } from "./chessContext";
 import { Piece } from "./Piece";
 import { PromotionMenu } from "./PromotionMenu";
 import { Chess } from "@repo/chess";
-
-const Check: FC = () => {
-  const {
-    lastMove,
-    pieceList,
-    currentTurn,
-    preferences: { flip },
-  } = useChessContext();
-
-  if (
-    lastMove &&
-    (lastMove.notation.includes("+") || lastMove.notation.includes("#"))
-  ) {
-    const currentColorKing = pieceList.find(
-      (piece) => piece.pieceType == "k" && piece.color == currentTurn
-    )!;
-    const displayPosition = flip
-      ? 63 - currentColorKing.position
-      : currentColorKing.position;
-    return (
-      <div
-        style={{
-          left: `${((displayPosition % 8) * 100) / 8}%`,
-          top: `${(Math.floor(displayPosition / 8) * 100) / 8}%`,
-        }}
-        className="absolute w-[12.5%] h-[12.5%] z-0 bg-red-600 bg-opacity-60"
-      />
-    );
-  } else {
-    return <></>;
-  }
-};
-
-const LastMove: FC = () => {
-  const {
-    lastMove,
-    preferences: { flip, highlightMoves },
-  } = useChessContext();
-
-  if (lastMove && highlightMoves) {
-    const displayFromPosition = flip
-      ? 63 - lastMove.move[0]!
-      : lastMove.move[0]!;
-    const displayToPosition = flip ? 63 - lastMove.move[1]! : lastMove.move[1]!;
-
-    return (
-      <>
-        <div
-          style={{
-            left: `${((displayFromPosition % 8) * 100) / 8}%`,
-            top: `${(Math.floor(displayFromPosition / 8) * 100) / 8}%`,
-          }}
-          className="absolute w-[12.5%] h-[12.5%] z-0 bg-yellow-500 bg-opacity-60"
-        />
-        <div
-          style={{
-            left: `${((displayToPosition % 8) * 100) / 8}%`,
-            top: `${(Math.floor(displayToPosition / 8) * 100) / 8}%`,
-          }}
-          className="absolute w-[12.5%] h-[12.5%] z-0 bg-yellow-500 bg-opacity-60"
-        />
-      </>
-    );
-  } else {
-    return <></>;
-  }
-};
-
-const ValidMoves: FC = () => {
-  const {
-    preferences: { flip, showLegalMoves },
-    pieceList,
-    selectedPiece,
-    fen,
-    validMoves,
-  } = useChessContext();
-
-  const enPassantFen = fen.split(" ")[3]!;
-  const enPassantPosition =
-    enPassantFen == "-" ? null : Chess.algebraic_to_position(enPassantFen);
-
-  return (
-    <>
-      {selectedPiece &&
-        showLegalMoves &&
-        validMoves
-          .filter((move) => move[0] == selectedPiece.position)
-          .map((move) => {
-            const displayPosition = flip ? 63 - move[1]! : move[1]!;
-
-            if (
-              pieceList.find((piece) => piece.position == move[1]!) ||
-              (enPassantPosition && enPassantPosition == move[1]!)
-            ) {
-              return (
-                <div
-                  style={{
-                    left: `${((displayPosition % 8) * 100) / 8}%`,
-                    top: `${(Math.floor(displayPosition / 8) * 100) / 8}%`,
-                  }}
-                  className="absolute flex justify-center items-center w-[12.5%] h-[12.5%] z-0 scale-transition"
-                >
-                  <div
-                    style={{
-                      background:
-                        "radial-gradient(circle, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.35) 82%, rgba(0, 0, 0, 0.4) 84%)",
-                    }}
-                    className="w-full h-full"
-                  />
-                </div>
-              );
-            }
-            return (
-              <div
-                style={{
-                  left: `${((displayPosition % 8) * 100) / 8}%`,
-                  top: `${(Math.floor(displayPosition / 8) * 100) / 8}%`,
-                }}
-                className="absolute flex justify-center items-center w-[12.5%] h-[12.5%] z-0 scale-transition"
-              >
-                <div className="w-[30%] h-[30%] rounded-full bg-[#000] bg-opacity-40" />
-              </div>
-            );
-          })}
-    </>
-  );
-};
-
-const SelectedPiece: FC = () => {
-  const {
-    preferences: { flip },
-    selectedPiece,
-  } = useChessContext();
-
-  return (
-    <>
-      {selectedPiece && (
-        <div
-          style={{
-            left: `${(((flip ? 63 - selectedPiece.position : selectedPiece.position) % 8) * 100) / 8}%`,
-            top: `${(Math.floor((flip ? 63 - selectedPiece.position : selectedPiece.position) / 8) * 100) / 8}%`,
-          }}
-          className="absolute w-[12.5%] h-[12.5%] z-0 bg-yellow-500 bg-opacity-60"
-        />
-      )}
-    </>
-  );
-};
+import PlayerInfo from "./PlayerInfo";
+import { Check, LastMove, SelectedPiece, ValidMoves } from "./BoardHighlights";
 
 export const ChessBoard: FC = () => {
   const {
@@ -210,34 +64,80 @@ export const ChessBoard: FC = () => {
     setSelectedPiece(null);
   }, [pieceList]);
 
+  let materialAdvantage = 0;
+
+  pieceList.forEach((piece) => {
+    const multiplier = piece.color == "w" ? 1 : -1;
+
+    switch (piece.pieceType) {
+      case "p":
+        materialAdvantage += multiplier;
+        break;
+
+      case "r":
+        materialAdvantage += multiplier * 5;
+        break;
+
+      case "n":
+        materialAdvantage += multiplier * 3;
+        break;
+
+      case "b":
+        materialAdvantage += multiplier * 3;
+        break;
+
+      case "q":
+        materialAdvantage += multiplier * 9;
+        break;
+
+      case "k":
+        break;
+
+      default:
+        break;
+    }
+  });
+
   return (
-    <div
-      className="relative max-w-[760px] max-h-[760px]"
-      onDragStart={(e) => {
-        e.preventDefault();
-      }}
-      onContextMenu={(e) => {
-        e.preventDefault();
-      }}
-      onMouseDown={handleMouseDown}
-    >
-      <img src={flip ? "/board-flip.svg" : "/board.svg"} />
-      <PromotionMenu />
-      {pieceList.map((piece) => (
-        <Piece
-          key={piece.id}
-          color={piece.color}
-          pieceType={piece.pieceType}
-          position={piece.position}
-          validMoves={validMoves
-            .filter((move) => move[0] == piece.position)
-            .map((move) => move[1]!)}
-        />
-      ))}
-      <Check />
-      <LastMove />
-      <SelectedPiece />
-      <ValidMoves />
+    <div className="flex flex-col gap-4">
+      {!flip ? (
+        <PlayerInfo materialAdvantage={-materialAdvantage} playerColor="b" />
+      ) : (
+        <PlayerInfo materialAdvantage={materialAdvantage} playerColor="w" />
+      )}
+      <div
+        className="relative max-w-[760px] max-h-[760px] border-muted border-[6px] overflow-hidden rounded-md"
+        onDragStart={(e) => {
+          e.preventDefault();
+        }}
+        onContextMenu={(e) => {
+          e.preventDefault();
+        }}
+        onMouseDown={handleMouseDown}
+      >
+        <img src={flip ? "/board-flip.svg" : "/board.svg"} />
+        <PromotionMenu />
+        {pieceList.map((piece) => (
+          <Piece
+            key={piece.id}
+            color={piece.color}
+            pieceType={piece.pieceType}
+            position={piece.position}
+            validMoves={validMoves
+              .filter((move) => move[0] == piece.position)
+              .map((move) => move[1]!)}
+          />
+        ))}
+        <Check />
+        <LastMove />
+        <SelectedPiece />
+        <ValidMoves />
+      </div>
+      {!flip ? (
+        <PlayerInfo materialAdvantage={materialAdvantage} playerColor="w" />
+      ) : (
+        <PlayerInfo materialAdvantage={-materialAdvantage} playerColor="b" />
+      )}
     </div>
   );
 };

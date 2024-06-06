@@ -11,9 +11,7 @@ const Page: FC = () => {
       <ChessContextProvider>
         <div className="flex flex-col lg:flex-row gap-4">
           <div>
-            <div className="overflow-hidden h-fit w-fit border-yellow-950 border-[6px] rounded-md">
-              <ChessBoard />
-            </div>
+            <ChessBoard />
           </div>
           <GameSidePanel />
         </div>

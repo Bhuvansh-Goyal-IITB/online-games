@@ -163,7 +163,7 @@ export const GameSidePanel = () => {
           </CardHeader>
           <Separator />
           <CardContent className="flex flex-col pt-4 justify-between flex-grow-0 h-full">
-            <div className="flex flex-col gap-4 max-h-[180px] mb-4 lg:max-h-[330px] min-[1100px]:max-h-[400px] min-[1200px]:max-h-[510px] xl:max-h-[580px] overflow-y-auto">
+            <div className="flex flex-col gap-4 max-h-[180px] mb-4 lg:max-h-[450px] min-[1100px]:max-h-[530px] min-[1200px]:max-h-[630px] xl:max-h-[700px] overflow-y-auto">
               <MoveList />
             </div>
             <div className="flex justify-center items-center gap-2">

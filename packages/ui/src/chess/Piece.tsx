@@ -11,6 +11,12 @@ import {
   useState,
 } from "react";
 import { useChessContext } from "./chessContext";
+import { OutcomeSymbol } from "./OutcomeSymbol";
+import {
+  getPieceCoordinates,
+  generateAnimationKeyframes,
+  usePreviousPosition,
+} from "./PieceUtilities";
 
 interface PieceProps {
   position: number;
@@ -18,116 +24,6 @@ interface PieceProps {
   pieceType: PieceType;
   validMoves: number[];
 }
-
-interface OutcomeSymbolProps {
-  pieceType: PieceType;
-  color: Color;
-  position: number;
-}
-
-const OutcomeSymbol: FC<OutcomeSymbolProps> = ({
-  pieceType,
-  color,
-  position,
-}) => {
-  const { currentIndex, moveList, outcome } = useChessContext();
-  return (
-    <>
-      {pieceType == "k" &&
-        currentIndex == moveList.length &&
-        (outcome[0] == "w" ? (
-          color == "w" ? (
-            <div
-              className={`absolute ${position % 8 != 7 ? "-right-4" : "right-1"} ${Math.floor(position / 8) != 0 ? "-top-4" : "top-1"} w-10 h-10`}
-            >
-              <img className="w-full h-full" src="/crown.svg" />
-            </div>
-          ) : (
-            <div
-              className={`absolute ${position % 8 != 7 ? "-right-4" : "right-1"} ${Math.floor(position / 8) != 0 ? "-top-4" : "top-1"} w-10 h-10`}
-            >
-              <img src="/black-mate.svg" />
-            </div>
-          )
-        ) : outcome[0] == "b" ? (
-          color == "w" ? (
-            <div
-              className={`absolute ${position % 8 != 7 ? "-right-4" : "right-1"} ${Math.floor(position / 8) != 0 ? "-top-4" : "top-1"} w-10 h-10`}
-            >
-              <img src="/white-mate.svg" />
-            </div>
-          ) : (
-            <div
-              className={`absolute ${position % 8 != 7 ? "-right-4" : "right-1"} ${Math.floor(position / 8) != 0 ? "-top-4" : "top-1"} w-10 h-10`}
-            >
-              <img src="/crown.svg" />
-            </div>
-          )
-        ) : outcome[0] == "d" ? (
-          color == "w" ? (
-            <div
-              className={`absolute ${position % 8 != 7 ? "-right-4" : "right-1"} ${Math.floor(position / 8) != 0 ? "-top-4" : "top-1"} w-10 h-10`}
-            >
-              <img src="/draw-white.svg" />
-            </div>
-          ) : (
-            <div
-              className={`absolute ${position % 8 != 7 ? "-right-4" : "right-1"} ${Math.floor(position / 8) != 0 ? "-top-4" : "top-1"} w-10 h-10`}
-            >
-              <img src="/draw-black.svg" />
-            </div>
-          )
-        ) : (
-          <></>
-        ))}
-    </>
-  );
-};
-
-const generateAnimationKeyframes = (
-  previousPosition: number,
-  position: number
-) => {
-  return {
-    animationName: `tween-from-${previousPosition}-to-${position}`,
-    animationKeyframes: `
-
-      @keyframes tween-from-${previousPosition}-to-${position} {
-        0% { transform: translate(${((previousPosition % 8) - (position % 8)) * 100}%, ${
-          (Math.floor(previousPosition / 8) - Math.floor(position / 8)) * 100
-        }%); }
-        100% { transform: translate(0%, 0%); }
-      }
-    `,
-  };
-};
-
-const usePreviousPosition = (position: number) => {
-  const { currentTurn, preferences } = useChessContext();
-
-  const [previousPosition, setPreviousPosition] = useState(position);
-  const [currentPosition, setCurrentPosition] = useState(position);
-
-  useEffect(() => {
-    setPreviousPosition(currentPosition);
-    setCurrentPosition(position);
-  }, [position, currentTurn, preferences]);
-
-  return previousPosition;
-};
-
-const getPieceCoordinates = (div: HTMLDivElement) => {
-  const { left, right, top, bottom } = div.getBoundingClientRect();
-
-  const centerX = (left + right) / 2;
-  const centerY = (top + bottom) / 2;
-  const width = Math.abs(left - right);
-  return {
-    centerX,
-    centerY,
-    width,
-  };
-};
 
 export const Piece: FC<PieceProps> = ({
   position,
