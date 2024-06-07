@@ -4,12 +4,6 @@ import React, { FC } from "react";
 import { ChessBoard } from "@ui/chess/ChessBoard";
 import { ChessContextProvider } from "@ui/chess/ChessContextProvider";
 import { GameSidePanel } from "@ui/chess/GameSidePanel";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ui/components/ui/card";
 
 const Page: FC = () => {
   return (

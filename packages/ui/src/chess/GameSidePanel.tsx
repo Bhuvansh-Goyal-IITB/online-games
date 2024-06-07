@@ -12,6 +12,8 @@ import {
   ChevronLast,
   ChevronLeft,
   ChevronRight,
+  Clipboard,
+  Copy,
   Settings,
   Share2,
   Undo2,
@@ -36,14 +38,15 @@ import { PieceSet } from "./types";
 import { ModeToggle } from "@ui/components/mode-toggle";
 import { Separator } from "@ui/components/ui/separator";
 import { FC } from "react";
-import { DialogDescription } from "@radix-ui/react-dialog";
 import { ScrollArea } from "@ui/components/ui/scroll-area";
 
 const SideButtons: FC = () => {
   const {
-    undo,
+    fen,
     preferences: { flip, animation, showLegalMoves, highlightMoves, pieceSet },
+    undo,
     setPreferences,
+    getPGN,
   } = useChessContext();
   return (
     <>
@@ -149,10 +152,31 @@ const SideButtons: FC = () => {
             <Share2 className="w-4 h-4 lg:w-5 lg:h-5" />
           </Button>
         </DialogTrigger>
-        <DialogContent>
-          <div className="flex flex-col gap-2">
-            <div>Fen</div>
-            <div>Pgn</div>
+        <DialogContent className="w-[350px] lg:w-[420px]">
+          <div className="flex flex-col gap-2 px-2">
+            <div className="flex gap-3 items-center">
+              <div className="text-lg">FEN</div>
+              <Button className="w-8 h-8" variant="ghost" size="icon">
+                <Copy size={20} />
+              </Button>
+            </div>
+            <textarea readOnly className="resize-none border p-2 w-full">
+              {fen}
+            </textarea>
+            <div className="flex gap-3 items-center">
+              <div className="text-lg">PGN</div>
+              <Button className="w-8 h-8" variant="ghost" size="icon">
+                <Copy size={20} />
+              </Button>
+            </div>
+            <div className="w-full flex justify-center">
+              <textarea
+                readOnly
+                className="border p-2 rounded-md h-[250px] w-full"
+              >
+                {getPGN()}
+              </textarea>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

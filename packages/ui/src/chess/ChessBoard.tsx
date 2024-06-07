@@ -13,11 +13,11 @@ export const ChessBoard: FC = () => {
   const {
     pieceList,
     selectedPiece,
+    validMoves,
+    preferences: { flip },
     movePiece,
     setPromotionMove,
     setSelectedPiece,
-    validMoves,
-    preferences: { flip },
   } = useChessContext();
 
   const handleMouseDown: MouseEventHandler = (event) => {

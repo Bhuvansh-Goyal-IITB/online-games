@@ -25,7 +25,21 @@ export interface IChessPreferences {
   highlightMoves: boolean;
 }
 
-export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
+export interface IPlayerInfo {
+  name: string;
+  profileImageSrc?: string;
+}
+
+interface ChessContextProviderProps extends PropsWithChildren {
+  whitePlayerInfo?: IPlayerInfo;
+  blackPlayerInfo?: IPlayerInfo;
+}
+
+export const ChessContextProvider: FC<ChessContextProviderProps> = ({
+  whitePlayerInfo,
+  blackPlayerInfo,
+  children,
+}) => {
   const chessRef = useRef(new Chess());
 
   const [preferences, setPreferences] = useState<IChessPreferences>({
@@ -124,6 +138,34 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
     moveMultiple(moveList);
   };
 
+  const getPGN = () => {
+    let moveListPGN = "";
+
+    moveList.forEach((moveString, index) => {
+      const moveIndex = index / 2 + 1;
+
+      if (index % 2 == 0) {
+        moveListPGN += `${moveIndex}. `;
+      }
+
+      moveListPGN += `${moveString} `;
+    });
+
+    if (outcome[0] == "") {
+      moveListPGN += "*";
+    } else {
+      if (outcome[0] == "w") {
+        moveListPGN += "1-0";
+      } else if (outcome[0] == "b") {
+        moveListPGN += "0-1";
+      } else {
+        moveListPGN += "1/2-1/2";
+      }
+    }
+
+    return `[Event "?"]\n[Site "?"]\n[Date "????.??.??"]\n[Round "?"]\n[White "${whitePlayerInfo ? whitePlayerInfo.name : "?"}"]\n[Black "${blackPlayerInfo ? blackPlayerInfo.name : "?"}"]\n[Result "${outcome[0] == "" ? "*" : outcome[0] == "w" ? "1-0" : outcome[0] == "b" ? "0-1" : "1/2-1/2"}"]\n\n${moveListPGN}`;
+  };
+
   const previous = () => {
     if (index > 0) {
       const boardInfo = chessRef.current.getBoardInfoAt(index - 1);
@@ -211,6 +253,10 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
     setCanAnimate(false);
   };
 
+  const getPlayerInfo = (playerColor: Color) => {
+    return playerColor == "w" ? whitePlayerInfo : blackPlayerInfo;
+  };
+
   const outcome = chessRef.current.outcome;
   return (
     <ChessContext.Provider
@@ -239,6 +285,8 @@ export const ChessContextProvider: FC<PropsWithChildren> = ({ children }) => {
         first,
         last,
         goToMove,
+        getPlayerInfo,
+        getPGN,
       }}
     >
       {children}

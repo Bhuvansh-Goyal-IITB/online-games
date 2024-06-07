@@ -1,6 +1,6 @@
 import { Color, Move, PieceInfo } from "@repo/chess";
 import { Dispatch, SetStateAction, createContext, useContext } from "react";
-import { IChessPreferences } from "./ChessContextProvider";
+import { IChessPreferences, IPlayerInfo } from "./ChessContextProvider";
 
 interface IChessContext {
   pieceList: PieceInfo[];
@@ -27,6 +27,8 @@ interface IChessContext {
   first: () => void;
   last: () => void;
   goToMove: (moveIndex: number) => void;
+  getPlayerInfo: (playerColor: Color) => IPlayerInfo | undefined;
+  getPGN: () => string;
 }
 
 export const ChessContext = createContext<IChessContext | null>(null);

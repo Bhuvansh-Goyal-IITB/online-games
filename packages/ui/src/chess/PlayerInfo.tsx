@@ -1,6 +1,7 @@
 import { Color } from "@repo/chess";
 import { Avatar, AvatarFallback, AvatarImage } from "@ui/components/ui/avatar";
-import { FC } from "react";
+import { FC, useCallback } from "react";
+import { useChessContext } from "./chessContext";
 
 interface PlayerInfoProps {
   materialAdvantage: number;
@@ -12,16 +13,34 @@ interface PlayerInfoProps {
 const PlayerInfo: FC<PlayerInfoProps> = ({
   materialAdvantage,
   playerColor,
-  playerName,
-  avatarImageSrc,
 }) => {
+  const { getPlayerInfo } = useChessContext();
+
+  const playerInfo = getPlayerInfo(playerColor);
+
+  let playerName: string | undefined;
+  let avatarImageSrc: string | undefined;
+
+  if (playerInfo) {
+    playerName = playerInfo.name;
+    avatarImageSrc = playerInfo.profileImageSrc;
+  }
+
   return (
     <div className="flex gap-3">
-      <Avatar className="rounded-md w-8 h-8 lg:w-12 lg:h-12">
-        {avatarImageSrc && (
+      <Avatar
+        className={`rounded-md w-8 h-8 lg:w-12 lg:h-12 ${!avatarImageSrc ? "border p-1 bg-neutral-100 " : ""}`}
+      >
+        {avatarImageSrc ? (
           <AvatarImage
             className="rounded-md"
             src={avatarImageSrc}
+            alt="profile pic"
+          />
+        ) : (
+          <AvatarImage
+            className="rounded-md"
+            src="https://img.icons8.com/nolan/64/chess-com.png"
             alt="profile pic"
           />
         )}
