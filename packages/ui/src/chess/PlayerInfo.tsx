@@ -18,16 +18,10 @@ const PlayerInfo: FC<PlayerInfoProps> = ({
   return (
     <div className="flex gap-3">
       <Avatar className="rounded-md w-8 h-8 lg:w-12 lg:h-12">
-        {avatarImageSrc ? (
+        {avatarImageSrc && (
           <AvatarImage
             className="rounded-md"
             src={avatarImageSrc}
-            alt="profile pic"
-          />
-        ) : (
-          <AvatarImage
-            className="rounded-md bg-neutral-700"
-            src={playerColor == "w" ? "/cardinal/w/p.svg" : "/cardinal/b/p.svg"}
             alt="profile pic"
           />
         )}

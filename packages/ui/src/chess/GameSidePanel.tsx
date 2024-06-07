@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Settings,
+  Share2,
   Undo2,
 } from "lucide-react";
 import {
@@ -35,6 +36,8 @@ import { PieceSet } from "./types";
 import { ModeToggle } from "@ui/components/mode-toggle";
 import { Separator } from "@ui/components/ui/separator";
 import { FC } from "react";
+import { DialogDescription } from "@radix-ui/react-dialog";
+import { ScrollArea } from "@ui/components/ui/scroll-area";
 
 const SideButtons: FC = () => {
   const {
@@ -140,6 +143,19 @@ const SideButtons: FC = () => {
           <Undo2 className="w-4 h-4 lg:w-5 lg:h-5" />
         </Button>
       </div>
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="icon">
+            <Share2 className="w-4 h-4 lg:w-5 lg:h-5" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <div className="flex flex-col gap-2">
+            <div>Fen</div>
+            <div>Pgn</div>
+          </div>
+        </DialogContent>
+      </Dialog>
       <div>
         <ModeToggle />
       </div>
@@ -150,55 +166,53 @@ const SideButtons: FC = () => {
 export const GameSidePanel = () => {
   const { first, previous, next, last } = useChessContext();
   return (
-    <div className="flex gap-2">
-      <div className="grow h-full">
-        <Card className="flex flex-col h-full">
-          <CardHeader>
-            <div className="flex justify-between">
-              <CardTitle>ChEsS</CardTitle>
-              <div className="flex lg:hidden gap-2">
-                <SideButtons />
-              </div>
+    <div className="flex w-full lg:w-fit h-full gap-2">
+      <Card className="flex flex-col w-full lg:w-[320px] xl:w-fit h-[380px] lg:h-full">
+        <CardHeader>
+          <div className="flex justify-between">
+            <CardTitle>ChEsS</CardTitle>
+            <div className="flex lg:hidden gap-2">
+              <SideButtons />
             </div>
-          </CardHeader>
-          <Separator />
-          <CardContent className="flex flex-col pt-4 justify-between flex-grow-0 h-full">
-            <div className="flex flex-col gap-4 max-h-[180px] mb-4 lg:max-h-[450px] min-[1100px]:max-h-[530px] min-[1200px]:max-h-[630px] xl:max-h-[700px] overflow-y-auto">
-              <MoveList />
-            </div>
-            <div className="flex justify-center items-center gap-2">
-              <Button
-                className="p-4 py-2 lg:p-6 grow"
-                variant="secondary"
-                onClick={first}
-              >
-                <ChevronFirst className="w-6 h-6 lg:w-8 lg:h-8" />
-              </Button>
-              <Button
-                className="p-4 py-2 lg:p-6 grow"
-                variant="secondary"
-                onClick={previous}
-              >
-                <ChevronLeft className="w-6 h-6 lg:w-8 lg:h-8" />
-              </Button>
-              <Button
-                className="p-4 py-2 lg:p-6 grow"
-                variant="secondary"
-                onClick={next}
-              >
-                <ChevronRight className="w-6 h-6 lg:w-8 lg:h-8" />
-              </Button>
-              <Button
-                className="p-4 py-2 lg:p-6 grow"
-                variant="secondary"
-                onClick={last}
-              >
-                <ChevronLast className="w-6 h-6 lg:w-8 lg:h-8" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardHeader>
+        <Separator />
+        <CardContent className="flex flex-col pt-4 justify-between flex-grow-0 h-full">
+          <ScrollArea className="flex flex-col gap-4 max-h-[180px] mb-4 lg:max-h-[450px] min-[1100px]:max-h-[530px] min-[1200px]:max-h-[630px] xl:max-h-[700px] overflow-y-auto">
+            <MoveList />
+          </ScrollArea>
+          <div className="flex w-full justify-center items-center gap-2">
+            <Button
+              className="p-4 py-2 xl:p-6 grow"
+              variant="secondary"
+              onClick={first}
+            >
+              <ChevronFirst className="w-6 h-6 xl:w-8 xl:h-8" />
+            </Button>
+            <Button
+              className="p-4 py-2 xl:p-6 grow"
+              variant="secondary"
+              onClick={previous}
+            >
+              <ChevronLeft className="w-6 h-6 xl:w-8 xl:h-8" />
+            </Button>
+            <Button
+              className="p-4 py-2 xl:p-6 grow"
+              variant="secondary"
+              onClick={next}
+            >
+              <ChevronRight className="w-6 h-6 xl:w-8 xl:h-8" />
+            </Button>
+            <Button
+              className="p-4 py-2 xl:p-6 grow"
+              variant="secondary"
+              onClick={last}
+            >
+              <ChevronLast className="w-6 h-6 xl:w-8 xl:h-8" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
       <div className="hidden lg:flex flex-col gap-2">
         <SideButtons />
       </div>

@@ -346,7 +346,7 @@ export const Piece: FC<PieceProps> = ({
         top: `${(Math.floor(displayPosition / 8) * 100) / 8}%`,
         animation: `${animationName} 0.2s`,
       }}
-      className={`absolute flex justify-center items-center w-[12.5%] h-[12.5%] z-[1] ${held ? "z-[2] grow-animation" : ""} ${promotionAnimate && canAnimate ? "translate-animation z-[2]" : ""}`}
+      className={`absolute flex justify-center items-center touch-none w-[12.5%] h-[12.5%] z-[1] ${held ? "z-[2] grow-animation" : ""} ${promotionAnimate && canAnimate ? "translate-animation z-[2]" : ""}`}
       onDragStart={(e) => {
         e.preventDefault();
       }}
