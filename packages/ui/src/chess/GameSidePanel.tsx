@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Copy,
   CopyCheck,
+  Flag,
   Settings,
   Share2,
   Undo2,
@@ -65,6 +66,7 @@ const CopyButton: FC<CopyButtonProps> = ({ copyText }) => {
 
 const SideButtons: FC = () => {
   const {
+    selfGame,
     fen,
     preferences: { flip, animation, showLegalMoves, highlightMoves, pieceSet },
     undo,
@@ -164,11 +166,6 @@ const SideButtons: FC = () => {
           </div>
         </DialogContent>
       </Dialog>
-      <div>
-        <Button variant="outline" size="icon" onClick={undo}>
-          <Undo2 className="w-4 h-4 lg:w-5 lg:h-5" />
-        </Button>
-      </div>
       <Dialog>
         <DialogTrigger asChild>
           <Button variant="outline" size="icon">
@@ -205,6 +202,28 @@ const SideButtons: FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+      {selfGame ? (
+        <>
+          <div>
+            <Button variant="outline" size="icon" onClick={undo}>
+              <Undo2 className="w-4 h-4 lg:w-5 lg:h-5" />
+            </Button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div>
+            <Button variant="outline" size="icon">
+              <Flag className="w-4 h-4 lg:w-5 lg:h-5" />
+            </Button>
+          </div>
+          <div>
+            <Button variant="outline" size="icon">
+              1/2
+            </Button>
+          </div>
+        </>
+      )}
       <div>
         <ModeToggle />
       </div>

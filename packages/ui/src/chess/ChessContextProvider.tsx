@@ -33,11 +33,13 @@ export interface IPlayerInfo {
 interface ChessContextProviderProps extends PropsWithChildren {
   whitePlayerInfo?: IPlayerInfo;
   blackPlayerInfo?: IPlayerInfo;
+  selfGame?: boolean;
 }
 
 export const ChessContextProvider: FC<ChessContextProviderProps> = ({
   whitePlayerInfo,
   blackPlayerInfo,
+  selfGame = false,
   children,
 }) => {
   const chessRef = useRef(new Chess());
@@ -60,6 +62,10 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
   const [validMoves, setValidMoves] = useState(chessRef.current.validMoves);
   const [canAnimate, setCanAnimate] = useState(true);
   const [promotionMove, setPromotionMove] = useState<number[] | null>(null);
+
+  const [currentPlayerColor, setCurrentPlayerColor] = useState<Color | null>(
+    null
+  );
 
   const [selectedPiece, setSelectedPiece] = useState<Omit<
     PieceInfo,
@@ -90,7 +96,12 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
     setFen(boardInfo.fen);
     setPieceList(boardInfo.pieceList);
     setLastMove(chessRef.current.getMoveAt(newIndex - 1));
-    setValidMoves(chessRef.current.validMoves);
+
+    if (selfGame || currentPlayerColor == boardInfo.fen.split(" ")[1]) {
+      setValidMoves(chessRef.current.validMoves);
+    } else {
+      setValidMoves([]);
+    }
     setIndex(newIndex);
 
     if (movesMade == 1) {
@@ -105,6 +116,7 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
   };
 
   const undo = () => {
+    if (!selfGame) return;
     const movesMade = chessRef.current.getMoveNotations().length;
     if (movesMade > 0) {
       chessRef.current.undo();
@@ -124,6 +136,7 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
   };
 
   const loadFen = (fen: string) => {
+    if (!selfGame) return;
     chessRef.current = new Chess(fen);
     const boardInfo = chessRef.current.getBoardInfoAt(0);
     setFen(boardInfo.fen);
@@ -191,7 +204,10 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
       setPieceList(boardInfo.pieceList);
       setLastMove(chessRef.current.getMoveAt(index));
 
-      if (index + 1 == movesMade) {
+      if (
+        index + 1 == movesMade &&
+        (selfGame || currentPlayerColor == boardInfo.fen.split(" ")[1])
+      ) {
         setValidMoves(chessRef.current.validMoves);
       }
       setIndex((prev) => prev + 1);
@@ -209,7 +225,10 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
       if (movesMade > 0) {
         setLastMove(chessRef.current.getMoveAt(movesMade - 1));
       }
-      setValidMoves(chessRef.current.validMoves);
+
+      if (selfGame || currentPlayerColor == boardInfo.fen.split(" ")[1]) {
+        setValidMoves(chessRef.current.validMoves);
+      }
       setIndex(movesMade);
       setCanAnimate(false);
     }
@@ -224,7 +243,10 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
       setPieceList(boardInfo.pieceList);
       setLastMove(null);
 
-      if (movesMade == 0) {
+      if (
+        movesMade == 0 &&
+        (selfGame || currentPlayerColor == boardInfo.fen.split(" ")[1])
+      ) {
         setValidMoves(chessRef.current.validMoves);
       } else {
         setValidMoves([]);
@@ -244,7 +266,10 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
     setPieceList(boardInfo.pieceList);
 
     setLastMove(chessRef.current.getMoveAt(moveIndex));
-    if (moveIndex == movesMade - 1) {
+    if (
+      moveIndex == movesMade - 1 &&
+      (selfGame || currentPlayerColor == boardInfo.fen.split(" ")[1])
+    ) {
       setValidMoves(chessRef.current.validMoves);
     } else {
       setValidMoves([]);
@@ -257,6 +282,16 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
     return playerColor == "w" ? whitePlayerInfo : blackPlayerInfo;
   };
 
+  const draw = () => {
+    chessRef.current.draw();
+    setValidMoves([]);
+  };
+
+  const resign = (resigningPlayerColor: Color) => {
+    chessRef.current.resign(resigningPlayerColor);
+    setValidMoves([]);
+  };
+
   const outcome = chessRef.current.outcome;
   return (
     <ChessContext.Provider
@@ -264,6 +299,7 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
         pieceList,
         lastMove,
         fen,
+        selfGame: selfGame,
         selectedPiece,
         canAnimate: canAnimate && preferences.animation,
         validMoves,
@@ -273,6 +309,7 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
         preferences,
         currentIndex: index,
         moveList,
+        setCurrentPlayerColor,
         setSelectedPiece,
         setPreferences,
         setPromotionMove,
@@ -287,6 +324,8 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
         goToMove,
         getPlayerInfo,
         getPGN,
+        draw,
+        resign,
       }}
     >
       {children}

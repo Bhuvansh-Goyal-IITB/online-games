@@ -226,6 +226,24 @@ export class Chess {
     });
   }
 
+  resign(resigningPlayerColor: Color) {
+    if (resigningPlayerColor == "w") {
+      this._outcome = "b";
+      this._outcomeMethod = "resignation";
+      this.clearValidMoves();
+    } else {
+      this._outcome = "w";
+      this._outcomeMethod = "resignation";
+      this.clearValidMoves();
+    }
+  }
+
+  draw() {
+    this._outcome = "d";
+    this._outcomeMethod = "agreement";
+    this.clearValidMoves();
+  }
+
   private clearValidMoves() {
     this._current.pieces.forEach((piece) => piece.clear_moves());
   }
