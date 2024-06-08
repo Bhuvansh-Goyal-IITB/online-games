@@ -31,7 +31,6 @@ export const GameOverScreen: FC = () => {
   }, [currentIndex]);
 
   if (gameOverScreenToggle) {
-    console.log("hi");
     return (
       <div
         className="absolute flex justify-center items-center top-0 left-0 w-full h-full z-[5] bg-black bg-opacity-50"

@@ -1,35 +1,10 @@
 "use client";
 
-import {
-  ReactNode,
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import useWebSocket, { ReadyState, SendMessage } from "react-use-websocket";
+import { FC, PropsWithChildren, useEffect } from "react";
+import useWebSocket from "react-use-websocket";
+import { SocketContext } from "./socketContext";
 
-interface IWebSocketContext {
-  sendMessage: SendMessage;
-  message: string | null;
-  readyState: ReadyState;
-}
-
-const WebSocketContext = createContext<IWebSocketContext | undefined>(
-  undefined
-);
-
-export function useSocketContext() {
-  const context = useContext(WebSocketContext);
-
-  if (!context) {
-    throw Error("useSocket must be used inside SocketProvider");
-  }
-
-  return context;
-}
-
-export function SocketProvider({ children }: { children: ReactNode }) {
+export const SocketContextProvider: FC<PropsWithChildren> = ({ children }) => {
   const { sendMessage, lastMessage, readyState } = useWebSocket(
     process.env.NEXT_PUBLIC_BACKEND_URL!,
     {
@@ -65,7 +40,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   }, [lastMessage]);
 
   return (
-    <WebSocketContext.Provider
+    <SocketContext.Provider
       value={{
         sendMessage,
         message: lastMessage ? lastMessage.data : null,
@@ -73,6 +48,6 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-    </WebSocketContext.Provider>
+    </SocketContext.Provider>
   );
-}
+};

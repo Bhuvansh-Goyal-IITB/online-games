@@ -4,6 +4,7 @@ import { IChessPreferences, IPlayerInfo } from "./ChessContextProvider";
 
 interface IChessContext {
   pieceList: PieceInfo[];
+  playerColor: Color | null;
   lastMove: Omit<Move, "capturedPiece"> | null;
   selfGame: boolean;
   fen: string;
@@ -33,6 +34,7 @@ interface IChessContext {
   getPGN: () => string;
   resign: (resigningPlayerColor: Color) => void;
   draw: () => void;
+  startGame: () => void;
 }
 
 export const ChessContext = createContext<IChessContext | null>(null);

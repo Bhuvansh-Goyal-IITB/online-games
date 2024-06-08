@@ -90,10 +90,15 @@ export const ValidMoves: FC = () => {
           .filter((move) => move[0] == selectedPiece.position)
           .map((move) => {
             const displayPosition = flip ? 63 - move[1]! : move[1]!;
+            const movedPiece = pieceList.find(
+              (piece) => piece.position == move[0]!
+            )!;
 
             if (
               pieceList.find((piece) => piece.position == move[1]!) ||
-              (enPassantPosition && enPassantPosition == move[1]!)
+              (enPassantPosition &&
+                movedPiece.pieceType == "p" &&
+                enPassantPosition == move[1]!)
             ) {
               return (
                 <div

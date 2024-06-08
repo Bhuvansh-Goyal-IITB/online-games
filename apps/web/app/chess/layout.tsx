@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
-import { SocketProvider } from "@/app/components/SocketProvider";
+import { SocketContextProvider } from "@repo/ui/socket/SocketContextProvider";
 
 export default function Layout({ children }: { children: ReactNode }) {
-  return <SocketProvider>{children}</SocketProvider>;
+  return <SocketContextProvider>{children}</SocketContextProvider>;
 }

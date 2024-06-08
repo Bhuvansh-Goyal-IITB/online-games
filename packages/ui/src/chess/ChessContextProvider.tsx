@@ -44,6 +44,7 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
 }) => {
   const chessRef = useRef(new Chess());
 
+  const [gameStarted, setGameStarted] = useState(selfGame);
   const [preferences, setPreferences] = useState<IChessPreferences>({
     flip: false,
     animation: true,
@@ -298,6 +299,7 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
       value={{
         pieceList,
         lastMove,
+        playerColor: currentPlayerColor,
         fen,
         selfGame: selfGame,
         selectedPiece,
@@ -326,6 +328,9 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
         getPGN,
         draw,
         resign,
+        startGame: () => {
+          setGameStarted(true);
+        },
       }}
     >
       {children}
