@@ -5,15 +5,15 @@ import {
   CardTitle,
 } from "@ui/components/ui/card";
 import MoveList from "./MoveList";
-import { Button } from "@ui/components/ui/button";
+import { Button, ButtonProps } from "@ui/components/ui/button";
 import { useChessContext } from "./chessContext";
 import {
   ChevronFirst,
   ChevronLast,
   ChevronLeft,
   ChevronRight,
-  Clipboard,
   Copy,
+  CopyCheck,
   Settings,
   Share2,
   Undo2,
@@ -37,8 +37,30 @@ import {
 import { PieceSet } from "./types";
 import { ModeToggle } from "@ui/components/mode-toggle";
 import { Separator } from "@ui/components/ui/separator";
-import { FC } from "react";
+import { FC, useState } from "react";
 import { ScrollArea } from "@ui/components/ui/scroll-area";
+
+interface CopyButtonProps {
+  copyText: string;
+}
+
+const CopyButton: FC<CopyButtonProps> = ({ copyText }) => {
+  const [copied, setCopied] = useState(false);
+
+  return (
+    <Button
+      className="w-8 h-8"
+      variant="ghost"
+      size="icon"
+      onClick={() => {
+        navigator.clipboard.writeText(copyText);
+        setCopied(true);
+      }}
+    >
+      {copied ? <CopyCheck size={20} /> : <Copy size={20} />}
+    </Button>
+  );
+};
 
 const SideButtons: FC = () => {
   const {
@@ -156,18 +178,14 @@ const SideButtons: FC = () => {
           <div className="flex flex-col gap-2 px-2">
             <div className="flex gap-3 items-center">
               <div className="text-lg">FEN</div>
-              <Button className="w-8 h-8" variant="ghost" size="icon">
-                <Copy size={20} />
-              </Button>
+              <CopyButton copyText={fen} />
             </div>
             <textarea readOnly className="resize-none border p-2 w-full">
               {fen}
             </textarea>
             <div className="flex gap-3 items-center">
               <div className="text-lg">PGN</div>
-              <Button className="w-8 h-8" variant="ghost" size="icon">
-                <Copy size={20} />
-              </Button>
+              <CopyButton copyText={getPGN()} />
             </div>
             <div className="w-full flex justify-center">
               <textarea
