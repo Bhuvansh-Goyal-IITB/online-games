@@ -39,6 +39,7 @@ import { ModeToggle } from "@ui/components/mode-toggle";
 import { Separator } from "@ui/components/ui/separator";
 import { FC, useState } from "react";
 import { ScrollArea } from "@ui/components/ui/scroll-area";
+import { Textarea } from "@ui/components/ui/textarea";
 
 interface CopyButtonProps {
   copyText: string;
@@ -175,25 +176,31 @@ const SideButtons: FC = () => {
           </Button>
         </DialogTrigger>
         <DialogContent className="w-[350px] lg:w-[420px]">
-          <div className="flex flex-col gap-2 px-2">
-            <div className="flex gap-3 items-center">
-              <div className="text-lg">FEN</div>
-              <CopyButton copyText={fen} />
+          <div className="flex flex-col gap-6 px-2">
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-3 items-center">
+                <div className="text-lg">FEN</div>
+                <CopyButton copyText={fen} />
+              </div>
+              <div className="w-full flex justify-center">
+                <Textarea readOnly className="resize-none border p-2 w-full">
+                  {fen}
+                </Textarea>
+              </div>
             </div>
-            <textarea readOnly className="resize-none border p-2 w-full">
-              {fen}
-            </textarea>
-            <div className="flex gap-3 items-center">
-              <div className="text-lg">PGN</div>
-              <CopyButton copyText={getPGN()} />
-            </div>
-            <div className="w-full flex justify-center">
-              <textarea
-                readOnly
-                className="border p-2 rounded-md h-[250px] w-full"
-              >
-                {getPGN()}
-              </textarea>
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-3 items-center">
+                <div className="text-lg">PGN</div>
+                <CopyButton copyText={getPGN()} />
+              </div>
+              <div className="w-full flex justify-center">
+                <Textarea
+                  readOnly
+                  className="border p-2 rounded-md h-[250px] w-full"
+                >
+                  {getPGN()}
+                </Textarea>
+              </div>
             </div>
           </div>
         </DialogContent>
