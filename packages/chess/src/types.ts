@@ -1,9 +1,12 @@
+import { Piece } from "./piece";
+
 export type PieceType = "r" | "n" | "b" | "k" | "q" | "p";
+
 export interface PieceInfo {
   pieceType: PieceType;
   position: number;
   color: Color;
-  id: number;
+  id: string;
 }
 
 export interface Board {
@@ -15,10 +18,8 @@ export interface Board {
 }
 
 export interface Move {
-  from: number;
-  to: number;
-  isCapturing: boolean;
-  isCastling: boolean;
-  isPromoting: boolean;
+  move: number[];
+  notation: string;
+  capturedPiece: Piece | null;
 }
 export type Color = "w" | "b";

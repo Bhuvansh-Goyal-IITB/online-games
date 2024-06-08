@@ -170,7 +170,7 @@ wss.on("connection", (ws) => {
         } else {
           game.blackId = playerId;
         }
-      } else if (!game.whiteId) {
+      } else if (!game.whiteId && game.blackId != playerId) {
         game.whiteId = playerId;
 
         const blackSocket = connectedUsers.get(game.blackId);
@@ -192,7 +192,7 @@ wss.on("connection", (ws) => {
             })
           );
         }
-      } else if (!game.blackId) {
+      } else if (!game.blackId && game.whiteId != playerId) {
         game.blackId = playerId;
         const whiteSocket = connectedUsers.get(game.whiteId);
         if (whiteSocket) {

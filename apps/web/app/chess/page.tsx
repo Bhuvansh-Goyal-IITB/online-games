@@ -1,9 +1,9 @@
 "use client";
 
 import { Button } from "@repo/ui/components/ui/button";
-import { useSocketContext } from "@/app/components/SocketProvider";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSocketContext } from "@ui/socket/socketContext";
 
 export default function Page() {
   const { sendMessage, message, readyState } = useSocketContext();

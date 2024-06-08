@@ -21,19 +21,10 @@ export class Chess {
 
   private _boardHistory: {
     repetetionHash: number;
-    pieceList: {
-      id: string;
-      pieceType: PieceType;
-      color: Color;
-      position: number;
-    }[];
+    pieceList: PieceInfo[];
     fen: string;
   }[] = [];
-  private _moveHistory: {
-    move: number[];
-    notation: string;
-    capturedPiece: Piece | null;
-  }[] = [];
+  private _moveHistory: Move[] = [];
 
   constructor(fen?: string) {
     this._fen =
@@ -223,11 +214,38 @@ export class Chess {
 
     this.pushToHistory();
     this.checkOutcome();
+
+    if (this._outcome != "") {
+      this.clearValidMoves();
+    }
+
     this._moveHistory.push({
       move: [from, to],
       notation,
       capturedPiece: capturedPiece ?? null,
     });
+  }
+
+  resign(resigningPlayerColor: Color) {
+    if (resigningPlayerColor == "w") {
+      this._outcome = "b";
+      this._outcomeMethod = "resignation";
+      this.clearValidMoves();
+    } else {
+      this._outcome = "w";
+      this._outcomeMethod = "resignation";
+      this.clearValidMoves();
+    }
+  }
+
+  draw() {
+    this._outcome = "d";
+    this._outcomeMethod = "agreement";
+    this.clearValidMoves();
+  }
+
+  private clearValidMoves() {
+    this._current.pieces.forEach((piece) => piece.clear_moves());
   }
 
   private pushToHistory() {
@@ -277,12 +295,7 @@ export class Chess {
       }
     }
 
-    const pieceList: {
-      id: string;
-      pieceType: PieceType;
-      color: Color;
-      position: number;
-    }[] = [];
+    const pieceList: PieceInfo[] = [];
 
     this._white.pieces.forEach((piece) => {
       pieceList.push({
@@ -410,6 +423,28 @@ export class Chess {
         castling_rights = castling_rights!.replace("k", "");
       else if (castling_rights!.includes("q") && from == 0)
         castling_rights = castling_rights!.replace("q", "");
+    }
+
+    if (capturedPiece && capturedPiece.piece_type == "r") {
+      if (capturedPiece.color == "w") {
+        if (capturedPiece.position == 63 && castling_rights!.includes("K")) {
+          castling_rights = castling_rights!.replace("K", "");
+        } else if (
+          capturedPiece.position == 56 &&
+          castling_rights!.includes("Q")
+        ) {
+          castling_rights = castling_rights!.replace("Q", "");
+        }
+      } else {
+        if (capturedPiece.position == 7 && castling_rights!.includes("k")) {
+          castling_rights = castling_rights!.replace("k", "");
+        } else if (
+          capturedPiece.position == 0 &&
+          castling_rights!.includes("q")
+        ) {
+          castling_rights = castling_rights!.replace("q", "");
+        }
+      }
     }
 
     if (castling_rights == "") castling_rights = "-";

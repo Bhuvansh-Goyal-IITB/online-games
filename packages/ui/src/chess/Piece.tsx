@@ -1,153 +1,124 @@
 "use client";
 
-import { Color, PieceType } from "@repo/chess";
+import { Chess, Color, PieceType } from "@repo/chess";
 import {
-  Dispatch,
-  HTMLAttributes,
+  FC,
   MouseEventHandler,
-  SetStateAction,
-  forwardRef,
+  TouchEventHandler,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
 } from "react";
-import { PieceSet } from "./types";
+import { useChessContext } from "./chessContext";
+import { OutcomeSymbol } from "./OutcomeSymbol";
+import {
+  getPieceCoordinates,
+  generateAnimationKeyframes,
+  usePreviousPosition,
+} from "./PieceUtilities";
 
-function Piece({
-  piece,
-  pieceSet,
-  validMoves,
-  currentTurn,
-  flip,
-  dontAnimate,
-  promotionMove,
-  setSelectedPiece,
-  setPromotionMove,
-  move,
-}: {
-  piece: {
-    id: string;
-    pieceType: PieceType;
-    color: Color;
-    position: number;
-  };
-  currentTurn: Color;
-  pieceSet: PieceSet;
+interface PieceProps {
+  position: number;
+  color: Color;
+  pieceType: PieceType;
   validMoves: number[];
-  dontAnimate: boolean;
-  flip: boolean;
-  promotionMove: number[] | null;
-  setPromotionMove: Dispatch<SetStateAction<number[] | null>>;
-  setSelectedPiece: Dispatch<
-    SetStateAction<{
-      id: string;
-      pieceType: PieceType;
-      color: Color;
-      position: number;
-    } | null>
-  >;
-  move: (
-    from: number,
-    to: number,
-    promoteTo?: Exclude<PieceType, "k" | "p">
-  ) => void;
-}) {
+}
+
+export const Piece: FC<PieceProps> = ({
+  position,
+  color,
+  pieceType,
+  validMoves,
+}) => {
+  const {
+    promotionMove,
+    canAnimate,
+    preferences: { pieceSet, flip },
+    movePiece,
+    setSelectedPiece,
+    setPromotionMove,
+  } = useChessContext();
+
+  const [promotionTranslate, setPromotionTranslate] = useState({ x: 0, y: 0 });
   const [held, setHeld] = useState(false);
 
-  const { pieceType, color, position } = piece;
+  const divRef = useRef<HTMLDivElement>(null);
 
+  const [selfMove, setSelfMove] = useState(false);
+  const [animate, setAnimate] = useState(false);
+  const [promotionAnimate, setPromotionAnimate] = useState(false);
+  const previousPosition = usePreviousPosition(position);
+  const [promotionPosition, setPromotionPosition] = useState<number | null>(
+    null
+  );
   const [pieceCoordinates, setPieceCoordinates] = useState({
     centerX: 0,
     centerY: 0,
     width: 0,
   });
-  const [translate, setTranslate] = useState({ x: 0, y: 0 });
-  const [inPromotion, setInPromotion] = useState(false);
 
-  const [animate, setAnimate] = useState(false);
-  const [selfMove, setSelfMove] = useState(false);
+  const displayPreviousPosition = flip
+    ? 63 - previousPosition
+    : previousPosition;
+  const displayPosition = flip ? 63 - position : position;
 
-  const [selectToggle, setSelectToggle] = useState(true);
-
-  const graphicalPosition = flip ? 63 - position : position;
-  const divRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseDown: MouseEventHandler<HTMLDivElement> = (event) => {
+  const handleMouseDown: MouseEventHandler = (event) => {
     if (!divRef.current) return;
 
-    const { left, right, top, bottom } =
-      divRef.current!.getBoundingClientRect();
-
-    const centerX = (left + right) / 2;
-    const centerY = (top + bottom) / 2;
-    const width = Math.abs(left - right);
-
-    setTranslate({
+    const { centerX, centerY, width } = getPieceCoordinates(divRef.current);
+    const translate = {
       x: event.clientX - centerX,
       y: event.clientY - centerY,
+    };
+
+    divRef.current.style.left = `calc(${((displayPosition % 8) * 100) / 8}% + ${translate.x}px)`;
+    divRef.current.style.top = `calc(${(Math.floor(displayPosition / 8) * 100) / 8}% + ${translate.y}px)`;
+    setHeld(true);
+    setSelectedPiece({
+      pieceType,
+      color,
+      position,
     });
     setPieceCoordinates({ centerX, centerY, width });
-    setHeld(true);
-    setAnimate(false);
-
-    setSelectedPiece(piece);
-
-    setSelectToggle((prev) => !prev);
   };
 
   const handleMouseMove = (event: MouseEvent) => {
-    if (!held) return;
+    if (!held || !divRef.current) return;
+    const { centerX, centerY, width } = pieceCoordinates;
 
-    const { width } = pieceCoordinates;
+    const minX = -width / 2 - (displayPosition % 8) * width;
+    const maxX = width / 2 + (7 - (displayPosition % 8)) * width;
 
-    const mouseXDisplacement = event.clientX - pieceCoordinates.centerX;
-    const mouseYDisplacement = event.clientY - pieceCoordinates.centerY;
+    const minY = -width / 2 - Math.floor(displayPosition / 8) * width;
+    const maxY = width / 2 + (7 - Math.floor(displayPosition / 8)) * width;
 
-    const xTranslate =
-      event.clientX > pieceCoordinates.centerX
-        ? Math.min(
-            (7 - (graphicalPosition % 8)) * width + width / 2,
-            mouseXDisplacement
-          )
-        : Math.max(
-            -((graphicalPosition % 8) * width + width / 2),
-            mouseXDisplacement
-          );
-    const yTranslate =
-      event.clientY > pieceCoordinates.centerY
-        ? Math.min(
-            (7 - Math.floor(graphicalPosition / 8)) * width + width / 2,
-            mouseYDisplacement
-          )
-        : Math.max(
-            -(Math.floor(graphicalPosition / 8) * width + width / 2),
-            mouseYDisplacement
-          );
-
-    setTranslate({
-      x: xTranslate,
-      y: yTranslate,
-    });
+    const translate = {
+      x: Math.min(maxX, Math.max(event.clientX - centerX, minX)),
+      y: Math.min(maxY, Math.max(event.clientY - centerY, minY)),
+    };
+    divRef.current.style.left = `calc(${((displayPosition % 8) * 100) / 8}% + ${translate.x}px)`;
+    divRef.current.style.top = `calc(${(Math.floor(displayPosition / 8) * 100) / 8}% + ${translate.y}px)`;
   };
 
   const handleMouseUp = (event: MouseEvent) => {
-    if (!held) return;
-
+    if (!held || !divRef.current) return;
     const { centerX, centerY, width } = pieceCoordinates;
 
-    const col =
-      (graphicalPosition % 8) +
-      Math.ceil((event.clientX - centerX - width / 2) / width);
+    const xDisplacement = Math.ceil(
+      (event.clientX - centerX - width / 2) / width
+    );
+    const yDisplacement = Math.ceil(
+      (event.clientY - centerY - width / 2) / width
+    );
 
-    const row =
-      Math.floor(graphicalPosition / 8) +
-      Math.ceil((event.clientY - centerY - width / 2) / width);
+    const col = (displayPosition % 8) + xDisplacement;
+    const row = Math.floor(displayPosition / 8) + yDisplacement;
 
-    const graphicalMouseUpPosition = row * 8 + col;
+    const displayMouseUpPosition = row * 8 + col;
     const mouseUpPosition = flip
-      ? 63 - graphicalMouseUpPosition
-      : graphicalMouseUpPosition;
+      ? 63 - displayMouseUpPosition
+      : displayMouseUpPosition;
 
     if (0 <= row && row <= 7 && 0 <= col && col <= 7) {
       if (validMoves.includes(mouseUpPosition)) {
@@ -156,159 +127,226 @@ function Piece({
           ((color == "w" && mouseUpPosition <= 7) ||
             (color == "b" && mouseUpPosition >= 56))
         ) {
-          setPromotionMove([position, mouseUpPosition]);
-          setInPromotion(true);
-          setTranslate({
-            x:
-              ((graphicalMouseUpPosition % 8) - (graphicalPosition % 8)) *
-              pieceCoordinates.width,
+          setPromotionAnimate(false);
+          setPromotionPosition(mouseUpPosition);
+          setSelfMove(true);
+          setPromotionTranslate({
+            x: ((displayMouseUpPosition % 8) - (displayPosition % 8)) * width,
             y:
-              (Math.floor(graphicalMouseUpPosition / 8) -
-                Math.floor(graphicalPosition / 8)) *
-              pieceCoordinates.width,
+              (Math.floor(displayMouseUpPosition / 8) -
+                Math.floor(displayPosition / 8)) *
+              width,
           });
-
-          setSelfMove(true);
-          setSelectedPiece(null);
-
-          setSelectToggle(true);
-          setHeld(false);
-          return;
+          setPromotionMove([position, mouseUpPosition]);
         } else {
-          move(position, mouseUpPosition);
           setSelfMove(true);
+          movePiece(
+            `${Chess.position_to_algebraic(position)}${Chess.position_to_algebraic(mouseUpPosition)}`
+          );
         }
       }
     }
 
-    setTranslate({
-      x: 0,
-      y: 0,
-    });
     setHeld(false);
+    divRef.current.style.left = `${((displayPosition % 8) * 100) / 8}%`;
+    divRef.current.style.top = `${(Math.floor(displayPosition / 8) * 100) / 8}% `;
 
-    if (graphicalMouseUpPosition == graphicalPosition) {
-      if (selectToggle) {
-        setSelectedPiece(null);
-      } else {
-        setSelectToggle(true);
-      }
-    } else {
+    if (mouseUpPosition != position) {
       setSelectedPiece(null);
-      setSelectToggle(true);
     }
   };
 
-  useEffect(() => {
-    if (promotionMove == null && inPromotion) {
-      setTranslate({
+  const handleTouchStart: TouchEventHandler = (event) => {
+    if (!divRef.current || event.touches.length == 0) return;
+    event.preventDefault();
+
+    const { centerX, centerY, width } = getPieceCoordinates(divRef.current);
+    const touchX = event.touches[0]!.clientX;
+    const touchY = event.touches[0]!.clientY;
+
+    const translate = {
+      x: touchX - centerX,
+      y: touchY - centerY,
+    };
+
+    divRef.current.style.left = `calc(${((displayPosition % 8) * 100) / 8}% + ${translate.x}px)`;
+    divRef.current.style.top = `calc(${(Math.floor(displayPosition / 8) * 100) / 8}% + ${translate.y}px)`;
+    setHeld(true);
+    setSelectedPiece({
+      pieceType,
+      color,
+      position,
+    });
+    setPieceCoordinates({ centerX, centerY, width });
+  };
+
+  const handleTouchMove = (event: TouchEvent) => {
+    if (!held || !divRef.current || event.touches.length == 0) return;
+    event.preventDefault();
+
+    const { centerX, centerY, width } = pieceCoordinates;
+
+    const touchX = event.touches[0]!.clientX;
+    const touchY = event.touches[0]!.clientY;
+
+    const minX = -width / 2 - (displayPosition % 8) * width;
+    const maxX = width / 2 + (7 - (displayPosition % 8)) * width;
+
+    const minY = -width / 2 - Math.floor(displayPosition / 8) * width;
+    const maxY = width / 2 + (7 - Math.floor(displayPosition / 8)) * width;
+
+    const translate = {
+      x: Math.min(maxX, Math.max(touchX - centerX, minX)),
+      y: Math.min(maxY, Math.max(touchY - centerY, minY)),
+    };
+    divRef.current.style.left = `calc(${((displayPosition % 8) * 100) / 8}% + ${translate.x}px)`;
+    divRef.current.style.top = `calc(${(Math.floor(displayPosition / 8) * 100) / 8}% + ${translate.y}px)`;
+  };
+
+  const handleTouchEnd = (event: TouchEvent) => {
+    if (!held || !divRef.current || event.changedTouches.length == 0) return;
+    event.preventDefault();
+
+    const { centerX, centerY, width } = pieceCoordinates;
+    const touchX = event.changedTouches[0]!.clientX;
+    const touchY = event.changedTouches[0]!.clientY;
+
+    const xDisplacement = Math.ceil((touchX - centerX - width / 2) / width);
+    const yDisplacement = Math.ceil((touchY - centerY - width / 2) / width);
+
+    const col = (displayPosition % 8) + xDisplacement;
+    const row = Math.floor(displayPosition / 8) + yDisplacement;
+
+    const displayTouchUpPosition = row * 8 + col;
+    const touchUpPosition = flip
+      ? 63 - displayTouchUpPosition
+      : displayTouchUpPosition;
+
+    if (0 <= row && row <= 7 && 0 <= col && col <= 7) {
+      if (validMoves.includes(touchUpPosition)) {
+        if (
+          pieceType == "p" &&
+          ((color == "w" && touchUpPosition <= 7) ||
+            (color == "b" && touchUpPosition >= 56))
+        ) {
+          setPromotionAnimate(false);
+          setPromotionPosition(touchUpPosition);
+          setSelfMove(true);
+          setPromotionTranslate({
+            x: ((displayTouchUpPosition % 8) - (displayPosition % 8)) * width,
+            y:
+              (Math.floor(displayTouchUpPosition / 8) -
+                Math.floor(displayPosition / 8)) *
+              width,
+          });
+          setPromotionMove([position, touchUpPosition]);
+        } else {
+          setSelfMove(true);
+          movePiece(
+            `${Chess.position_to_algebraic(position)}${Chess.position_to_algebraic(touchUpPosition)}`
+          );
+        }
+      }
+    }
+
+    setHeld(false);
+    divRef.current.style.left = `${((displayPosition % 8) * 100) / 8}%`;
+    divRef.current.style.top = `${(Math.floor(displayPosition / 8) * 100) / 8}% `;
+
+    if (touchUpPosition != position) {
+      setSelectedPiece(null);
+    }
+  };
+
+  useLayoutEffect(() => {
+    if (promotionMove && promotionMove[0] == position && !selfMove) {
+      const { width } = pieceCoordinates;
+      const displayToPosition = flip
+        ? 63 - promotionMove[1]!
+        : promotionMove[1]!;
+
+      setPromotionAnimate(true);
+      setPromotionPosition(promotionMove[1]!);
+      setPromotionTranslate({
+        x: ((displayToPosition % 8) - (displayPosition % 8)) * width,
+        y:
+          (Math.floor(displayToPosition / 8) -
+            Math.floor(displayPosition / 8)) *
+          width,
+      });
+    } else if (promotionMove == null && promotionPosition != null) {
+      if (position != promotionPosition) {
+        setPromotionAnimate(true);
+      } else {
+        setPromotionAnimate(false);
+      }
+      setSelfMove(false);
+      setPromotionPosition(null);
+      setPromotionTranslate({
         x: 0,
         y: 0,
       });
-      setInPromotion(false);
-      setSelfMove(false);
-    } else if (promotionMove && promotionMove[0] == position && !selfMove) {
-      const graphicalToPosition = flip
-        ? 63 - promotionMove[1]!
-        : promotionMove[1]!;
-      setTranslate({
-        x:
-          ((graphicalToPosition % 8) - (graphicalPosition % 8)) *
-          pieceCoordinates.width,
-        y:
-          (Math.floor(graphicalToPosition / 8) -
-            Math.floor(graphicalPosition / 8)) *
-          pieceCoordinates.width,
-      });
-      setInPromotion(true);
     }
   }, [promotionMove]);
 
-  useEffect(() => {
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [held, pieceCoordinates, flip]);
-
   useLayoutEffect(() => {
-    setAnimate(false);
-    if (inPromotion && promotionMove) {
-      const graphicalToPosition = flip
-        ? 63 - promotionMove[1]!
-        : promotionMove[1]!;
-      setTranslate({
-        x:
-          ((graphicalToPosition % 8) - (graphicalPosition % 8)) *
-          pieceCoordinates.width,
-        y:
-          (Math.floor(graphicalToPosition / 8) -
-            Math.floor(graphicalPosition / 8)) *
-          pieceCoordinates.width,
-      });
-    }
-  }, [flip]);
-
-  useLayoutEffect(() => {
-    if (selfMove || inPromotion) {
+    if (selfMove) {
       setAnimate(false);
     } else {
       setAnimate(true);
     }
+
     setSelfMove(false);
   }, [position]);
 
   useEffect(() => {
-    if (divRef.current) {
-      const { left, right, top, bottom } =
-        divRef.current.getBoundingClientRect();
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("touchmove", handleTouchMove);
+    window.addEventListener("touchend", handleTouchEnd);
 
-      const centerX = (left + right) / 2;
-      const centerY = (top + bottom) / 2;
-      const width = Math.abs(left - right);
-
-      setPieceCoordinates({
-        centerX,
-        centerY,
-        width,
-      });
-    }
-  }, []);
-
-  const [previousValue, setPreviousValue] = useState(position);
-  const [currentValue, setCurrentValue] = useState(position);
+    return () => {
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [held, pieceCoordinates]);
 
   useLayoutEffect(() => {
-    setPreviousValue(currentValue);
-    setCurrentValue(position);
-  }, [position, currentTurn, dontAnimate]);
+    setAnimate(false);
 
-  const showPreviousPosition = flip ? 63 - previousValue : previousValue;
-  const showPosition = flip ? 63 - position : position;
+    if (promotionMove && promotionMove[0] == position) {
+      const { width } = pieceCoordinates;
+      const displayToPosition = flip
+        ? 63 - promotionMove[1]!
+        : promotionMove[1]!;
 
-  const animationKeyFrames = `
-      @keyframes tween-from-${showPreviousPosition}-to-${showPosition} {
-        0% { transform: translate(${((showPreviousPosition % 8) - (showPosition % 8)) * 100}%, ${
-          (Math.floor(showPreviousPosition / 8) -
-            Math.floor(showPosition / 8)) *
-          100
-        }%); }
-        100% { transform: translate(0%, 0%); }
-      }
-    `;
+      setPromotionTranslate({
+        x: ((displayToPosition % 8) - (displayPosition % 8)) * width,
+        y:
+          (Math.floor(displayToPosition / 8) -
+            Math.floor(displayPosition / 8)) *
+          width,
+      });
+    }
+  }, [flip]);
+
+  const { animationName, animationKeyframes } = generateAnimationKeyframes(
+    displayPreviousPosition,
+    displayPosition
+  );
 
   return (
     <div
       ref={divRef}
       style={{
-        left: `calc(${((graphicalPosition % 8) * 100) / 8}% + ${translate.x}px)`,
-        top: `calc(${(Math.floor(graphicalPosition / 8) * 100) / 8}% + ${translate.y}px)`,
-        animation: `tween-from-${showPreviousPosition}-to-${showPosition} 0.1s`,
+        transform: `translate(${promotionTranslate.x}px, ${promotionTranslate.y}px) ${held ? "scale(1.1)" : ""}`,
+        left: `${((displayPosition % 8) * 100) / 8}%`,
+        top: `${(Math.floor(displayPosition / 8) * 100) / 8}%`,
+        animation: `${animationName} 0.2s`,
       }}
-      className={`absolute flex justify-center z-[1] items-center ${held ? "pointer-events-none" : ""} left-0 top-0 w-[12.5%] h-[12.5%] ${held || inPromotion ? "z-[2]" : ""}`}
+      className={`absolute flex justify-center items-center touch-none w-[12.5%] h-[12.5%] z-[1] ${held ? "z-[2] grow-animation" : ""} ${promotionAnimate && canAnimate ? "translate-animation z-[2]" : ""}`}
       onDragStart={(e) => {
         e.preventDefault();
       }}
@@ -316,17 +354,15 @@ function Piece({
         e.preventDefault();
       }}
       onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
     >
-      {animate && !dontAnimate && previousValue != position && (
-        <style>{animationKeyFrames}</style>
-      )}
-      <img
-        className="w-[95%] h-[95%] pointer-events-none"
-        src={`/${pieceSet}/${color}/${pieceType}.svg`}
-        alt="chess piece"
+      <OutcomeSymbol
+        pieceType={pieceType}
+        color={color}
+        position={displayPosition}
       />
+      {animate && canAnimate && <style>{animationKeyframes}</style>}
+      <img src={`/${pieceSet}/${color}/${pieceType}.svg`} />
     </div>
   );
-}
-
-export default Piece;
+};
