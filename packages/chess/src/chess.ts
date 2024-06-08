@@ -407,6 +407,28 @@ export class Chess {
         castling_rights = castling_rights!.replace("q", "");
     }
 
+    if (capturedPiece && capturedPiece.piece_type == "r") {
+      if (capturedPiece.color == "w") {
+        if (capturedPiece.position == 63 && castling_rights!.includes("K")) {
+          castling_rights = castling_rights!.replace("K", "");
+        } else if (
+          capturedPiece.position == 56 &&
+          castling_rights!.includes("Q")
+        ) {
+          castling_rights = castling_rights!.replace("Q", "");
+        }
+      } else {
+        if (capturedPiece.position == 7 && castling_rights!.includes("k")) {
+          castling_rights = castling_rights!.replace("k", "");
+        } else if (
+          capturedPiece.position == 0 &&
+          castling_rights!.includes("q")
+        ) {
+          castling_rights = castling_rights!.replace("q", "");
+        }
+      }
+    }
+
     if (castling_rights == "") castling_rights = "-";
 
     if (moved_piece.piece_type == "p" || capturedPiece) {
