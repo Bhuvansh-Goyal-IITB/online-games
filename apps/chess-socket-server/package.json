@@ -13,14 +13,20 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@tsconfig/node20": "^20.1.4",
+    "@repo/typescript-config": "workspace:^",
     "@types/node": "^20.13.0",
     "@types/ws": "^8.5.10",
-    "tsc-watch": "^6.2.0"
+    "drizzle-kit": "^0.22.6",
+    "tsc-watch": "^6.2.0",
+    "typescript": "^5.4.5"
   },
   "dependencies": {
+    "@libsql/client": "^0.6.2",
     "@repo/chess": "workspace:^",
+    "@repo/drizzle-schema": "workspace:^",
+    "@repo/socket-communication-schemas": "workspace:^",
     "dotenv": "^16.4.5",
+    "drizzle-orm": "^0.31.2",
     "nanoid": "^5.0.7",
     "ws": "^8.17.0"
   }

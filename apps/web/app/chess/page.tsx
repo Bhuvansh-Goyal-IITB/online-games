@@ -50,7 +50,29 @@ export default function Page() {
     }
   }, [session.status, authPopupShown]);
 
-  const handleCreateGame = () => {};
+  const handleCreateGame = () => {
+    if (readyState == 1) {
+      sendMessage(
+        JSON.stringify({
+          event: "create game",
+        })
+      );
+    } else {
+      alert("Cannot connect to server");
+    }
+  };
+
+  const handleOnlineGame = () => {
+    if (readyState == 1) {
+      sendMessage(
+        JSON.stringify({
+          event: "random game",
+        })
+      );
+    } else {
+      alert("Cannot connect to server");
+    }
+  };
 
   return (
     <div className="flex justify-center items-center w-full h-full bg-muted">
@@ -74,6 +96,7 @@ export default function Page() {
               }
               className="p-8 text-xl"
               size="lg"
+              onClick={handleCreateGame}
             >
               Create Game
             </Button>
@@ -84,6 +107,7 @@ export default function Page() {
               }
               className="p-8 text-xl"
               size="lg"
+              onClick={handleOnlineGame}
             >
               Play Online
             </Button>

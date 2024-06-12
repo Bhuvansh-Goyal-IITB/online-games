@@ -1,430 +1,125 @@
-import { WebSocket, WebSocketServer } from "ws";
-import { nanoid } from "nanoid";
 import { createServer } from "http";
-import "dotenv/config";
-
-const port = process.env.PORT || 3000;
+import { ChessSocketServer, WebSocketWithID } from "./ChessSocketServer";
+import {
+  authDataSchema,
+  joinGameDataSchema,
+  moveDataSchema,
+} from "@repo/socket-communication-schemas";
+import { db } from "./db";
+import { usersTable } from "@repo/drizzle-schema";
+import { eq } from "drizzle-orm";
 
 const server = createServer();
 
-const wss = new WebSocketServer({ server });
+const chessSocketServer = new ChessSocketServer({ server });
 
-const connectedUsers = new Map<string, WebSocket>();
+chessSocketServer.on("auth", async (ws, data) => {
+  const safeParsedData = authDataSchema.safeParse(data);
 
-let waitingPlayerId: string | null = null;
-
-interface WebSocketWithID extends WebSocket {
-  playerId: string;
-}
-
-interface Game {
-  gameId: string;
-  whiteId: string;
-  blackId: string;
-  moves: string[];
-  completed: boolean;
-}
-
-const games: Game[] = [];
-
-wss.on("connection", (ws) => {
-  ws.on("close", () => {
-    const playerId = (ws as WebSocketWithID).playerId;
-
-    const game = games.find(
-      (game) => game.blackId == playerId || game.whiteId == playerId
+  if (!safeParsedData.success) {
+    ws.send(
+      JSON.stringify({
+        error: "Invalid fields",
+      })
     );
+    return;
+  }
 
-    if (game) {
-      if (game.blackId == playerId) {
-        const whiteSocket = connectedUsers.get(game.whiteId);
-        if (whiteSocket) {
-          whiteSocket.send(
-            JSON.stringify({
-              event: "opponent disconnected",
-            })
-          );
-        }
-      } else {
-        const blackSocket = connectedUsers.get(game.blackId);
-        if (blackSocket) {
-          blackSocket.send(
-            JSON.stringify({
-              event: "opponent disconnected",
-            })
-          );
-        }
-      }
-    }
+  const { id, isGuest } = safeParsedData.data;
 
-    if (waitingPlayerId == playerId) {
-      waitingPlayerId = null;
-    }
+  if (chessSocketServer.isIdConnected(id)) {
+    return;
+  }
 
-    connectedUsers.delete((ws as WebSocketWithID).playerId);
-  });
+  if (isGuest) {
+    chessSocketServer.addUser(ws, id);
+  } else {
+    const dbResult = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.id, id));
 
-  ws.on("message", (data) => {
-    const parsedData = JSON.parse(data.toString());
+    const user = dbResult.length == 1 ? dbResult[0] : null;
 
-    if (parsedData.event == "connect") {
-      const { playerId } = parsedData.data;
-
-      if (!playerId) {
-        const id = nanoid();
-
-        (ws as WebSocketWithID).playerId = id;
-
-        ws.send(
-          JSON.stringify({
-            event: "id",
-            data: {
-              id,
-            },
-          })
-        );
-
-        connectedUsers.set(id, ws);
-        return;
-      }
-
-      (ws as WebSocketWithID).playerId = playerId;
-      connectedUsers.set(playerId, ws);
-    } else if (parsedData.event == "create game") {
-      const playerId = (ws as WebSocketWithID).playerId;
-      if (!playerId) {
-        ws.send(
-          JSON.stringify({
-            event: "error",
-            data: {
-              error: "WebSocket does no have an id",
-            },
-          })
-        );
-
-        return;
-      }
-
-      const gameId = nanoid(6);
-      games.push({
-        gameId,
-        whiteId: "",
-        blackId: "",
-        moves: [],
-        completed: false,
-      });
-
+    if (!user) {
       ws.send(
         JSON.stringify({
-          event: "gameId",
-          data: {
-            gameId,
-          },
+          error: "User does not exist",
         })
       );
-    } else if (parsedData.event == "join game") {
-      const playerId = (ws as WebSocketWithID).playerId;
-      if (!playerId) {
-        ws.send(
-          JSON.stringify({
-            event: "error",
-            data: {
-              error: "WebSocket does no have an id",
-            },
-          })
-        );
-        return;
-      }
-
-      const { gameId } = parsedData.data;
-
-      if (!gameId) {
-        ws.send(
-          JSON.stringify({
-            event: "error",
-            data: {
-              error: "No game id provided",
-            },
-          })
-        );
-        return;
-      }
-
-      const game = games.find((game) => game.gameId == gameId);
-
-      if (!game) {
-        ws.send(
-          JSON.stringify({
-            event: "error",
-            data: {
-              error: "Game does not exist",
-            },
-          })
-        );
-        return;
-      }
-
-      if (!game.whiteId && !game.blackId) {
-        if (Math.random() > 0.5) {
-          game.whiteId = playerId;
-        } else {
-          game.blackId = playerId;
-        }
-      } else if (!game.whiteId && game.blackId != playerId) {
-        game.whiteId = playerId;
-
-        const blackSocket = connectedUsers.get(game.blackId);
-        if (blackSocket) {
-          blackSocket.send(
-            JSON.stringify({
-              event: "game started",
-              data: {
-                color: "b",
-              },
-            })
-          );
-          ws.send(
-            JSON.stringify({
-              event: "game started",
-              data: {
-                color: "w",
-              },
-            })
-          );
-        }
-      } else if (!game.blackId && game.whiteId != playerId) {
-        game.blackId = playerId;
-        const whiteSocket = connectedUsers.get(game.whiteId);
-        if (whiteSocket) {
-          whiteSocket.send(
-            JSON.stringify({
-              event: "game started",
-              data: {
-                color: "w",
-              },
-            })
-          );
-          ws.send(
-            JSON.stringify({
-              event: "game started",
-              data: {
-                color: "b",
-              },
-            })
-          );
-        }
-      } else {
-        if (playerId == game.blackId) {
-          ws.send(
-            JSON.stringify({
-              event: "total moves",
-              data: {
-                moves: game.moves.join(","),
-              },
-            })
-          );
-          ws.send(
-            JSON.stringify({
-              event: "game started",
-              data: {
-                color: "b",
-              },
-            })
-          );
-
-          const whiteSocket = connectedUsers.get(game.whiteId);
-          if (whiteSocket) {
-            whiteSocket.send(
-              JSON.stringify({
-                event: "opponent connected",
-              })
-            );
-          } else {
-            ws.send(
-              JSON.stringify({
-                event: "opponent disconnected",
-              })
-            );
-          }
-        } else if (playerId == game.whiteId) {
-          ws.send(
-            JSON.stringify({
-              event: "total moves",
-              data: {
-                moves: game.moves.join(","),
-              },
-            })
-          );
-          ws.send(
-            JSON.stringify({
-              event: "game started",
-              data: {
-                color: "w",
-              },
-            })
-          );
-          const blackSocket = connectedUsers.get(game.blackId);
-          if (blackSocket) {
-            blackSocket.send(
-              JSON.stringify({
-                event: "opponent connected",
-              })
-            );
-          } else {
-            ws.send(
-              JSON.stringify({
-                event: "opponent disconnected",
-              })
-            );
-          }
-        } else {
-          ws.send(
-            JSON.stringify({
-              event: "error",
-              data: {
-                error: "The game is already full",
-              },
-            })
-          );
-        }
-      }
-    } else if (parsedData.event == "random game") {
-      const playerId = (ws as WebSocketWithID).playerId;
-      if (!playerId) {
-        ws.send(
-          JSON.stringify({
-            event: "error",
-            data: {
-              error: "WebSocket does no have an id",
-            },
-          })
-        );
-        return;
-      }
-
-      if (waitingPlayerId) {
-        const gameId = nanoid(6);
-
-        const whiteId = Math.random() > 0.5 ? playerId : waitingPlayerId;
-        const blackId = whiteId == playerId ? waitingPlayerId : playerId;
-
-        const newGame: Game = {
-          gameId,
-          whiteId,
-          blackId,
-          moves: [],
-          completed: false,
-        };
-        games.push(newGame);
-
-        connectedUsers.get(whiteId)?.send(
-          JSON.stringify({
-            event: "gameId",
-            data: {
-              gameId,
-            },
-          })
-        );
-        connectedUsers.get(blackId)?.send(
-          JSON.stringify({
-            event: "gameId",
-            data: {
-              gameId,
-            },
-          })
-        );
-
-        waitingPlayerId = null;
-      } else {
-        waitingPlayerId = playerId;
-      }
-    } else if (parsedData.event == "move") {
-      const playerId = (ws as WebSocketWithID).playerId;
-      if (!playerId) {
-        ws.send(
-          JSON.stringify({
-            event: "error",
-            data: {
-              error: "WebSocket does no have an id",
-            },
-          })
-        );
-        return;
-      }
-
-      const { gameId, move } = parsedData.data;
-
-      if (!gameId || !move) {
-        ws.send(
-          JSON.stringify({
-            event: "error",
-            data: {
-              error: "No game id or move provided",
-            },
-          })
-        );
-        return;
-      }
-
-      const game = games.find((game) => game.gameId == gameId);
-
-      if (!game) {
-        ws.send(
-          JSON.stringify({
-            event: "error",
-            data: {
-              error: "Game does not exist",
-            },
-          })
-        );
-        return;
-      }
-
-      if (game && game.blackId != playerId && game.whiteId != playerId) {
-        ws.send(
-          JSON.stringify({
-            event: "error",
-            data: {
-              error: "You are not a player of this game",
-            },
-          })
-        );
-        return;
-      }
-
-      if (game.moves.length % 2 == 0 && playerId == game.whiteId) {
-        game.moves.push(move);
-
-        const blackSocket = connectedUsers.get(game.blackId);
-        if (blackSocket) {
-          blackSocket.send(
-            JSON.stringify({
-              event: "move",
-              data: {
-                move,
-              },
-            })
-          );
-        }
-      } else if (game.moves.length % 2 != 0 && playerId == game.blackId) {
-        game.moves.push(move);
-
-        const whiteSocket = connectedUsers.get(game.whiteId);
-        if (whiteSocket) {
-          whiteSocket.send(
-            JSON.stringify({
-              event: "move",
-              data: {
-                move,
-              },
-            })
-          );
-        }
-      }
+      return;
     }
-  });
+
+    chessSocketServer.addUser(ws, id);
+  }
 });
 
-server.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+chessSocketServer.on("create game", (ws, data) => {
+  const gameId = chessSocketServer.createGame();
+
+  ws.send(
+    JSON.stringify({
+      event: "gameId",
+      data: { gameId },
+    })
+  );
+});
+
+chessSocketServer.on("join game", (ws, data) => {
+  const playerId = (ws as WebSocketWithID).id;
+
+  const safeParsedData = joinGameDataSchema.safeParse(data);
+
+  if (!safeParsedData.success) {
+    ws.send(
+      JSON.stringify({
+        error: "Invalid fields",
+      })
+    );
+    return;
+  }
+
+  const { gameId } = safeParsedData.data;
+
+  try {
+    chessSocketServer.joinGame(gameId, playerId);
+  } catch (error: any) {
+    ws.send(
+      JSON.stringify({
+        error: error.message,
+      })
+    );
+  }
+});
+
+chessSocketServer.on("random game", (ws, _data) => {
+  const playerId = (ws as WebSocketWithID).id;
+  chessSocketServer.joinRandomGame(playerId);
+});
+
+chessSocketServer.on("move", (ws, data) => {
+  const playerId = (ws as WebSocketWithID).id;
+
+  const safeParsedData = moveDataSchema.safeParse(data);
+
+  if (!safeParsedData.success) {
+    ws.send(
+      JSON.stringify({
+        error: "Invalid fields",
+      })
+    );
+    return;
+  }
+
+  const { gameId, move } = safeParsedData.data;
+
+  try {
+    chessSocketServer.move(gameId, playerId, move);
+  } catch (error: any) {
+    ws.send(
+      JSON.stringify({
+        error: error.message,
+      })
+    );
+  }
 });

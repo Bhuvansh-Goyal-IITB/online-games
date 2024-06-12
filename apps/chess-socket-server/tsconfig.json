@@ -1,7 +1,7 @@
 {
-  "extends": "@tsconfig/node20/tsconfig.json",
+  "extends": "@repo/typescript-config/nextjs.json",
   "compilerOptions": {
-    "outDir": "./dist"
+    "outDir": "dist"
   },
   "include": ["src"],
   "exclude": ["node_modules"]
