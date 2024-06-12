@@ -2,7 +2,7 @@ import React, { FC } from "react";
 import { ChessBoard } from "@ui/chess/ChessBoard";
 import { ChessContextProvider } from "@ui/chess/ChessContextProvider";
 import { GameSidePanel } from "@ui/chess/GameSidePanel";
-import { SocketHandler } from "@/app/components/SocketHandler";
+import { SocketHandler } from "@/components/SocketHandler";
 
 export const runtime = "edge";
 

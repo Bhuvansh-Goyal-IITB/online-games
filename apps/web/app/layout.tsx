@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import { ThemeProvider } from "@repo/ui/components/theme-provider";
 import "@repo/ui/globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
+import { SessionProvider } from "next-auth/react";
+import { inter } from "@/fonts";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -24,7 +23,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <SessionProvider>{children}</SessionProvider>
         </ThemeProvider>
       </body>
     </html>
