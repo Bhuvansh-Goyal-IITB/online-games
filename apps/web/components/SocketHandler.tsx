@@ -1,15 +1,23 @@
 "use client";
 
+import { createId } from "@paralleldrive/cuid2";
 import { Chess, Color, PieceType } from "@repo/chess";
 import { useChessContext } from "@ui/chess/chessContext";
 import { useSocketContext } from "@ui/socket/socketContext";
-import { FC, useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
 
 interface SocketHandlerProps {
   gameId: string;
+  setLoading: Dispatch<SetStateAction<boolean>>;
+  setErrorMessage: Dispatch<SetStateAction<string | null>>;
 }
 
-export const SocketHandler: FC<SocketHandlerProps> = ({ gameId }) => {
+export const SocketHandler: FC<SocketHandlerProps> = ({
+  gameId,
+  setErrorMessage: setError,
+  setLoading,
+}) => {
   const {
     moveList,
     lastMove,
@@ -21,6 +29,7 @@ export const SocketHandler: FC<SocketHandlerProps> = ({ gameId }) => {
     setPreferences,
   } = useChessContext();
   const { sendMessage, message } = useSocketContext();
+  const session = useSession();
   const [movesMade, setMovesMade] = useState(0);
 
   useEffect(() => {
@@ -74,6 +83,7 @@ export const SocketHandler: FC<SocketHandlerProps> = ({ gameId }) => {
           loadMoves(moves.split(","));
         }
       } else if (parsedData.event == "game started") {
+        setLoading(false);
         const playerColor = parsedData.data.color as Color;
         setCurrentPlayerColor(playerColor);
         if (playerColor == "b") {
@@ -86,19 +96,67 @@ export const SocketHandler: FC<SocketHandlerProps> = ({ gameId }) => {
       } else if (parsedData.event == "move") {
         const moveString = parsedData.data.move as string;
         movePiece(moveString);
+      } else if (parsedData.event == "error") {
+        setLoading(false);
+        const data = parsedData.data;
+
+        if (data.message && typeof data.message == "string") {
+          setError(data.message);
+        } else {
+          setError("Something went wrong");
+        }
       }
     }
   }, [message]);
 
   useEffect(() => {
-    sendMessage(
-      JSON.stringify({
-        event: "join game",
-        data: {
-          gameId,
-        },
-      })
-    );
-  }, []);
+    if (session.status != "loading") {
+      if (session.status == "authenticated" && session.data.user) {
+        sendMessage(
+          JSON.stringify({
+            event: "auth",
+            data: {
+              id: session.data.user.id,
+              isGuest: false,
+            },
+          })
+        );
+      } else {
+        if (!localStorage.getItem("id")) {
+          const newId = createId();
+          localStorage.setItem("id", newId);
+
+          sendMessage(
+            JSON.stringify({
+              event: "auth",
+              data: {
+                id: newId,
+                isGuest: true,
+              },
+            })
+          );
+        } else {
+          sendMessage(
+            JSON.stringify({
+              event: "auth",
+              data: {
+                id: localStorage.getItem("id"),
+                isGuest: true,
+              },
+            })
+          );
+        }
+      }
+
+      sendMessage(
+        JSON.stringify({
+          event: "join game",
+          data: {
+            gameId,
+          },
+        })
+      );
+    }
+  }, [session.status]);
   return <></>;
 };

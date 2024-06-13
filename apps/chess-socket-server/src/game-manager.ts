@@ -1,5 +1,5 @@
-import { ChessSocketServer } from "./ChessSocketServer";
-import { Game } from "./Game";
+import { ChessSocketServer } from "./chess-socket-server.js";
+import { Game } from "./game.js";
 
 export class GameManager {
   private games: Game[] = [];
@@ -56,7 +56,9 @@ export class GameManager {
       return;
     }
 
-    game.addUser(playerId);
+    if (game.whiteId != playerId && game.blackId != playerId) {
+      game.addUser(playerId);
+    }
 
     if (game.gameStarted) {
       chessSocketServer.sendMessageTo(

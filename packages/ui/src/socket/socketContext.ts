@@ -5,6 +5,7 @@ interface ISocketContext {
   sendMessage: SendMessage;
   message: string | null;
   readyState: ReadyState;
+  on: (event: string, eventHandler: (data: any) => void) => void;
 }
 
 export const SocketContext = createContext<ISocketContext | null>(null);

@@ -1,3 +1,3 @@
-export * from "./auth";
-export * from "./join-game";
-export * from "./move";
+export * from "./auth.js";
+export * from "./join-game.js";
+export * from "./move.js";

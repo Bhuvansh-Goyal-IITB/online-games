@@ -1,5 +1,5 @@
 import { ServerOptions, WebSocket, WebSocketServer } from "ws";
-import { GameManager } from "./GameManager";
+import { GameManager } from "./game-manager.js";
 
 interface EventHandlers {
   [key: string]: (ws: WebSocket, data: any) => void;
@@ -47,6 +47,7 @@ export class ChessSocketServer {
                 error: "Unauthorized",
               })
             );
+            return;
           }
         }
 

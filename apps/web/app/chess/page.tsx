@@ -27,6 +27,7 @@ export default function Page() {
   }, [message]);
 
   useEffect(() => {
+    console.log(session.status, authPopupShown);
     if (session.status == "unauthenticated" && authPopupShown) {
       sendMessage(
         JSON.stringify({
