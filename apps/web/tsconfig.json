@@ -5,7 +5,9 @@
     "paths": {
       "@ui/*": ["../../packages/ui/src/*"],
       "@/*": ["./*"]
-    }
+    },
+    "declaration": false,
+    "declarationMap": false
   },
   "include": [
     "next-env.d.ts",
