@@ -1,15 +1,15 @@
-import GameSelector from "@/components/GameSelector";
+import { Button } from "@repo/ui/components/ui/button";
+import Link from "next/link";
 
 const Page = () => {
   return (
-    <main className="w-full h-full flex flex-col gap-24 justify-center items-center bg-muted">
-      <div>
-        <h1 className="text-8xl font-extrabold">
-          Online <br /> Games
-        </h1>
-      </div>
-      <div className="w-full h-[400px] flex justify-center">
-        <GameSelector />
+    <main className="w-full h-full flex flex-col gap-4 justify-center items-center bg-background">
+      <Button asChild>
+        <Link href="/chess">Play Chess</Link>
+      </Button>
+
+      <div className="text-sm text-muted-foreground">
+        More games coming soon...
       </div>
     </main>
   );

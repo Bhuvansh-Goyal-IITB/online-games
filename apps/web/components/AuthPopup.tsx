@@ -18,12 +18,9 @@ interface AuthPopupProps {
 const AuthPopup: FC<AuthPopupProps> = ({ setAuthPopupShown }) => {
   const router = useRouter();
   return (
-    <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 z-[1] flex justify-center items-center">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-3xl">Play Online Chess</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4 px-16">
+    <div className="absolute top-0 left-0 w-full h-full z-[1] flex justify-center items-center">
+      <Card className="min-w-[250px]">
+        <CardContent className="flex flex-col gap-4 p-6">
           <Button
             onClick={() => {
               localStorage.removeItem("id");

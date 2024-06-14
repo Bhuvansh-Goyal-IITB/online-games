@@ -1,6 +1,5 @@
 "use client";
 
-import { login } from "@/lib";
 import { LoginForm } from "@repo/ui/components/login-form";
 import { LoginType } from "@ui/schema";
 import { signIn } from "next-auth/react";
@@ -13,27 +12,26 @@ const Page = () => {
 
   const onSubmit = async (data: LoginType) => {
     setErrorMessage("");
-    try {
-      await login(data);
-    } catch (error: any) {
-      if (error.message.includes("credentialssignin")) {
-        setErrorMessage("Invalid credentials");
-      } else {
-        setErrorMessage("Something went wrong");
-      }
-    }
+    signIn("credentials", {
+      ...data,
+      redirectTo: "/",
+    });
   };
 
   const onGithubSubmit = () => {
-    signIn("github");
+    setErrorMessage("");
+    signIn("github", { redirectTo: "/" });
+  };
+
+  const onGoogleSubmit = () => {
+    setErrorMessage("");
+    console.log("google login");
+    signIn("google", { redirectTo: "/" });
   };
 
   useEffect(() => {
-    if (
-      params.has("error") &&
-      params.get("error") == "CredentialsSignUpOAuthLogin"
-    ) {
-      setErrorMessage("This account is signed up with credentials");
+    if (params.has("error")) {
+      console.log(params.get("error"));
     }
   }, []);
 
@@ -43,6 +41,7 @@ const Page = () => {
         errorMessage={errorMessage}
         onSubmit={onSubmit}
         onGithubSubmit={onGithubSubmit}
+        onGoogleSubmit={onGoogleSubmit}
       />
     </div>
   );

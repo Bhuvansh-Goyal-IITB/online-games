@@ -29,10 +29,17 @@ import { FaGithub } from "react-icons/fa";
 
 interface SignUpFormProps {
   errorMessage?: string;
+  onGithubSubmit: () => void;
+  onGoogleSubmit: () => void;
   onSubmit: (data: SignUpType) => void;
 }
 
-export const SignUpForm: FC<SignUpFormProps> = ({ errorMessage, onSubmit }) => {
+export const SignUpForm: FC<SignUpFormProps> = ({
+  errorMessage,
+  onSubmit,
+  onGithubSubmit,
+  onGoogleSubmit,
+}) => {
   const form = useForm<SignUpType>({
     resolver: zodResolver(SignUpSchema),
     defaultValues: {
@@ -119,6 +126,7 @@ export const SignUpForm: FC<SignUpFormProps> = ({ errorMessage, onSubmit }) => {
                   disabled={form.formState.isSubmitting}
                   variant="outline"
                   className="w-full"
+                  onClick={onGoogleSubmit}
                 >
                   <FcGoogle className="w-5 h-5" />
                 </Button>
@@ -126,6 +134,7 @@ export const SignUpForm: FC<SignUpFormProps> = ({ errorMessage, onSubmit }) => {
                   disabled={form.formState.isSubmitting}
                   variant="outline"
                   className="w-full"
+                  onClick={onGithubSubmit}
                 >
                   <FaGithub className="w-5 h-5" />
                 </Button>

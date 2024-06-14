@@ -1,6 +1,6 @@
 import { Color, PieceType } from "@repo/chess";
 import { FC, PropsWithChildren } from "react";
-import { useChessContext } from "./chessContext";
+import { useChessContext } from "../context/chessContext";
 
 interface OutcomeSymbolProps {
   pieceType: PieceType;

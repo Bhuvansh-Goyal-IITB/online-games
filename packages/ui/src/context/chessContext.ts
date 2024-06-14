@@ -1,6 +1,6 @@
 import { Color, Move, PieceInfo } from "@repo/chess";
 import { Dispatch, SetStateAction, createContext, useContext } from "react";
-import { IChessPreferences, IPlayerInfo } from "./ChessContextProvider";
+import { IChessPreferences, IPlayerInfo } from "../chess/ChessContextProvider";
 
 interface IChessContext {
   pieceList: PieceInfo[];

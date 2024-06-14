@@ -1,7 +1,7 @@
 import { Color } from "@repo/chess";
 import { Avatar, AvatarFallback, AvatarImage } from "@ui/components/ui/avatar";
 import { FC, useCallback } from "react";
-import { useChessContext } from "./chessContext";
+import { useChessContext } from "../context/chessContext";
 
 interface PlayerInfoProps {
   materialAdvantage: number;

@@ -1,5 +1,8 @@
 import { createServer } from "http";
-import { ChessSocketServer, WebSocketWithID } from "./chess-socket-server.js";
+import {
+  ChessSocketServer,
+  WebSocketWithDetails,
+} from "./chess-socket-server.js";
 import {
   authDataSchema,
   joinGameDataSchema,
@@ -36,7 +39,7 @@ chessSocketServer.on("auth", async (ws, data) => {
   }
 
   if (isGuest) {
-    chessSocketServer.addUser(ws, id);
+    chessSocketServer.addUser(ws, id, `Guest${id.substring(0, 10)}`);
   } else {
     const dbResult = await db
       .select()
@@ -57,7 +60,23 @@ chessSocketServer.on("auth", async (ws, data) => {
       return;
     }
 
-    chessSocketServer.addUser(ws, id);
+    if (!user.displayName) {
+      ws.send(
+        JSON.stringify({
+          event: "error",
+          data: {
+            message: "Please complete your profile (display name not set)",
+          },
+        })
+      );
+      return;
+    }
+    chessSocketServer.addUser(
+      ws,
+      id,
+      user.displayName,
+      user.profileImageURL ?? undefined
+    );
   }
 });
 
@@ -73,8 +92,6 @@ chessSocketServer.on("create game", (ws, data) => {
 });
 
 chessSocketServer.on("join game", (ws, data) => {
-  const playerId = (ws as WebSocketWithID).id;
-
   const safeParsedData = joinGameDataSchema.safeParse(data);
 
   if (!safeParsedData.success) {
@@ -92,7 +109,7 @@ chessSocketServer.on("join game", (ws, data) => {
   const { gameId } = safeParsedData.data;
 
   try {
-    chessSocketServer.joinGame(gameId, playerId);
+    chessSocketServer.joinGame(gameId, ws as WebSocketWithDetails);
   } catch (error: any) {
     ws.send(
       JSON.stringify({
@@ -106,13 +123,10 @@ chessSocketServer.on("join game", (ws, data) => {
 });
 
 chessSocketServer.on("random game", (ws, _data) => {
-  const playerId = (ws as WebSocketWithID).id;
-  chessSocketServer.joinRandomGame(playerId);
+  chessSocketServer.joinRandomGame(ws as WebSocketWithDetails);
 });
 
 chessSocketServer.on("move", (ws, data) => {
-  const playerId = (ws as WebSocketWithID).id;
-
   const safeParsedData = moveDataSchema.safeParse(data);
 
   if (!safeParsedData.success) {
@@ -130,7 +144,7 @@ chessSocketServer.on("move", (ws, data) => {
   const { gameId, move } = safeParsedData.data;
 
   try {
-    chessSocketServer.move(gameId, playerId, move);
+    chessSocketServer.move(gameId, ws as WebSocketWithDetails, move);
   } catch (error: any) {
     ws.send(
       JSON.stringify({

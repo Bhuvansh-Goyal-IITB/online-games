@@ -1,4 +1,7 @@
-import { ChessSocketServer } from "./chess-socket-server.js";
+import {
+  ChessSocketServer,
+  WebSocketWithDetails,
+} from "./chess-socket-server.js";
 import { Game } from "./game.js";
 
 export class GameManager {
@@ -22,9 +25,11 @@ export class GameManager {
 
   joinGame(
     gameId: string,
-    playerId: string,
+    ws: WebSocketWithDetails,
     chessSocketServer: ChessSocketServer
   ) {
+    const playerId = ws.id;
+
     const game = this.getGame(gameId);
 
     if (game.gameStarted) {
@@ -50,6 +55,16 @@ export class GameManager {
           event: "game started",
           data: {
             color: game.whiteId == playerId ? "w" : "b",
+            opponentData:
+              game.whiteId == playerId
+                ? {
+                    name: game.blackPlayerName,
+                    image: game.blackPlayerProfileImg,
+                  }
+                : {
+                    name: game.whitePlayerName,
+                    image: game.whitePlayerProfileImg,
+                  },
           },
         })
       );
@@ -57,7 +72,7 @@ export class GameManager {
     }
 
     if (game.whiteId != playerId && game.blackId != playerId) {
-      game.addUser(playerId);
+      game.addUser(ws);
     }
 
     if (game.gameStarted) {
@@ -67,6 +82,10 @@ export class GameManager {
           event: "game started",
           data: {
             color: "b",
+            opponentData: {
+              name: game.whitePlayerName,
+              image: game.whitePlayerProfileImg,
+            },
           },
         })
       );
@@ -76,6 +95,10 @@ export class GameManager {
           event: "game started",
           data: {
             color: "w",
+            opponentData: {
+              name: game.blackPlayerName,
+              image: game.blackPlayerProfileImg,
+            },
           },
         })
       );
@@ -86,6 +109,16 @@ export class GameManager {
           event: "game joined",
           data: {
             color: playerId == game.whiteId ? "w" : "b",
+            opponentData:
+              game.whiteId == playerId
+                ? {
+                    name: game.blackPlayerName,
+                    image: game.blackPlayerProfileImg,
+                  }
+                : {
+                    name: game.whitePlayerName,
+                    image: game.whitePlayerProfileImg,
+                  },
           },
         })
       );
@@ -94,11 +127,12 @@ export class GameManager {
 
   move(
     gameId: string,
-    playerId: string,
+    ws: WebSocketWithDetails,
     moveString: string,
     chessSocketServer: ChessSocketServer
   ) {
     const game = this.getGame(gameId);
+    const playerId = ws.id;
 
     if (!game.gameStarted) {
       throw Error("Game has not started");

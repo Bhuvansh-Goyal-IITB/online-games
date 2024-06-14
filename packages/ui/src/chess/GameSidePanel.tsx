@@ -8,7 +8,7 @@ import {
 } from "@ui/components/ui/card";
 import MoveList from "./MoveList";
 import { Button, ButtonProps } from "@ui/components/ui/button";
-import { useChessContext } from "./chessContext";
+import { useChessContext } from "../context/chessContext";
 import {
   ChevronFirst,
   ChevronLast,

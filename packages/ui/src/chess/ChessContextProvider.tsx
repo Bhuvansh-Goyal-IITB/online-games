@@ -2,7 +2,7 @@
 
 import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 import { Chess, Color, Move, PieceInfo, PieceType } from "@repo/chess";
-import { ChessContext } from "./chessContext";
+import { ChessContext } from "../context/chessContext";
 import { PieceSet } from "./types";
 
 const parseMoveString = (moveString: string) => {
@@ -296,6 +296,14 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
   };
 
   const outcome = chessRef.current.outcome;
+
+  useEffect(() => {
+    if (gameStarted && currentPlayerColor) {
+      if (currentPlayerColor == fen.split(" ")[1]) {
+        setValidMoves(chessRef.current.validMoves);
+      }
+    }
+  }, [gameStarted, currentPlayerColor]);
   return (
     <ChessContext.Provider
       value={{
@@ -332,9 +340,6 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
         resign,
         startGame: () => {
           setGameStarted(true);
-          if (currentPlayerColor == fen.split(" ")[1]) {
-            setValidMoves(chessRef.current.validMoves);
-          }
         },
       }}
     >

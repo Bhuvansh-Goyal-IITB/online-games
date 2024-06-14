@@ -4,9 +4,11 @@ import { addUser, getUserByEmail } from "./lib";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { LoginSchema } from "@ui/schema";
+import Google from "next-auth/providers/google";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
+    Google,
     GitHub,
     Credentials({
       id: "credentials",
@@ -96,7 +98,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           profileImageURL: user.image,
         });
       } else {
-        if (existingUser.password) {
+        if (existingUser.password && account?.provider != "credentials") {
           return false;
         }
       }
@@ -106,6 +108,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   pages: {
     signIn: "/auth/login",
-    error: "/auth/error",
+    error: "/auth/login",
   },
 });

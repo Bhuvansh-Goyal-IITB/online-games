@@ -4,21 +4,6 @@ import { db } from "@/db";
 import { InsertUser, usersTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
-import { LoginType } from "@repo/ui/schema";
-import { signIn } from "@/auth";
-
-export const githubLogin = async () => {
-  await signIn("github", {
-    redirectTo: "/",
-  });
-};
-
-export const login = async (data: LoginType) => {
-  await signIn("credentials", {
-    ...data,
-    redirectTo: "/",
-  });
-};
 
 export const signUpUser = async (
   email: string,
