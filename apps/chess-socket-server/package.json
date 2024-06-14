@@ -1,12 +1,12 @@
 {
-  "name": "socket-server",
+  "name": "chess-socket-server",
   "version": "1.0.0",
   "description": "",
   "main": "src/index.ts",
   "type": "module",
   "scripts": {
     "dev": "tsc-watch --onSuccess 'node ./dist/index.js'",
-    "build": "tsc -b",
+    "build": "cd ../../packages/socket-communication-schemas && tsc -b && cd ../drizzle-schema && tsc -b && cd ../../apps/chess-socket-server && tsc -b",
     "start": "node ./dist/index.js"
   },
   "keywords": [],
