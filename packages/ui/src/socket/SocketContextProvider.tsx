@@ -2,7 +2,7 @@
 
 import { FC, PropsWithChildren, useEffect, useRef } from "react";
 import useWebSocket from "react-use-websocket";
-import { SocketContext } from "./socketContext";
+import { SocketContext } from "../context/socketContext";
 
 interface EventHandlers {
   [key: string]: (data: any) => void;

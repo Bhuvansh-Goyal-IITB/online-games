@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { useChessContext } from "./chessContext";
+import { useChessContext } from "../context/chessContext";
 import { Chess } from "@repo/chess";
 
 export const Check: FC = () => {

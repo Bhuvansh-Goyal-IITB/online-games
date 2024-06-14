@@ -2,7 +2,7 @@
 
 import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 import { Chess, Color, Move, PieceInfo, PieceType } from "@repo/chess";
-import { ChessContext } from "./chessContext";
+import { ChessContext } from "../context/chessContext";
 import { PieceSet } from "./types";
 
 const parseMoveString = (moveString: string) => {

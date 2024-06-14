@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useChessContext } from "./chessContext";
+import { useChessContext } from "../context/chessContext";
 
 export const generateAnimationKeyframes = (
   previousPosition: number,

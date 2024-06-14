@@ -1,7 +1,7 @@
 "use client";
 
 import { FC, MouseEventHandler, useEffect } from "react";
-import { useChessContext } from "./chessContext";
+import { useChessContext } from "../context/chessContext";
 import { Piece } from "./Piece";
 import { PromotionMenu } from "./PromotionMenu";
 import { Chess } from "@repo/chess";

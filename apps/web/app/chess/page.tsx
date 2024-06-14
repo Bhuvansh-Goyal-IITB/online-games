@@ -3,10 +3,11 @@
 import { Button } from "@repo/ui/components/ui/button";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSocketContext } from "@ui/socket/socketContext";
+import { useSocketContext } from "@repo/ui/context/socketContext";
 import AuthPopup from "@/components/AuthPopup";
 import { useSession } from "next-auth/react";
-import { Card, CardContent } from "@ui/components/ui/card";
+import { Card, CardContent } from "@repo/ui/components/ui/card";
+import { toast } from "@repo/ui/components/ui/sonner";
 
 export default function Page() {
   const session = useSession();
@@ -59,7 +60,7 @@ export default function Page() {
         })
       );
     } else {
-      alert("Cannot connect to server");
+      toast.error("Cannot connect to server");
     }
   };
 
@@ -72,7 +73,7 @@ export default function Page() {
       );
       setWaiting(true);
     } else {
-      alert("Cannot connect to server");
+      toast.error("Cannot connect to server");
     }
   };
 

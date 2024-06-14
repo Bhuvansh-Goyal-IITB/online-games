@@ -29,6 +29,7 @@ import { FaGithub } from "react-icons/fa";
 interface LoginFormProps {
   errorMessage?: string;
   onGithubSubmit: () => void;
+  onGoogleSubmit: () => void;
   onSubmit: (data: LoginType) => void;
 }
 
@@ -36,6 +37,7 @@ export const LoginForm: FC<LoginFormProps> = ({
   errorMessage,
   onSubmit,
   onGithubSubmit,
+  onGoogleSubmit,
 }) => {
   const form = useForm<LoginType>({
     resolver: zodResolver(LoginSchema),
@@ -110,6 +112,7 @@ export const LoginForm: FC<LoginFormProps> = ({
             disabled={form.formState.isSubmitting}
             variant="outline"
             className="w-full"
+            onClick={onGoogleSubmit}
           >
             <FcGoogle className="w-5 h-5" />
           </Button>

@@ -4,9 +4,11 @@ import { addUser, getUserByEmail } from "./lib";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { LoginSchema } from "@ui/schema";
+import Google from "next-auth/providers/google";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
+    Google,
     GitHub,
     Credentials({
       id: "credentials",

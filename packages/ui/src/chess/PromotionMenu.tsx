@@ -1,5 +1,5 @@
 import { Chess } from "@repo/chess";
-import { useChessContext } from "./chessContext";
+import { useChessContext } from "../context/chessContext";
 
 export const PromotionMenu = () => {
   const {

@@ -5,7 +5,7 @@ import {
   CardTitle,
 } from "@ui/components/ui/card";
 import { FC, useEffect, useState } from "react";
-import { useChessContext } from "./chessContext";
+import { useChessContext } from "../context/chessContext";
 
 export const GameOverScreen: FC = () => {
   const { currentIndex, outcome } = useChessContext();

@@ -20,7 +20,13 @@ const Page = () => {
 
   const onGithubSubmit = () => {
     setErrorMessage("");
-    signIn("github");
+    signIn("github", { redirectTo: "/" });
+  };
+
+  const onGoogleSubmit = () => {
+    setErrorMessage("");
+    console.log("google login");
+    signIn("google", { redirectTo: "/" });
   };
 
   useEffect(() => {
@@ -35,6 +41,7 @@ const Page = () => {
         errorMessage={errorMessage}
         onSubmit={onSubmit}
         onGithubSubmit={onGithubSubmit}
+        onGoogleSubmit={onGoogleSubmit}
       />
     </div>
   );

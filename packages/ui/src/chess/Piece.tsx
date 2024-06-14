@@ -10,7 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useChessContext } from "./chessContext";
+import { useChessContext } from "../context/chessContext";
 import { OutcomeSymbol } from "./OutcomeSymbol";
 import {
   getPieceCoordinates,

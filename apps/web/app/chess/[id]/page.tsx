@@ -1,14 +1,14 @@
 "use client";
 
-import React, { FC, useCallback, useRef, useState } from "react";
-import { ChessBoard } from "@ui/chess/ChessBoard";
+import React, { FC, useState } from "react";
+import { ChessBoard } from "@repo/ui/chess/ChessBoard";
 import {
   ChessContextProvider,
   IPlayerInfo,
 } from "@repo/ui/chess/ChessContextProvider";
 import { GameSidePanel } from "@repo/ui/chess/GameSidePanel";
 import { SocketHandler } from "@/components/SocketHandler";
-import { Button } from "@ui/components/ui/button";
+import { Button } from "@repo/ui/components/ui/button";
 import Link from "next/link";
 
 export const runtime = "edge";

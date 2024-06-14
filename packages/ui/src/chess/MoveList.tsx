@@ -1,6 +1,6 @@
 import { Button } from "@ui/components/ui/button";
 import React, { FC } from "react";
-import { useChessContext } from "./chessContext";
+import { useChessContext } from "../context/chessContext";
 
 const MoveList: FC = () => {
   const { moveList, currentIndex, goToMove } = useChessContext();
