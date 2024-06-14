@@ -79,6 +79,16 @@ export class GameManager {
           },
         })
       );
+    } else {
+      chessSocketServer.sendMessageTo(
+        playerId,
+        JSON.stringify({
+          event: "game joined",
+          data: {
+            color: playerId == game.whiteId ? "w" : "b",
+          },
+        })
+      );
     }
   }
 

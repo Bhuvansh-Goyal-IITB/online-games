@@ -60,7 +60,9 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
   const [lastMove, setLastMove] = useState<Omit<Move, "capturedPiece"> | null>(
     null
   );
-  const [validMoves, setValidMoves] = useState(chessRef.current.validMoves);
+  const [validMoves, setValidMoves] = useState(
+    gameStarted ? chessRef.current.validMoves : []
+  );
   const [canAnimate, setCanAnimate] = useState(true);
   const [promotionMove, setPromotionMove] = useState<number[] | null>(null);
 
@@ -330,6 +332,9 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
         resign,
         startGame: () => {
           setGameStarted(true);
+          if (currentPlayerColor == fen.split(" ")[1]) {
+            setValidMoves(chessRef.current.validMoves);
+          }
         },
       }}
     >

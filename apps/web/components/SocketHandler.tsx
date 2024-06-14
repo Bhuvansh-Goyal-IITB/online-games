@@ -96,6 +96,16 @@ export const SocketHandler: FC<SocketHandlerProps> = ({
       } else if (parsedData.event == "move") {
         const moveString = parsedData.data.move as string;
         movePiece(moveString);
+      } else if (parsedData.event == "game joined") {
+        setLoading(false);
+        const playerColor = parsedData.data.color as Color;
+        setCurrentPlayerColor(playerColor);
+        if (playerColor == "b") {
+          setPreferences((prev) => ({
+            ...prev,
+            flip: true,
+          }));
+        }
       } else if (parsedData.event == "error") {
         setLoading(false);
         const data = parsedData.data;
