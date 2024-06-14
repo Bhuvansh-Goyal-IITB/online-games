@@ -1,9 +1,12 @@
 "use client";
 
-import React, { FC, useCallback, useState } from "react";
+import React, { FC, useCallback, useRef, useState } from "react";
 import { ChessBoard } from "@ui/chess/ChessBoard";
-import { ChessContextProvider } from "@ui/chess/ChessContextProvider";
-import { GameSidePanel } from "@ui/chess/GameSidePanel";
+import {
+  ChessContextProvider,
+  IPlayerInfo,
+} from "@repo/ui/chess/ChessContextProvider";
+import { GameSidePanel } from "@repo/ui/chess/GameSidePanel";
 import { SocketHandler } from "@/components/SocketHandler";
 import { Button } from "@ui/components/ui/button";
 import Link from "next/link";
@@ -18,18 +21,30 @@ const Page: FC<PageProps> = ({ params }) => {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const [whitePlayerInfo, setWhitePlayerInfo] = useState<IPlayerInfo | null>(
+    null
+  );
+  const [blackPlayerInfo, setBlackPlayerInfo] = useState<IPlayerInfo | null>(
+    null
+  );
+
   return (
-    <div className="w-full min-h-[100%] p-8 bg-background-muted flex justify-center lg:items-center">
-      <ChessContextProvider>
+    <div className="w-full min-h-[100%] p-8 bg-background flex justify-center lg:items-center">
+      <ChessContextProvider
+        whitePlayerInfo={whitePlayerInfo ?? undefined}
+        blackPlayerInfo={blackPlayerInfo ?? undefined}
+      >
         <SocketHandler
           gameId={params.id}
+          setWhitePlayerInfo={setWhitePlayerInfo}
+          setBlackPlayerInfo={setBlackPlayerInfo}
           setLoading={setLoading}
           setErrorMessage={setErrorMessage}
         />
         {loading ? (
-          <div className="text-2xl">Loading...</div>
+          <div className="text-xl">Loading...</div>
         ) : errorMessage ? (
-          <div className="flex flex-col items-center gap-4 text-2xl">
+          <div className="flex flex-col items-center gap-4 text-xl">
             {errorMessage}
             <div>
               <Button asChild>

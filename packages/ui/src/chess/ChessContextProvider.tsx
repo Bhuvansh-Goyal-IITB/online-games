@@ -296,6 +296,14 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
   };
 
   const outcome = chessRef.current.outcome;
+
+  useEffect(() => {
+    if (gameStarted && currentPlayerColor) {
+      if (currentPlayerColor == fen.split(" ")[1]) {
+        setValidMoves(chessRef.current.validMoves);
+      }
+    }
+  }, [gameStarted, currentPlayerColor]);
   return (
     <ChessContext.Provider
       value={{
@@ -332,9 +340,6 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
         resign,
         startGame: () => {
           setGameStarted(true);
-          if (currentPlayerColor == fen.split(" ")[1]) {
-            setValidMoves(chessRef.current.validMoves);
-          }
         },
       }}
     >

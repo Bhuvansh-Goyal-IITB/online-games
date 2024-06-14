@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useSocketContext } from "@ui/socket/socketContext";
 import AuthPopup from "@/components/AuthPopup";
 import { useSession } from "next-auth/react";
+import { Card, CardContent } from "@ui/components/ui/card";
 
 export default function Page() {
   const session = useSession();
@@ -27,7 +28,6 @@ export default function Page() {
   }, [message]);
 
   useEffect(() => {
-    console.log(session.status, authPopupShown);
     if (session.status == "unauthenticated" && authPopupShown) {
       sendMessage(
         JSON.stringify({
@@ -70,49 +70,52 @@ export default function Page() {
           event: "random game",
         })
       );
+      setWaiting(true);
     } else {
       alert("Cannot connect to server");
     }
   };
 
+  console.log(session, authPopupShown);
+
   return (
-    <div className="flex justify-center items-center w-full h-full bg-muted">
+    <div className="flex justify-center items-center w-full h-full bg-background">
       {session.status == "unauthenticated" && !authPopupShown && (
         <AuthPopup setAuthPopupShown={setAuthPopupShown} />
       )}
-      <div className="hidden h-full xl:flex justify-center items-center w-1/2">
-        <img
-          className="max-w-[700px] w-[90%]"
-          src="/chess_board.webp"
-          alt="chess board"
-        />
-      </div>
-      <div className="h-full flex items-center justify-center w-full xl:w-1/2 bg-background">
-        <div>
-          <div className="flex flex-col gap-10">
-            <Button
-              disabled={
-                session.status == "loading" ||
-                (session.status == "unauthenticated" && !authPopupShown)
-              }
-              className="p-8 text-xl"
-              size="lg"
-              onClick={handleCreateGame}
-            >
-              Create Game
-            </Button>
-            <Button
-              disabled={
-                session.status == "loading" ||
-                (session.status == "unauthenticated" && !authPopupShown)
-              }
-              className="p-8 text-xl"
-              size="lg"
-              onClick={handleOnlineGame}
-            >
-              Play Online
-            </Button>
-          </div>
+      {waiting && (
+        <div className="w-full h-full absolute top-0 left-0 flex justify-center items-center z-[1]">
+          <Card>
+            <CardContent className="flex justify-center items-center p-6">
+              Searching for players...
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      <div>
+        <div className="flex flex-col gap-10">
+          <Button
+            disabled={
+              session.status == "loading" ||
+              (session.status == "unauthenticated" && !authPopupShown) ||
+              waiting
+            }
+            size="lg"
+            onClick={handleCreateGame}
+          >
+            Create Game
+          </Button>
+          <Button
+            disabled={
+              session.status == "loading" ||
+              (session.status == "unauthenticated" && !authPopupShown) ||
+              waiting
+            }
+            size="lg"
+            onClick={handleOnlineGame}
+          >
+            Play Online
+          </Button>
         </div>
       </div>
     </div>

@@ -5,8 +5,10 @@ interface EventHandlers {
   [key: string]: (ws: WebSocket, data: any) => void;
 }
 
-export interface WebSocketWithID extends WebSocket {
+export interface WebSocketWithDetails extends WebSocket {
   id: string;
+  playerName: string;
+  playerProfileImage?: string;
 }
 
 export class ChessSocketServer {
@@ -22,7 +24,7 @@ export class ChessSocketServer {
 
     this.wss.on("connection", (ws) => {
       ws.on("close", () => {
-        const playerId = (ws as WebSocketWithID).id;
+        const playerId = (ws as WebSocketWithDetails).id;
 
         if (this.waitingPlayerId == playerId) {
           this.waitingPlayerId = null;
@@ -39,7 +41,7 @@ export class ChessSocketServer {
         if (!event) return;
 
         if (event != "auth") {
-          const playerId = (ws as WebSocketWithID).id;
+          const playerId = (ws as WebSocketWithDetails).id;
 
           if (!playerId || !this.connectedUsers.get(playerId)) {
             ws.send(
@@ -60,15 +62,16 @@ export class ChessSocketServer {
     });
   }
 
-  move(gameId: string, playerId: string, moveString: string) {
-    this.gameManager.move(gameId, playerId, moveString, this);
+  move(gameId: string, ws: WebSocketWithDetails, moveString: string) {
+    this.gameManager.move(gameId, ws, moveString, this);
   }
 
-  joinGame(gameId: string, playerId: string) {
-    this.gameManager.joinGame(gameId, playerId, this);
+  joinGame(gameId: string, ws: WebSocketWithDetails) {
+    this.gameManager.joinGame(gameId, ws, this);
   }
 
-  joinRandomGame(playerId: string) {
+  joinRandomGame(ws: WebSocketWithDetails) {
+    const playerId = ws.id;
     if (!this.waitingPlayerId) {
       this.waitingPlayerId = playerId;
     } else {
@@ -110,8 +113,15 @@ export class ChessSocketServer {
     }
   }
 
-  addUser(ws: WebSocket, id: string) {
-    (ws as WebSocketWithID).id = id;
+  addUser(
+    ws: WebSocket,
+    id: string,
+    playerName: string,
+    playerProfileImage?: string
+  ) {
+    (ws as WebSocketWithDetails).id = id;
+    (ws as WebSocketWithDetails).playerName = playerName;
+    (ws as WebSocketWithDetails).playerProfileImage = playerProfileImage;
     this.connectedUsers.set(id, ws);
   }
 

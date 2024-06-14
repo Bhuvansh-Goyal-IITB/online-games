@@ -2,6 +2,7 @@
 
 import { createId } from "@paralleldrive/cuid2";
 import { Chess, Color, PieceType } from "@repo/chess";
+import { IPlayerInfo } from "@repo/ui/chess/ChessContextProvider";
 import { useChessContext } from "@ui/chess/chessContext";
 import { useSocketContext } from "@ui/socket/socketContext";
 import { useSession } from "next-auth/react";
@@ -9,14 +10,18 @@ import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
 
 interface SocketHandlerProps {
   gameId: string;
+  setWhitePlayerInfo: Dispatch<SetStateAction<IPlayerInfo | null>>;
+  setBlackPlayerInfo: Dispatch<SetStateAction<IPlayerInfo | null>>;
   setLoading: Dispatch<SetStateAction<boolean>>;
   setErrorMessage: Dispatch<SetStateAction<string | null>>;
 }
 
 export const SocketHandler: FC<SocketHandlerProps> = ({
   gameId,
-  setErrorMessage: setError,
+  setWhitePlayerInfo,
+  setBlackPlayerInfo,
   setLoading,
+  setErrorMessage,
 }) => {
   const {
     moveList,
@@ -85,6 +90,10 @@ export const SocketHandler: FC<SocketHandlerProps> = ({
       } else if (parsedData.event == "game started") {
         setLoading(false);
         const playerColor = parsedData.data.color as Color;
+        const opponentData = parsedData.data.opponentData as {
+          name: string;
+          image: string | null;
+        };
         setCurrentPlayerColor(playerColor);
         if (playerColor == "b") {
           setPreferences((prev) => ({
@@ -92,6 +101,46 @@ export const SocketHandler: FC<SocketHandlerProps> = ({
             flip: true,
           }));
         }
+        if (session.status == "unauthenticated") {
+          if (playerColor == "w") {
+            setWhitePlayerInfo({
+              name: `Guest${localStorage.getItem("id")!.substring(0, 10)}`,
+            });
+            setBlackPlayerInfo({
+              name: opponentData.name,
+              profileImageSrc: opponentData.image ?? undefined,
+            });
+          } else {
+            setBlackPlayerInfo({
+              name: `Guest${localStorage.getItem("id")!.substring(0, 10)}`,
+            });
+            setWhitePlayerInfo({
+              name: opponentData.name,
+              profileImageSrc: opponentData.image ?? undefined,
+            });
+          }
+        } else {
+          if (playerColor == "w") {
+            setWhitePlayerInfo({
+              name: `${session.data!.user!.name!}`,
+              profileImageSrc: session.data!.user!.image ?? undefined,
+            });
+            setBlackPlayerInfo({
+              name: opponentData.name,
+              profileImageSrc: opponentData.image ?? undefined,
+            });
+          } else {
+            setBlackPlayerInfo({
+              name: `${session.data!.user!.name!}`,
+              profileImageSrc: session.data!.user!.image ?? undefined,
+            });
+            setWhitePlayerInfo({
+              name: opponentData.name,
+              profileImageSrc: opponentData.image ?? undefined,
+            });
+          }
+        }
+
         startGame();
       } else if (parsedData.event == "move") {
         const moveString = parsedData.data.move as string;
@@ -99,6 +148,27 @@ export const SocketHandler: FC<SocketHandlerProps> = ({
       } else if (parsedData.event == "game joined") {
         setLoading(false);
         const playerColor = parsedData.data.color as Color;
+
+        if (session.status == "unauthenticated") {
+          playerColor == "w"
+            ? setWhitePlayerInfo({
+                name: `Guest${localStorage.getItem("id")!.substring(0, 10)}`,
+              })
+            : setBlackPlayerInfo({
+                name: `Guest${localStorage.getItem("id")!.substring(0, 10)}`,
+              });
+        } else {
+          playerColor == "w"
+            ? setWhitePlayerInfo({
+                name: `${session.data!.user!.name!}`,
+                profileImageSrc: session.data!.user!.image ?? undefined,
+              })
+            : setBlackPlayerInfo({
+                name: `${session.data!.user!.name!}`,
+                profileImageSrc: session.data!.user!.image ?? undefined,
+              });
+        }
+
         setCurrentPlayerColor(playerColor);
         if (playerColor == "b") {
           setPreferences((prev) => ({
@@ -111,9 +181,9 @@ export const SocketHandler: FC<SocketHandlerProps> = ({
         const data = parsedData.data;
 
         if (data.message && typeof data.message == "string") {
-          setError(data.message);
+          setErrorMessage(data.message);
         } else {
-          setError("Something went wrong");
+          setErrorMessage("Something went wrong");
         }
       }
     }
