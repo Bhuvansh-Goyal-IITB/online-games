@@ -3,8 +3,8 @@
 import { createId } from "@paralleldrive/cuid2";
 import { Chess, Color, PieceType } from "@repo/chess";
 import { IPlayerInfo } from "@repo/ui/chess/ChessContextProvider";
-import { useChessContext } from "@ui/chess/chessContext";
-import { useSocketContext } from "@ui/socket/socketContext";
+import { useChessContext } from "@repo/ui/context/chessContext";
+import { useSocketContext } from "@repo/ui/context/socketContext";
 import { useSession } from "next-auth/react";
 import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
 

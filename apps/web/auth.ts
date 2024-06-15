@@ -94,7 +94,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (!existingUser) {
         await addUser({
           email,
-          displayName: user.name,
           profileImageURL: user.image,
         });
       } else {
@@ -108,6 +107,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   pages: {
     signIn: "/auth/login",
-    error: "/auth/login",
+    error: "/auth/error",
   },
 });

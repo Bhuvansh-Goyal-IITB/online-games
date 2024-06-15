@@ -46,7 +46,10 @@ export class ChessSocketServer {
           if (!playerId || !this.connectedUsers.get(playerId)) {
             ws.send(
               JSON.stringify({
-                error: "Unauthorized",
+                event: "error",
+                data: {
+                  message: "Unauthorized",
+                },
               })
             );
             return;

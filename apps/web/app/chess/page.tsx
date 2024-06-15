@@ -8,6 +8,7 @@ import AuthPopup from "@/components/AuthPopup";
 import { useSession } from "next-auth/react";
 import { Card, CardContent } from "@repo/ui/components/ui/card";
 import { toast } from "@repo/ui/components/ui/sonner";
+import { ProfileWidget } from "@/components/ProfileWidget";
 
 export default function Page() {
   const session = useSession();
@@ -77,7 +78,7 @@ export default function Page() {
     }
   };
 
-  console.log(session, authPopupShown);
+  useEffect(() => {}, []);
 
   return (
     <div className="flex justify-center items-center w-full h-full bg-background">
@@ -93,6 +94,9 @@ export default function Page() {
           </Card>
         </div>
       )}
+      <div className="absolute right-0 top-0">
+        <ProfileWidget />
+      </div>
       <div>
         <div className="flex flex-col gap-10">
           <Button

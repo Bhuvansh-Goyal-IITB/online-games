@@ -11,8 +11,7 @@ import { Input } from "@repo/ui/components/ui/input";
 import Link from "next/link";
 import { Button } from "@ui/components/ui/button";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { LoginSchema, SignUpSchema, SignUpType } from "@ui/schema";
+import { SignUpSchema, SignUpType } from "@ui/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -121,33 +120,33 @@ export const SignUpForm: FC<SignUpFormProps> = ({
               <div className="flex justify-center items-center text-muted-foreground">
                 or
               </div>
-              <div className="flex gap-2">
-                <Button
-                  disabled={form.formState.isSubmitting}
-                  variant="outline"
-                  className="w-full"
-                  onClick={onGoogleSubmit}
-                >
-                  <FcGoogle className="w-5 h-5" />
-                </Button>
-                <Button
-                  disabled={form.formState.isSubmitting}
-                  variant="outline"
-                  className="w-full"
-                  onClick={onGithubSubmit}
-                >
-                  <FaGithub className="w-5 h-5" />
-                </Button>
-              </div>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Already have an account?{" "}
-              <Link href="/auth/login" className="underline">
-                Log in
-              </Link>
             </div>
           </form>
         </Form>
+        <div className="flex gap-2">
+          <Button
+            disabled={form.formState.isSubmitting}
+            variant="outline"
+            className="w-full"
+            onClick={onGoogleSubmit}
+          >
+            <FcGoogle className="w-5 h-5" />
+          </Button>
+          <Button
+            disabled={form.formState.isSubmitting}
+            variant="outline"
+            className="w-full"
+            onClick={onGithubSubmit}
+          >
+            <FaGithub className="w-5 h-5" />
+          </Button>
+        </div>
+        <div className="mt-4 text-center text-sm">
+          Already have an account?{" "}
+          <Link href="/auth/login" className="underline">
+            Log in
+          </Link>
+        </div>
       </CardContent>
     </Card>
   );

@@ -1,9 +1,5 @@
 import GitHub from "next-auth/providers/github";
 import { type NextAuthConfig } from "next-auth";
-import { addUser, getUserByEmail } from "./lib";
-import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
-import { LoginSchema } from "@ui/schema";
 
 export default {
   providers: [GitHub],
@@ -29,5 +25,6 @@ export default {
   },
   pages: {
     signIn: "/auth/login",
+    error: "/auth/error",
   },
 } satisfies NextAuthConfig;

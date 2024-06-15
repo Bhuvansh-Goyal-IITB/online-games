@@ -4,6 +4,13 @@ import { db } from "@/db";
 import { InsertUser, usersTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import { auth } from "@/auth";
+
+export const currentUser = async () => {
+  const session = await auth();
+
+  return session?.user;
+};
 
 export const signUpUser = async (
   email: string,
@@ -23,7 +30,18 @@ export const updateUserDisplayName = async (
   id: string,
   displayName: string
 ) => {
-  await db.update(usersTable).set({ displayName }).where(eq(usersTable.id, id));
+  const result = await db
+    .update(usersTable)
+    .set({ displayName })
+    .where(eq(usersTable.id, id))
+    .returning({
+      id: usersTable.id,
+      email: usersTable.email,
+      name: usersTable.displayName,
+      image: usersTable.profileImageURL,
+    });
+
+  return result;
 };
 
 export const getUserByEmail = async (email: string) => {

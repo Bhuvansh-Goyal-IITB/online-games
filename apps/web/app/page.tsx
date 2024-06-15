@@ -1,3 +1,4 @@
+import { ProfileWidget } from "@/components/ProfileWidget";
 import { Button } from "@repo/ui/components/ui/button";
 import Link from "next/link";
 
@@ -7,6 +8,10 @@ const Page = () => {
       <Button asChild>
         <Link href="/chess">Play Chess</Link>
       </Button>
+
+      <div className="absolute right-0 top-0">
+        <ProfileWidget />
+      </div>
 
       <div className="text-sm text-muted-foreground">
         More games coming soon...

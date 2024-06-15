@@ -18,7 +18,6 @@ const Page = () => {
         router.push("/auth/login");
       })
       .catch((err) => {
-        console.log(err);
         if (err.message.includes("UNIQUE")) {
           if (err.message.includes("users.email")) {
             setErrorMessage("Email already registered");
@@ -33,12 +32,12 @@ const Page = () => {
 
   const onGithubSubmit = () => {
     setErrorMessage("");
-    signIn("github", { redirectTo: "/" });
+    signIn("github", { callbackUrl: "/" });
   };
 
   const onGoogleSubmit = () => {
     setErrorMessage("");
-    signIn("google", { redirectTo: "/" });
+    signIn("google", { callbackUrl: "/" });
   };
 
   return (
