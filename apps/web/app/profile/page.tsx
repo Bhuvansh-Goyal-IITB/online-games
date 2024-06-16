@@ -2,6 +2,8 @@ import ProfilePage from "@/components/ProfilePage";
 import { currentUser } from "@/lib";
 import { redirect } from "next/navigation";
 
+export const runtime = "edge";
+
 const Page = async () => {
   const user = await currentUser();
 
