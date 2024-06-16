@@ -57,9 +57,10 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
     chessRef.current.getBoardInfoAt(0).pieceList
   );
   const [index, setIndex] = useState(0);
-  const [lastMove, setLastMove] = useState<Omit<Move, "capturedPiece"> | null>(
-    null
-  );
+  const [lastMove, setLastMove] = useState<Omit<
+    Move,
+    "capturedPiece" | "moveString"
+  > | null>(null);
   const [validMoves, setValidMoves] = useState(
     gameStarted ? chessRef.current.validMoves : []
   );

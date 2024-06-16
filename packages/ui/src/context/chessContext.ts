@@ -5,7 +5,7 @@ import { IChessPreferences, IPlayerInfo } from "../chess/ChessContextProvider";
 interface IChessContext {
   pieceList: PieceInfo[];
   playerColor: Color | null;
-  lastMove: Omit<Move, "capturedPiece"> | null;
+  lastMove: Omit<Move, "capturedPiece" | "moveString"> | null;
   selfGame: boolean;
   fen: string;
   canAnimate: boolean;
