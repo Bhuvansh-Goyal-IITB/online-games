@@ -11,7 +11,6 @@ import { SocketHandler } from "@/components/SocketHandler";
 import { Button } from "@repo/ui/components/ui/button";
 import Link from "next/link";
 import { useSocketContext } from "@repo/ui/context/socketContext";
-import { Color } from "@repo/chess";
 
 export const runtime = "edge";
 
