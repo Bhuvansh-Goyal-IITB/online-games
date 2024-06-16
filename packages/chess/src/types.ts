@@ -1,4 +1,4 @@
-import { Piece } from "./piece";
+import { Piece } from "./piece.js";
 
 export type PieceType = "r" | "n" | "b" | "k" | "q" | "p";
 
@@ -19,6 +19,7 @@ export interface Board {
 
 export interface Move {
   move: number[];
+  moveString: string;
   notation: string;
   capturedPiece: Piece | null;
 }

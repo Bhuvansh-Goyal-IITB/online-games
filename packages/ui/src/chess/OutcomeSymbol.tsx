@@ -37,6 +37,10 @@ export const OutcomeSymbol: FC<OutcomeSymbolProps> = ({
             <ContainerDiv position={position}>
               <img className="w-full h-full" src="/crown.svg" />
             </ContainerDiv>
+          ) : outcome[1] == "resignation" ? (
+            <ContainerDiv position={position}>
+              <img src="/black-resign.svg" />
+            </ContainerDiv>
           ) : (
             <ContainerDiv position={position}>
               <img src="/black-mate.svg" />
@@ -44,9 +48,15 @@ export const OutcomeSymbol: FC<OutcomeSymbolProps> = ({
           )
         ) : outcome[0] == "b" ? (
           color == "w" ? (
-            <ContainerDiv position={position}>
-              <img src="/white-mate.svg" />
-            </ContainerDiv>
+            outcome[1] == "resignation" ? (
+              <ContainerDiv position={position}>
+                <img src="/white-resign.svg" />
+              </ContainerDiv>
+            ) : (
+              <ContainerDiv position={position}>
+                <img src="/white-mate.svg" />
+              </ContainerDiv>
+            )
           ) : (
             <ContainerDiv position={position}>
               <img src="/crown.svg" />

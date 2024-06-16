@@ -1,6 +1,6 @@
-import { Chess } from "./chess";
-import { Player } from "./player";
-import { Color, PieceType } from "./types";
+import { Chess } from "./chess.js";
+import { Player } from "./player.js";
+import { Color, PieceType } from "./types.js";
 import { v4 as uuidv4 } from "uuid";
 
 export abstract class Piece {

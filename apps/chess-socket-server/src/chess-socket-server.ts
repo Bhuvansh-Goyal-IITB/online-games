@@ -65,8 +65,115 @@ export class ChessSocketServer {
     });
   }
 
-  move(gameId: string, ws: WebSocketWithDetails, moveString: string) {
-    this.gameManager.move(gameId, ws, moveString, this);
+  resign(ws: WebSocketWithDetails) {
+    const playerId = ws.id;
+    const game = this.gameManager.getGameByPlayerId(playerId);
+
+    if (!game.gameStarted) {
+      throw Error("Game has not started");
+    }
+
+    if (playerId == game.whiteId) {
+      this.sendMessageTo(
+        game.blackId!,
+        JSON.stringify({
+          event: "resign",
+          data: {
+            color: "w",
+          },
+        })
+      );
+    } else {
+      this.sendMessageTo(
+        game.whiteId!,
+        JSON.stringify({
+          event: "resign",
+          data: {
+            color: "b",
+          },
+        })
+      );
+    }
+
+    this.gameManager.removeGame(game.gameId);
+  }
+
+  draw(ws: WebSocketWithDetails) {
+    const playerId = ws.id;
+    const game = this.gameManager.getGameByPlayerId(playerId);
+
+    if (!game.gameStarted) {
+      throw Error("Game has not started");
+    }
+
+    this.sendMessageTo(
+      game.blackId!,
+      JSON.stringify({
+        event: "draw accept",
+      })
+    );
+    this.sendMessageTo(
+      game.whiteId!,
+      JSON.stringify({
+        event: "draw accept",
+      })
+    );
+
+    this.gameManager.removeGame(game.gameId);
+  }
+
+  rejectDrawOffer(ws: WebSocketWithDetails) {
+    const playerId = ws.id;
+    const game = this.gameManager.getGameByPlayerId(playerId);
+
+    if (!game.gameStarted) {
+      throw Error("Game has not started");
+    }
+
+    if (playerId == game.whiteId) {
+      this.sendMessageTo(
+        game.blackId!,
+        JSON.stringify({
+          event: "draw reject",
+        })
+      );
+    } else {
+      this.sendMessageTo(
+        game.whiteId!,
+        JSON.stringify({
+          event: "draw reject",
+        })
+      );
+    }
+  }
+
+  sendDrawOffer(ws: WebSocketWithDetails) {
+    const playerId = ws.id;
+    const game = this.gameManager.getGameByPlayerId(playerId);
+
+    if (!game.gameStarted) {
+      throw Error("Game has not started");
+    }
+
+    if (playerId == game.whiteId) {
+      this.sendMessageTo(
+        game.blackId!,
+        JSON.stringify({
+          event: "draw offer",
+        })
+      );
+    } else {
+      this.sendMessageTo(
+        game.whiteId!,
+        JSON.stringify({
+          event: "draw offer",
+        })
+      );
+    }
+  }
+
+  move(ws: WebSocketWithDetails, moveString: string) {
+    this.gameManager.move(ws, moveString, this);
   }
 
   joinGame(gameId: string, ws: WebSocketWithDetails) {

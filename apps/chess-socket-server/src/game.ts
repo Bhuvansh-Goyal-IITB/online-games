@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import { WebSocketWithDetails } from "./chess-socket-server.js";
+import { Chess, PieceType } from "@repo/chess";
 
 interface PlayerDetails {
   id: string;
@@ -7,11 +8,23 @@ interface PlayerDetails {
   profileImg?: string;
 }
 
+const parseMoveString = (moveString: string) => {
+  const from = Chess.algebraic_to_position(moveString.substring(0, 2));
+  const to = Chess.algebraic_to_position(moveString.substring(2));
+
+  let promoteTo: Exclude<PieceType, "k" | "p"> | undefined = undefined;
+  if (moveString.length == 5) {
+    promoteTo = moveString.charAt(4) as Exclude<PieceType, "k" | "p">;
+  }
+
+  return { from, to, promoteTo };
+};
+
 export class Game {
   private _gameId = nanoid(10);
   private _whiteDetails: PlayerDetails | null = null;
   private _blackDetails: PlayerDetails | null = null;
-  private _moves: string[] = [];
+  private chess: Chess = new Chess();
   private _gameStarted = false;
 
   get gameId() {
@@ -47,11 +60,16 @@ export class Game {
   }
 
   get moves() {
-    return this._moves;
+    return this.chess.getMoveStrings();
   }
 
   move(moveString: string) {
-    this._moves.push(moveString);
+    const { from, to, promoteTo } = parseMoveString(moveString);
+    this.chess.move(from, to, promoteTo);
+  }
+
+  isGameFinished() {
+    return this.chess.outcome[0] != "";
   }
 
   addUser(ws: WebSocketWithDetails) {

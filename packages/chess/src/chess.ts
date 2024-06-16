@@ -1,7 +1,7 @@
-import { djb2Hash } from "./djb2";
-import { Piece } from "./piece";
-import { Player } from "./player";
-import { Color, Move, PieceInfo, PieceType } from "./types";
+import { djb2Hash } from "./djb2.js";
+import { Piece } from "./piece.js";
+import { Player } from "./player.js";
+import { Color, Move, PieceInfo, PieceType } from "./types.js";
 
 export class Chess {
   private _white: Player;
@@ -81,6 +81,10 @@ export class Chess {
       move: move.move,
       notation: move.notation,
     };
+  }
+
+  getMoveStrings() {
+    return this._moveHistory.map((move) => move.moveString);
   }
 
   getMoveNotations() {
@@ -219,8 +223,15 @@ export class Chess {
       this.clearValidMoves();
     }
 
+    let moveString = `${Chess.position_to_algebraic(from)}${Chess.position_to_algebraic(to)}`;
+
+    if (promote_to) {
+      moveString += promote_to;
+    }
+
     this._moveHistory.push({
       move: [from, to],
+      moveString,
       notation,
       capturedPiece: capturedPiece ?? null,
     });

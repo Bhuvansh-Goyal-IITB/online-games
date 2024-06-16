@@ -1,5 +1,5 @@
-import { Piece } from "../piece";
-import { Color } from "../types";
+import { Piece } from "../piece.js";
+import { Color } from "../types.js";
 
 export class Queen extends Piece {
   constructor(position: number, color: Color, id?: string) {

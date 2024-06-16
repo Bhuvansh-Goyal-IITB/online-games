@@ -17,6 +17,22 @@ export class GameManager {
     return game;
   }
 
+  getGameByPlayerId(playerId: string) {
+    const game = this.games.find(
+      (game) => game.whiteId == playerId || game.blackId == playerId
+    );
+
+    if (!game) {
+      throw Error("Game does not exist, or is finished, or is full");
+    }
+
+    return game;
+  }
+
+  removeGame(gameId: string) {
+    this.games = this.games.filter((game) => game.gameId != gameId);
+  }
+
   createGame() {
     const newGame = new Game();
     this.games.push(newGame);
@@ -126,20 +142,15 @@ export class GameManager {
   }
 
   move(
-    gameId: string,
     ws: WebSocketWithDetails,
     moveString: string,
     chessSocketServer: ChessSocketServer
   ) {
-    const game = this.getGame(gameId);
     const playerId = ws.id;
+    const game = this.getGameByPlayerId(playerId);
 
     if (!game.gameStarted) {
       throw Error("Game has not started");
-    }
-
-    if (game.whiteId != playerId && game.blackId != playerId) {
-      throw Error("You are not a player of this game");
     }
 
     if (game.moves.length % 2 == 0) {
@@ -147,33 +158,45 @@ export class GameManager {
         throw Error("Not your turn");
       }
 
-      game.move(moveString);
+      try {
+        game.move(moveString);
 
-      chessSocketServer.sendMessageTo(
-        game.blackId!,
-        JSON.stringify({
-          event: "move",
-          data: {
-            move: moveString,
-          },
-        })
-      );
+        chessSocketServer.sendMessageTo(
+          game.blackId!,
+          JSON.stringify({
+            event: "move",
+            data: {
+              move: moveString,
+            },
+          })
+        );
+      } catch (error) {
+        throw Error("Invalid move");
+      }
     } else if (game.moves.length % 2 != 0) {
       if (playerId == game.whiteId) {
         throw Error("Not your turn");
       }
 
-      game.move(moveString);
+      try {
+        game.move(moveString);
 
-      chessSocketServer.sendMessageTo(
-        game.whiteId!,
-        JSON.stringify({
-          event: "move",
-          data: {
-            move: moveString,
-          },
-        })
-      );
+        chessSocketServer.sendMessageTo(
+          game.whiteId!,
+          JSON.stringify({
+            event: "move",
+            data: {
+              move: moveString,
+            },
+          })
+        );
+      } catch (error) {
+        throw Error("Invalid move");
+      }
+    }
+
+    if (game.isGameFinished()) {
+      this.removeGame(game.gameId);
     }
   }
 }

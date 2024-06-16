@@ -7,6 +7,7 @@ import { useChessContext } from "@repo/ui/context/chessContext";
 import { useSocketContext } from "@repo/ui/context/socketContext";
 import { useSession } from "next-auth/react";
 import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
+import { toast } from "@repo/ui/components/ui/sonner";
 
 interface SocketHandlerProps {
   gameId: string;
@@ -32,8 +33,10 @@ export const SocketHandler: FC<SocketHandlerProps> = ({
     setCurrentPlayerColor,
     startGame,
     setPreferences,
+    resign,
+    draw,
   } = useChessContext();
-  const { sendMessage, message } = useSocketContext();
+  const { sendMessage, message, readyState } = useSocketContext();
   const session = useSession();
   const [movesMade, setMovesMade] = useState(0);
 
@@ -176,6 +179,36 @@ export const SocketHandler: FC<SocketHandlerProps> = ({
             flip: true,
           }));
         }
+      } else if (parsedData.event == "resign") {
+        const color = parsedData.data.color as Color;
+        resign(color);
+      } else if (parsedData.event == "draw offer") {
+        toast("Opponent offered a draw", {
+          action: {
+            label: "Accept",
+            onClick: () => {
+              sendMessage(
+                JSON.stringify({
+                  event: "draw accept",
+                })
+              );
+            },
+          },
+          cancel: {
+            label: "Reject",
+            onClick: () => {
+              sendMessage(
+                JSON.stringify({
+                  event: "draw reject",
+                })
+              );
+            },
+          },
+        });
+      } else if (parsedData.event == "draw reject") {
+        toast("Opponent rejected the draw offer");
+      } else if (parsedData.event == "draw accept") {
+        draw();
       } else if (parsedData.event == "error") {
         setLoading(false);
         const data = parsedData.data;
@@ -238,5 +271,12 @@ export const SocketHandler: FC<SocketHandlerProps> = ({
       );
     }
   }, [session.status]);
+
+  useEffect(() => {
+    if (readyState == 3) {
+      setLoading(false);
+      setErrorMessage("Error connecting to server");
+    }
+  }, [readyState]);
   return <></>;
 };

@@ -66,14 +66,23 @@ const CopyButton: FC<CopyButtonProps> = ({ copyText }) => {
   );
 };
 
-const SideButtons: FC = () => {
+interface SideButtonsProps {
+  onResign: () => void;
+  onDraw: () => void;
+}
+
+const SideButtons: FC<SideButtonsProps> = ({ onResign, onDraw }) => {
   const {
     selfGame,
+    playerColor,
+    moveList,
     fen,
     preferences: { flip, animation, showLegalMoves, highlightMoves, pieceSet },
     undo,
     setPreferences,
     getPGN,
+    resign,
+    draw,
   } = useChessContext();
   return (
     <>
@@ -215,12 +224,28 @@ const SideButtons: FC = () => {
       ) : (
         <>
           <div>
-            <Button variant="outline" size="icon">
+            <Button
+              disabled={moveList.length < 2}
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                if (!playerColor) return;
+                onResign();
+                resign(playerColor);
+              }}
+            >
               <Flag className="w-4 h-4 lg:w-5 lg:h-5" />
             </Button>
           </div>
           <div>
-            <Button variant="outline" size="icon">
+            <Button
+              disabled={moveList.length < 2}
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                onDraw();
+              }}
+            >
               1/2
             </Button>
           </div>
@@ -233,7 +258,9 @@ const SideButtons: FC = () => {
   );
 };
 
-export const GameSidePanel = () => {
+interface GameSidePanelProps extends SideButtonsProps {}
+
+export const GameSidePanel: FC<GameSidePanelProps> = ({ onResign, onDraw }) => {
   const { first, previous, next, last } = useChessContext();
   return (
     <div className="flex w-full lg:w-fit h-full gap-2">
@@ -242,13 +269,13 @@ export const GameSidePanel = () => {
           <div className="flex justify-between">
             <CardTitle>ChEsS</CardTitle>
             <div className="flex lg:hidden gap-2">
-              <SideButtons />
+              <SideButtons onResign={onResign} onDraw={onDraw} />
             </div>
           </div>
         </CardHeader>
         <Separator />
         <CardContent className="flex flex-col pt-4 justify-between flex-grow-0 h-full">
-          <ScrollArea className="flex flex-col gap-4 max-h-[180px] mb-4 lg:max-h-[450px] min-[1100px]:max-h-[530px] min-[1200px]:max-h-[630px] xl:max-h-[700px] overflow-y-auto">
+          <ScrollArea className="flex flex-col gap-4 max-h-[180px] mb-4 lg:max-h-[450px] min-[1100px]:max-h-[530px] min-[1200px]:max-h-[63vh] xl:max-h-[67vh] overflow-y-auto">
             <MoveList />
           </ScrollArea>
           <div className="flex w-full justify-center items-center gap-2">
@@ -284,7 +311,7 @@ export const GameSidePanel = () => {
         </CardContent>
       </Card>
       <div className="hidden lg:flex flex-col gap-2">
-        <SideButtons />
+        <SideButtons onResign={onResign} onDraw={onDraw} />
       </div>
     </div>
   );

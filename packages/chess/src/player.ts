@@ -1,11 +1,11 @@
-import { Bishop } from "./pieces/bishop";
-import { King } from "./pieces/king";
-import { Knight } from "./pieces/knight";
-import { Pawn } from "./pieces/pawn";
-import { Piece } from "./piece";
-import { Queen } from "./pieces/queen";
-import { Rook } from "./pieces/rook";
-import { Color, PieceType } from "./types";
+import { Bishop } from "./pieces/bishop.js";
+import { King } from "./pieces/king.js";
+import { Knight } from "./pieces/knight.js";
+import { Pawn } from "./pieces/pawn.js";
+import { Piece } from "./piece.js";
+import { Queen } from "./pieces/queen.js";
+import { Rook } from "./pieces/rook.js";
+import { Color, PieceType } from "./types.js";
 import {
   BLACK_KING_PAWN_BIT_MASK,
   BOTTOM_LEFT_DIAGONAL_BIT_MASK,
@@ -19,7 +19,7 @@ import {
   TOP_RIGHT_DIAGONAL_BIT_MASK,
   UP_BIT_MASK,
   WHITE_KING_PAWN_BIT_MASK,
-} from "./masks";
+} from "./masks.js";
 
 export class Player {
   private _pieces: Piece[] = [];

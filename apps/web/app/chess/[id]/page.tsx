@@ -10,6 +10,8 @@ import { GameSidePanel } from "@repo/ui/chess/GameSidePanel";
 import { SocketHandler } from "@/components/SocketHandler";
 import { Button } from "@repo/ui/components/ui/button";
 import Link from "next/link";
+import { useSocketContext } from "@repo/ui/context/socketContext";
+import { Color } from "@repo/chess";
 
 export const runtime = "edge";
 
@@ -18,6 +20,7 @@ interface PageProps {
 }
 
 const Page: FC<PageProps> = ({ params }) => {
+  const { sendMessage } = useSocketContext();
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -28,6 +31,21 @@ const Page: FC<PageProps> = ({ params }) => {
     null
   );
 
+  const onResign = () => {
+    sendMessage(
+      JSON.stringify({
+        event: "resign",
+      })
+    );
+  };
+
+  const onDraw = () => {
+    sendMessage(
+      JSON.stringify({
+        event: "draw offer",
+      })
+    );
+  };
   return (
     <div className="w-full min-h-[100%] p-8 bg-background flex justify-center lg:items-center">
       <ChessContextProvider
@@ -58,7 +76,7 @@ const Page: FC<PageProps> = ({ params }) => {
               <ChessBoard />
             </div>
             <div className="min-h-full grow-0">
-              <GameSidePanel />
+              <GameSidePanel onResign={onResign} onDraw={onDraw} />
             </div>
           </div>
         )}

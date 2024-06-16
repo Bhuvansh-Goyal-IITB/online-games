@@ -141,10 +141,70 @@ chessSocketServer.on("move", (ws, data) => {
     return;
   }
 
-  const { gameId, move } = safeParsedData.data;
+  const { move } = safeParsedData.data;
 
   try {
-    chessSocketServer.move(gameId, ws as WebSocketWithDetails, move);
+    chessSocketServer.move(ws as WebSocketWithDetails, move);
+  } catch (error: any) {
+    ws.send(
+      JSON.stringify({
+        event: "error",
+        data: {
+          message: error.message,
+        },
+      })
+    );
+  }
+});
+
+chessSocketServer.on("resign", (ws, _data) => {
+  try {
+    chessSocketServer.resign(ws as WebSocketWithDetails);
+  } catch (error: any) {
+    ws.send(
+      JSON.stringify({
+        event: "error",
+        data: {
+          message: error.message,
+        },
+      })
+    );
+  }
+});
+
+chessSocketServer.on("draw offer", (ws, _data) => {
+  try {
+    chessSocketServer.sendDrawOffer(ws as WebSocketWithDetails);
+  } catch (error: any) {
+    ws.send(
+      JSON.stringify({
+        event: "error",
+        data: {
+          message: error.message,
+        },
+      })
+    );
+  }
+});
+
+chessSocketServer.on("draw reject", (ws, _data) => {
+  try {
+    chessSocketServer.rejectDrawOffer(ws as WebSocketWithDetails);
+  } catch (error: any) {
+    ws.send(
+      JSON.stringify({
+        event: "error",
+        data: {
+          message: error.message,
+        },
+      })
+    );
+  }
+});
+
+chessSocketServer.on("draw accept", (ws, _data) => {
+  try {
+    chessSocketServer.draw(ws as WebSocketWithDetails);
   } catch (error: any) {
     ws.send(
       JSON.stringify({

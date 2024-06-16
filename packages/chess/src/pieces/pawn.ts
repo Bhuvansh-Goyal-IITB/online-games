@@ -1,6 +1,6 @@
-import { Chess } from "../chess";
-import { Piece } from "../piece";
-import { Color } from "../types";
+import { Chess } from "../chess.js";
+import { Piece } from "../piece.js";
+import { Color } from "../types.js";
 
 export class Pawn extends Piece {
   constructor(position: number, color: Color, id?: string) {
