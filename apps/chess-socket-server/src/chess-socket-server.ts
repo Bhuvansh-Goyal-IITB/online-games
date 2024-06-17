@@ -42,9 +42,6 @@ export class ChessSocketServer {
 
         if (event != "auth") {
           const playerId = (ws as WebSocketWithDetails).id;
-          console.log(playerId);
-          console.log(this.connectedUsers.entries());
-          console.log(playerId);
 
           if (!playerId || !this.connectedUsers.get(playerId)) {
             ws.send(

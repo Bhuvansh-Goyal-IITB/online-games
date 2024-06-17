@@ -35,11 +35,23 @@ chessSocketServer.on("auth", async (ws, data) => {
   const { id, isGuest } = safeParsedData.data;
 
   if (chessSocketServer.isIdConnected(id)) {
+    chessSocketServer.sendMessageTo(
+      id,
+      JSON.stringify({
+        event: "Authorized",
+      })
+    );
     return;
   }
 
   if (isGuest) {
     chessSocketServer.addUser(ws, id, `Guest${id.substring(0, 10)}`);
+    chessSocketServer.sendMessageTo(
+      id,
+      JSON.stringify({
+        event: "Authorized",
+      })
+    );
   } else {
     const dbResult = await db
       .select()
@@ -76,6 +88,12 @@ chessSocketServer.on("auth", async (ws, data) => {
       id,
       user.displayName,
       user.profileImageURL ?? undefined
+    );
+    chessSocketServer.sendMessageTo(
+      id,
+      JSON.stringify({
+        event: "Authorized",
+      })
     );
   }
 });

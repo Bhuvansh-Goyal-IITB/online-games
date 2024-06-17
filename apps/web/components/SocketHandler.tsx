@@ -86,7 +86,16 @@ export const SocketHandler: FC<SocketHandlerProps> = ({
       const message = lastMessage.data;
       const parsedData = JSON.parse(message);
 
-      if (parsedData.event == "total moves") {
+      if (parsedData.event == "Authorized") {
+        sendMessage(
+          JSON.stringify({
+            event: "join game",
+            data: {
+              gameId,
+            },
+          })
+        );
+      } else if (parsedData.event == "total moves") {
         const moves = parsedData.data.moves as string;
         if (moves != "") {
           loadMoves(moves.split(","));
@@ -267,15 +276,6 @@ export const SocketHandler: FC<SocketHandlerProps> = ({
           );
         }
       }
-
-      sendMessage(
-        JSON.stringify({
-          event: "join game",
-          data: {
-            gameId,
-          },
-        })
-      );
     }
   }, [session.status]);
 
