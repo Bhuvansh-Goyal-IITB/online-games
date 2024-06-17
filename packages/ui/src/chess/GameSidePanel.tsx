@@ -67,8 +67,8 @@ const CopyButton: FC<CopyButtonProps> = ({ copyText }) => {
 };
 
 interface SideButtonsProps {
-  onResign: () => void;
-  onDraw: () => void;
+  onResign?: () => void;
+  onDraw?: () => void;
 }
 
 const SideButtons: FC<SideButtonsProps> = ({ onResign, onDraw }) => {
@@ -229,7 +229,7 @@ const SideButtons: FC<SideButtonsProps> = ({ onResign, onDraw }) => {
               variant="outline"
               size="icon"
               onClick={() => {
-                if (!playerColor) return;
+                if (!playerColor || !onResign) return;
                 onResign();
                 resign(playerColor);
               }}
@@ -243,6 +243,7 @@ const SideButtons: FC<SideButtonsProps> = ({ onResign, onDraw }) => {
               variant="outline"
               size="icon"
               onClick={() => {
+                if (!onDraw) return;
                 onDraw();
               }}
             >

@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsc-watch --onSuccess 'node ./dist/index.js'",
-    "build": "cd ../../packages/socket-communication-schemas && tsc -b && cd ../drizzle-schema && tsc -b && cd ../chess && tsc -b && cd ../../apps/chess-socket-server && tsc -b",
+    "build": "tsc -b",
     "start": "node ./dist/index.js"
   },
   "keywords": [],
