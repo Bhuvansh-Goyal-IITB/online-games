@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsc-watch --onSuccess 'node ./dist/index.js'",
-    "build": "tsc -b",
+    "build": "rm -rf ./dist && tsc -b",
     "start": "node ./dist/index.js"
   },
   "keywords": [],

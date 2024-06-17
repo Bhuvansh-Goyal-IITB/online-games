@@ -4,7 +4,7 @@
   "description": "",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "rm -r ./dist && tsc -b"
+    "build": "rm -rf ./dist && tsc -b"
   },
   "keywords": [],
   "author": "",
