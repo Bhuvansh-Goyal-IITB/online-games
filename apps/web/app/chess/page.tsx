@@ -55,7 +55,6 @@ export default function Page() {
   }, [session.status, authPopupShown]);
 
   const handleCreateGame = () => {
-    console.log("hi");
     if (readyState == 1) {
       sendMessage(
         JSON.stringify({
