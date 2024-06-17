@@ -21,24 +21,33 @@ import {
   FormLabel,
   FormMessage,
 } from "./ui/form";
-import { FC } from "react";
+import { FC, useState } from "react";
 import FormError from "./form-error";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
+import { signIn } from "next-auth/react";
 
 interface SignUpFormProps {
-  errorMessage?: string;
-  onGithubSubmit: () => void;
-  onGoogleSubmit: () => void;
-  onSubmit: (data: SignUpType) => void;
+  onSubmitAction: (
+    email: string,
+    password: string,
+    displayName: string
+  ) => Promise<void>;
 }
 
-export const SignUpForm: FC<SignUpFormProps> = ({
-  errorMessage,
-  onSubmit,
-  onGithubSubmit,
-  onGoogleSubmit,
-}) => {
+export const SignUpForm: FC<SignUpFormProps> = ({ onSubmitAction }) => {
+  const [errorMessage, setErrorMessage] = useState<string>();
+
+  const onGithubSubmit = () => {
+    setErrorMessage("");
+    signIn("github", { callbackUrl: "/" });
+  };
+
+  const onGoogleSubmit = () => {
+    setErrorMessage("");
+    signIn("google", { callbackUrl: "/" });
+  };
+
   const form = useForm<SignUpType>({
     resolver: zodResolver(SignUpSchema),
     defaultValues: {
@@ -58,7 +67,24 @@ export const SignUpForm: FC<SignUpFormProps> = ({
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form
+            onSubmit={form.handleSubmit((data) => {
+              setErrorMessage("");
+              onSubmitAction(data.email, data.password, data.displayName).catch(
+                (err) => {
+                  if (err.message.includes("UNIQUE")) {
+                    if (err.message.includes("users.email")) {
+                      setErrorMessage("Email already registered");
+                    } else {
+                      setErrorMessage("Display name already registered");
+                    }
+                  } else {
+                    setErrorMessage("Something went wrong");
+                  }
+                }
+              );
+            })}
+          >
             <div className="grid gap-4">
               <div className="grid gap-2">
                 <FormField

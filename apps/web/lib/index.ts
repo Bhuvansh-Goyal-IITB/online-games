@@ -5,6 +5,7 @@ import { InsertUser, usersTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
 export const currentUser = async () => {
   const session = await auth();
@@ -24,6 +25,8 @@ export const signUpUser = async (
     password: hashedPassword,
     displayName,
   });
+
+  redirect("/auth/login");
 };
 
 export const updateUserDisplayName = async (
