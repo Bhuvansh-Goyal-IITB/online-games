@@ -14,12 +14,13 @@ export default function Page() {
   const session = useSession();
 
   const [authPopupShown, setAuthPopupShown] = useState(false);
-  const { sendMessage, message, readyState } = useSocketContext();
+  const { sendMessage, lastMessage, readyState } = useSocketContext();
   const [waiting, setWaiting] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    if (message) {
+    if (lastMessage) {
+      const message = lastMessage.data;
       const parsedData = JSON.parse(message);
 
       if (parsedData.event == "gameId") {
@@ -27,7 +28,7 @@ export default function Page() {
         router.push(`/chess/${gameId}`);
       }
     }
-  }, [message]);
+  }, [lastMessage]);
 
   useEffect(() => {
     if (session.status == "unauthenticated" && authPopupShown) {
@@ -54,6 +55,7 @@ export default function Page() {
   }, [session.status, authPopupShown]);
 
   const handleCreateGame = () => {
+    console.log("hi");
     if (readyState == 1) {
       sendMessage(
         JSON.stringify({

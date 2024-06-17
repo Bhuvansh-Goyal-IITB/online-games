@@ -36,7 +36,7 @@ export const SocketHandler: FC<SocketHandlerProps> = ({
     resign,
     draw,
   } = useChessContext();
-  const { sendMessage, message, readyState } = useSocketContext();
+  const { sendMessage, lastMessage, readyState } = useSocketContext();
   const session = useSession();
   const [movesMade, setMovesMade] = useState(0);
 
@@ -82,7 +82,8 @@ export const SocketHandler: FC<SocketHandlerProps> = ({
   }, [moveList]);
 
   useEffect(() => {
-    if (message) {
+    if (lastMessage) {
+      const message = lastMessage.data;
       const parsedData = JSON.parse(message);
 
       if (parsedData.event == "total moves") {
@@ -190,6 +191,9 @@ export const SocketHandler: FC<SocketHandlerProps> = ({
               sendMessage(
                 JSON.stringify({
                   event: "draw accept",
+                  data: {
+                    gameId,
+                  },
                 })
               );
             },
@@ -200,6 +204,9 @@ export const SocketHandler: FC<SocketHandlerProps> = ({
               sendMessage(
                 JSON.stringify({
                   event: "draw reject",
+                  data: {
+                    gameId,
+                  },
                 })
               );
             },
@@ -220,7 +227,7 @@ export const SocketHandler: FC<SocketHandlerProps> = ({
         }
       }
     }
-  }, [message]);
+  }, [lastMessage]);
 
   useEffect(() => {
     if (session.status != "loading") {

@@ -17,18 +17,6 @@ export class GameManager {
     return game;
   }
 
-  getGameByPlayerId(playerId: string) {
-    const game = this.games.find(
-      (game) => game.whiteId == playerId || game.blackId == playerId
-    );
-
-    if (!game) {
-      throw Error("Game does not exist, or is finished, or is full");
-    }
-
-    return game;
-  }
-
   removeGame(gameId: string) {
     this.games = this.games.filter((game) => game.gameId != gameId);
   }
@@ -142,12 +130,17 @@ export class GameManager {
   }
 
   move(
+    gameId: string,
     ws: WebSocketWithDetails,
     moveString: string,
     chessSocketServer: ChessSocketServer
   ) {
+    const game = this.getGame(gameId);
     const playerId = ws.id;
-    const game = this.getGameByPlayerId(playerId);
+
+    if (game.whiteId != playerId && game.blackId != playerId) {
+      throw Error("You are not a player of this game");
+    }
 
     if (!game.gameStarted) {
       throw Error("Game has not started");

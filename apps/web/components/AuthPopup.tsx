@@ -23,7 +23,6 @@ const AuthPopup: FC<AuthPopupProps> = ({ setAuthPopupShown }) => {
         <CardContent className="flex flex-col gap-4 p-6">
           <Button
             onClick={() => {
-              localStorage.removeItem("id");
               router.push("/auth/login");
             }}
             size="lg"
@@ -32,7 +31,6 @@ const AuthPopup: FC<AuthPopupProps> = ({ setAuthPopupShown }) => {
           </Button>
           <Button
             onClick={() => {
-              localStorage.removeItem("id");
               router.push("/auth/sign-up");
             }}
             size="lg"

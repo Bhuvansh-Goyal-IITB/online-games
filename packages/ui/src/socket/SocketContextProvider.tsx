@@ -39,7 +39,7 @@ export const SocketContextProvider: FC<PropsWithChildren> = ({ children }) => {
     <SocketContext.Provider
       value={{
         sendMessage,
-        message: lastMessage ? lastMessage.data : null,
+        lastMessage,
         readyState,
         on,
       }}

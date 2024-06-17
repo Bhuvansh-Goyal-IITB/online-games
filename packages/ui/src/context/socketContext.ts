@@ -3,7 +3,7 @@ import { ReadyState, SendMessage } from "react-use-websocket";
 
 interface ISocketContext {
   sendMessage: SendMessage;
-  message: string | null;
+  lastMessage: MessageEvent<any> | null;
   readyState: ReadyState;
   on: (event: string, eventHandler: (data: any) => void) => void;
 }

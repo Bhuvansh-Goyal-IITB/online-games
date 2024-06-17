@@ -1,5 +1,5 @@
 import { z } from "zod";
 
-export const joinGameDataSchema = z.object({
+export const gameIdDataSchema = z.object({
   gameId: z.string(),
 });

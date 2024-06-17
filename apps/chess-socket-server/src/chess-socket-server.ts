@@ -65,9 +65,13 @@ export class ChessSocketServer {
     });
   }
 
-  resign(ws: WebSocketWithDetails) {
+  resign(gameId: string, ws: WebSocketWithDetails) {
+    const game = this.gameManager.getGame(gameId);
     const playerId = ws.id;
-    const game = this.gameManager.getGameByPlayerId(playerId);
+
+    if (game.whiteId != playerId && game.blackId != playerId) {
+      throw Error("You are not a player of this game");
+    }
 
     if (!game.gameStarted) {
       throw Error("Game has not started");
@@ -98,9 +102,13 @@ export class ChessSocketServer {
     this.gameManager.removeGame(game.gameId);
   }
 
-  draw(ws: WebSocketWithDetails) {
+  draw(gameId: string, ws: WebSocketWithDetails) {
+    const game = this.gameManager.getGame(gameId);
     const playerId = ws.id;
-    const game = this.gameManager.getGameByPlayerId(playerId);
+
+    if (game.whiteId != playerId && game.blackId != playerId) {
+      throw Error("You are not a player of this game");
+    }
 
     if (!game.gameStarted) {
       throw Error("Game has not started");
@@ -122,9 +130,13 @@ export class ChessSocketServer {
     this.gameManager.removeGame(game.gameId);
   }
 
-  rejectDrawOffer(ws: WebSocketWithDetails) {
+  rejectDrawOffer(gameId: string, ws: WebSocketWithDetails) {
+    const game = this.gameManager.getGame(gameId);
     const playerId = ws.id;
-    const game = this.gameManager.getGameByPlayerId(playerId);
+
+    if (game.whiteId != playerId && game.blackId != playerId) {
+      throw Error("You are not a player of this game");
+    }
 
     if (!game.gameStarted) {
       throw Error("Game has not started");
@@ -147,9 +159,13 @@ export class ChessSocketServer {
     }
   }
 
-  sendDrawOffer(ws: WebSocketWithDetails) {
+  sendDrawOffer(gameId: string, ws: WebSocketWithDetails) {
+    const game = this.gameManager.getGame(gameId);
     const playerId = ws.id;
-    const game = this.gameManager.getGameByPlayerId(playerId);
+
+    if (game.whiteId != playerId && game.blackId != playerId) {
+      throw Error("You are not a player of this game");
+    }
 
     if (!game.gameStarted) {
       throw Error("Game has not started");
@@ -172,8 +188,8 @@ export class ChessSocketServer {
     }
   }
 
-  move(ws: WebSocketWithDetails, moveString: string) {
-    this.gameManager.move(ws, moveString, this);
+  move(gameId: string, ws: WebSocketWithDetails, moveString: string) {
+    this.gameManager.move(gameId, ws, moveString, this);
   }
 
   joinGame(gameId: string, ws: WebSocketWithDetails) {

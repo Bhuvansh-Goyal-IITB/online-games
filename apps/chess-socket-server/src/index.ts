@@ -5,7 +5,7 @@ import {
 } from "./chess-socket-server.js";
 import {
   authDataSchema,
-  joinGameDataSchema,
+  gameIdDataSchema,
   moveDataSchema,
 } from "@repo/socket-communication-schemas";
 import { db } from "./db/index.js";
@@ -92,7 +92,7 @@ chessSocketServer.on("create game", (ws, data) => {
 });
 
 chessSocketServer.on("join game", (ws, data) => {
-  const safeParsedData = joinGameDataSchema.safeParse(data);
+  const safeParsedData = gameIdDataSchema.safeParse(data);
 
   if (!safeParsedData.success) {
     ws.send(
@@ -141,10 +141,10 @@ chessSocketServer.on("move", (ws, data) => {
     return;
   }
 
-  const { move } = safeParsedData.data;
+  const { gameId, move } = safeParsedData.data;
 
   try {
-    chessSocketServer.move(ws as WebSocketWithDetails, move);
+    chessSocketServer.move(gameId, ws as WebSocketWithDetails, move);
   } catch (error: any) {
     ws.send(
       JSON.stringify({
@@ -157,9 +157,25 @@ chessSocketServer.on("move", (ws, data) => {
   }
 });
 
-chessSocketServer.on("resign", (ws, _data) => {
+chessSocketServer.on("resign", (ws, data) => {
+  const safeParsedData = gameIdDataSchema.safeParse(data);
+
+  if (!safeParsedData.success) {
+    ws.send(
+      JSON.stringify({
+        event: "error",
+        data: {
+          message: "Invalid fields",
+        },
+      })
+    );
+    return;
+  }
+
+  const { gameId } = safeParsedData.data;
+
   try {
-    chessSocketServer.resign(ws as WebSocketWithDetails);
+    chessSocketServer.resign(gameId, ws as WebSocketWithDetails);
   } catch (error: any) {
     ws.send(
       JSON.stringify({
@@ -172,9 +188,25 @@ chessSocketServer.on("resign", (ws, _data) => {
   }
 });
 
-chessSocketServer.on("draw offer", (ws, _data) => {
+chessSocketServer.on("draw offer", (ws, data) => {
+  const safeParsedData = gameIdDataSchema.safeParse(data);
+
+  if (!safeParsedData.success) {
+    ws.send(
+      JSON.stringify({
+        event: "error",
+        data: {
+          message: "Invalid fields",
+        },
+      })
+    );
+    return;
+  }
+
+  const { gameId } = safeParsedData.data;
+
   try {
-    chessSocketServer.sendDrawOffer(ws as WebSocketWithDetails);
+    chessSocketServer.sendDrawOffer(gameId, ws as WebSocketWithDetails);
   } catch (error: any) {
     ws.send(
       JSON.stringify({
@@ -187,9 +219,25 @@ chessSocketServer.on("draw offer", (ws, _data) => {
   }
 });
 
-chessSocketServer.on("draw reject", (ws, _data) => {
+chessSocketServer.on("draw reject", (ws, data) => {
+  const safeParsedData = gameIdDataSchema.safeParse(data);
+
+  if (!safeParsedData.success) {
+    ws.send(
+      JSON.stringify({
+        event: "error",
+        data: {
+          message: "Invalid fields",
+        },
+      })
+    );
+    return;
+  }
+
+  const { gameId } = safeParsedData.data;
+
   try {
-    chessSocketServer.rejectDrawOffer(ws as WebSocketWithDetails);
+    chessSocketServer.rejectDrawOffer(gameId, ws as WebSocketWithDetails);
   } catch (error: any) {
     ws.send(
       JSON.stringify({
@@ -202,9 +250,25 @@ chessSocketServer.on("draw reject", (ws, _data) => {
   }
 });
 
-chessSocketServer.on("draw accept", (ws, _data) => {
+chessSocketServer.on("draw accept", (ws, data) => {
+  const safeParsedData = gameIdDataSchema.safeParse(data);
+
+  if (!safeParsedData.success) {
+    ws.send(
+      JSON.stringify({
+        event: "error",
+        data: {
+          message: "Invalid fields",
+        },
+      })
+    );
+    return;
+  }
+
+  const { gameId } = safeParsedData.data;
+
   try {
-    chessSocketServer.draw(ws as WebSocketWithDetails);
+    chessSocketServer.draw(gameId, ws as WebSocketWithDetails);
   } catch (error: any) {
     ws.send(
       JSON.stringify({

@@ -34,6 +34,9 @@ const Page: FC<PageProps> = ({ params }) => {
     sendMessage(
       JSON.stringify({
         event: "resign",
+        data: {
+          gameId: params.id,
+        },
       })
     );
   };
@@ -42,6 +45,9 @@ const Page: FC<PageProps> = ({ params }) => {
     sendMessage(
       JSON.stringify({
         event: "draw offer",
+        data: {
+          gameId: params.id,
+        },
       })
     );
   };
