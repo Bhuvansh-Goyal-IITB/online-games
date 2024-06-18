@@ -49,15 +49,17 @@ const PlayerInfo: FC<PlayerInfoProps> = ({
         </AvatarFallback>
       </Avatar>
       <div className="flex justify-start">
-        <div className="flex gap-2">
-          <span className="text-lg">
-            {playerName ? playerName : playerColor == "w" ? "White" : "Black"}
-          </span>
-          {materialAdvantage > 0 && (
-            <span className="text-md text-muted-foreground">
-              +{materialAdvantage}
+        <div>
+          <div className="flex gap-2 items-center">
+            <span className="text-md md:text-lg">
+              {playerName ? playerName : playerColor == "w" ? "White" : "Black"}
             </span>
-          )}
+            {materialAdvantage > 0 && (
+              <span className="text-md text-muted-foreground">
+                +{materialAdvantage}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>

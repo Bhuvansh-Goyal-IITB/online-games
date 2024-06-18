@@ -52,7 +52,9 @@ const Page: FC<PageProps> = ({ params }) => {
     );
   };
   return (
-    <div className="w-full min-h-[100%] p-8 bg-background flex justify-center lg:items-center">
+    <div
+      className={`w-full min-h-[100%] p-8 bg-background flex justify-center ${!errorMessage && !loading ? "lg:items-center" : "items-center"}`}
+    >
       <ChessContextProvider
         whitePlayerInfo={whitePlayerInfo ?? undefined}
         blackPlayerInfo={blackPlayerInfo ?? undefined}
@@ -69,7 +71,7 @@ const Page: FC<PageProps> = ({ params }) => {
             Loading...
           </div>
         ) : errorMessage ? (
-          <div className="flex flex-col items-center gap-4 text-xl">
+          <div className="w-full h-full flex flex-col justify-center items-center gap-4 text-xl">
             {errorMessage}
             <div>
               <Button asChild>
