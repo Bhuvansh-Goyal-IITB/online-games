@@ -18,15 +18,25 @@ export const signUpUser = async (
   password: string,
   displayName: string
 ) => {
-  const hashedPassword = bcrypt.hashSync(password, 10);
-
-  await db.insert(usersTable).values({
-    email,
-    password: hashedPassword,
-    displayName,
-  });
-
-  redirect("/auth/login");
+  try {
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    await db.insert(usersTable).values({
+      email,
+      password: hashedPassword,
+      displayName,
+    });
+    redirect("/auth/login");
+  } catch (err: any) {
+    if (err.message.includes("UNIQUE")) {
+      if (err.message.includes("users.email")) {
+        return { error: "Email already registered" };
+      } else {
+        return { error: "Display name already registered" };
+      }
+    } else {
+      return { error: "Something went wrong" };
+    }
+  }
 };
 
 export const updateUserDisplayName = async (

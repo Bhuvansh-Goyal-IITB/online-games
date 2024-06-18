@@ -32,7 +32,7 @@ interface SignUpFormProps {
     email: string,
     password: string,
     displayName: string
-  ) => Promise<void>;
+  ) => Promise<{ error: string }>;
 }
 
 export const SignUpForm: FC<SignUpFormProps> = ({ onSubmitAction }) => {
@@ -70,19 +70,13 @@ export const SignUpForm: FC<SignUpFormProps> = ({ onSubmitAction }) => {
           <form
             onSubmit={form.handleSubmit((data) => {
               setErrorMessage("");
-              onSubmitAction(data.email, data.password, data.displayName).catch(
-                (err) => {
-                  if (err.message.includes("UNIQUE")) {
-                    if (err.message.includes("users.email")) {
-                      setErrorMessage("Email already registered");
-                    } else {
-                      setErrorMessage("Display name already registered");
-                    }
-                  } else {
-                    setErrorMessage("Something went wrong");
-                  }
-                }
-              );
+              onSubmitAction(data.email, data.password, data.displayName)
+                .then((message) => {
+                  setErrorMessage(message.error);
+                })
+                .catch((_err) => {
+                  setErrorMessage("Something went wrong");
+                });
             })}
           >
             <div className="grid gap-4">

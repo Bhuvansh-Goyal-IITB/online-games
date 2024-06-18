@@ -82,7 +82,6 @@ const SideButtons: FC<SideButtonsProps> = ({ onResign, onDraw }) => {
     setPreferences,
     getPGN,
     resign,
-    draw,
   } = useChessContext();
   return (
     <>
@@ -92,7 +91,7 @@ const SideButtons: FC<SideButtonsProps> = ({ onResign, onDraw }) => {
             <Settings className="w-4 h-4 lg:w-5 lg:h-5" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="w-[360px]">
+        <DialogContent className="w-[80vw] lg:w-[360px] text-sm lg:text-md">
           <DialogHeader>
             <DialogTitle className="text-xl">Settings</DialogTitle>
           </DialogHeader>
@@ -264,56 +263,49 @@ interface GameSidePanelProps extends SideButtonsProps {}
 export const GameSidePanel: FC<GameSidePanelProps> = ({ onResign, onDraw }) => {
   const { first, previous, next, last } = useChessContext();
   return (
-    <div className="flex w-full lg:w-fit h-full gap-2">
-      <Card className="flex flex-col w-full lg:w-[320px] xl:w-fit h-[380px] lg:h-full">
-        <CardHeader>
-          <div className="flex justify-between">
-            <CardTitle>ChEsS</CardTitle>
-            <div className="flex lg:hidden gap-2">
-              <SideButtons onResign={onResign} onDraw={onDraw} />
-            </div>
-          </div>
-        </CardHeader>
-        <Separator />
-        <CardContent className="flex flex-col pt-4 justify-between flex-grow-0 h-full">
-          <ScrollArea className="flex flex-col gap-4 max-h-[180px] mb-4 lg:max-h-[450px] min-[1100px]:max-h-[530px] min-[1200px]:max-h-[63vh] xl:max-h-[67vh] overflow-y-auto">
-            <MoveList />
-          </ScrollArea>
-          <div className="flex w-full justify-center items-center gap-2">
-            <Button
-              className="p-4 py-2 xl:p-6 grow"
-              variant="secondary"
-              onClick={first}
-            >
-              <ChevronFirst className="w-6 h-6 xl:w-8 xl:h-8" />
-            </Button>
-            <Button
-              className="p-4 py-2 xl:p-6 grow"
-              variant="secondary"
-              onClick={previous}
-            >
-              <ChevronLeft className="w-6 h-6 xl:w-8 xl:h-8" />
-            </Button>
-            <Button
-              className="p-4 py-2 xl:p-6 grow"
-              variant="secondary"
-              onClick={next}
-            >
-              <ChevronRight className="w-6 h-6 xl:w-8 xl:h-8" />
-            </Button>
-            <Button
-              className="p-4 py-2 xl:p-6 grow"
-              variant="secondary"
-              onClick={last}
-            >
-              <ChevronLast className="w-6 h-6 xl:w-8 xl:h-8" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-      <div className="hidden lg:flex flex-col gap-2">
-        <SideButtons onResign={onResign} onDraw={onDraw} />
-      </div>
-    </div>
+    // <div className="flex w-full lg:w-fit h-full gap-2">
+    <Card className="flex flex-col w-full lg:w-[320px] xl:w-fit h-[380px] lg:h-full">
+      <CardHeader className="flex items-center">
+        <div className="flex gap-4">
+          <SideButtons onResign={onResign} onDraw={onDraw} />
+        </div>
+      </CardHeader>
+      <Separator />
+      <CardContent className="flex flex-col pt-4 justify-between flex-grow-0 h-full">
+        <ScrollArea className="flex flex-col gap-4 max-h-[180px] mb-4 lg:max-h-[450px] min-[1100px]:max-h-[530px] min-[1200px]:max-h-[63vh] xl:max-h-[67vh] overflow-y-auto">
+          <MoveList />
+        </ScrollArea>
+        <div className="flex w-full justify-center items-center gap-2">
+          <Button
+            className="p-4 py-2 xl:p-6 grow"
+            variant="secondary"
+            onClick={first}
+          >
+            <ChevronFirst className="w-6 h-6 xl:w-8 xl:h-8" />
+          </Button>
+          <Button
+            className="p-4 py-2 xl:p-6 grow"
+            variant="secondary"
+            onClick={previous}
+          >
+            <ChevronLeft className="w-6 h-6 xl:w-8 xl:h-8" />
+          </Button>
+          <Button
+            className="p-4 py-2 xl:p-6 grow"
+            variant="secondary"
+            onClick={next}
+          >
+            <ChevronRight className="w-6 h-6 xl:w-8 xl:h-8" />
+          </Button>
+          <Button
+            className="p-4 py-2 xl:p-6 grow"
+            variant="secondary"
+            onClick={last}
+          >
+            <ChevronLast className="w-6 h-6 xl:w-8 xl:h-8" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };

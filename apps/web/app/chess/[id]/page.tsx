@@ -65,7 +65,9 @@ const Page: FC<PageProps> = ({ params }) => {
           setErrorMessage={setErrorMessage}
         />
         {loading ? (
-          <div className="text-xl">Loading...</div>
+          <div className="w-full h-full flex justify-center items-center text-xl">
+            Loading...
+          </div>
         ) : errorMessage ? (
           <div className="flex flex-col items-center gap-4 text-xl">
             {errorMessage}
