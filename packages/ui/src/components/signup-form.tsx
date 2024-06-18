@@ -58,7 +58,7 @@ export const SignUpForm: FC<SignUpFormProps> = ({ onSubmitAction }) => {
   });
 
   return (
-    <Card className="min-w-[400px]">
+    <Card className="w-[95vw] max-w-[400px]">
       <CardHeader>
         <CardTitle className="text-xl">Sign Up</CardTitle>
         <CardDescription>
@@ -143,7 +143,7 @@ export const SignUpForm: FC<SignUpFormProps> = ({ onSubmitAction }) => {
             </div>
           </form>
         </Form>
-        <div className="flex gap-2">
+        <div className="mt-3 flex gap-2">
           <Button
             disabled={form.formState.isSubmitting}
             variant="outline"

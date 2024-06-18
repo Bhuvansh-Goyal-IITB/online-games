@@ -48,7 +48,7 @@ export const LoginForm: FC<LoginFormProps> = ({
   });
 
   return (
-    <Card className="mx-auto max-w-sm">
+    <Card className="w-[95vw] max-w-[400px]">
       <CardHeader>
         <CardTitle className="text-2xl">Login</CardTitle>
         <CardDescription>
@@ -107,7 +107,7 @@ export const LoginForm: FC<LoginFormProps> = ({
             </div>
           </form>
         </Form>
-        <div className="flex gap-2">
+        <div className="mt-3 flex gap-2">
           <Button
             disabled={form.formState.isSubmitting}
             variant="outline"
