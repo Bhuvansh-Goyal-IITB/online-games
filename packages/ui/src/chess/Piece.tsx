@@ -158,7 +158,6 @@ export const Piece: FC<PieceProps> = ({
 
   const handleTouchStart: TouchEventHandler = (event) => {
     if (!divRef.current || event.touches.length == 0) return;
-    event.preventDefault();
 
     const { centerX, centerY, width } = getPieceCoordinates(divRef.current);
     const touchX = event.touches[0]!.clientX;
@@ -182,7 +181,6 @@ export const Piece: FC<PieceProps> = ({
 
   const handleTouchMove = (event: TouchEvent) => {
     if (!held || !divRef.current || event.touches.length == 0) return;
-    event.preventDefault();
 
     const { centerX, centerY, width } = pieceCoordinates;
 
@@ -205,7 +203,6 @@ export const Piece: FC<PieceProps> = ({
 
   const handleTouchEnd = (event: TouchEvent) => {
     if (!held || !divRef.current || event.changedTouches.length == 0) return;
-    event.preventDefault();
 
     const { centerX, centerY, width } = pieceCoordinates;
     const touchX = event.changedTouches[0]!.clientX;
