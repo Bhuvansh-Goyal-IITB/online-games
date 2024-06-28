@@ -75,7 +75,6 @@ export const ProfileForm: FC<ProfileFormProps> = ({
                   }
                 })
                 .catch((_err) => {
-                  console.log(_err);
                   setErrorMessage("Something went wrong");
                 });
             })}
