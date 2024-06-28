@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { createServer } from "http";
 import {
   ChessSocketServer,
@@ -8,9 +9,7 @@ import {
   gameIdDataSchema,
   moveDataSchema,
 } from "@repo/socket-communication-schemas";
-import { db } from "./db/index.js";
-import { usersTable } from "./db/schema/index.js";
-import { eq } from "drizzle-orm";
+import { getUserById } from "@repo/drizzle-db";
 
 const server = createServer();
 const port = process.env.PORT || 3000;
@@ -53,12 +52,7 @@ chessSocketServer.on("auth", async (ws, data) => {
       })
     );
   } else {
-    const dbResult = await db
-      .select()
-      .from(usersTable)
-      .where(eq(usersTable.id, id));
-
-    const user = dbResult.length == 1 ? dbResult[0] : null;
+    const user = await getUserById(id);
 
     if (!user) {
       ws.send(

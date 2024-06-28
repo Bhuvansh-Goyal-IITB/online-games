@@ -21,7 +21,7 @@ interface IChessContext {
   setSelectedPiece: Dispatch<SetStateAction<Omit<PieceInfo, "id"> | null>>;
   setPromotionMove: Dispatch<SetStateAction<number[] | null>>;
   setCurrentPlayerColor: Dispatch<SetStateAction<Color | null>>;
-  movePiece: (moveString: string) => void;
+  movePiece: (moveString: string, animate?: boolean) => void;
   loadMoves: (moveList: string[]) => void;
   loadFen: (fen: string) => void;
   undo: () => void;

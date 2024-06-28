@@ -94,7 +94,7 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
       if (chessRef.current.outcome[0] != "") break;
     }
 
-    const newIndex = index + movesMade;
+    const newIndex = chessRef.current.getMoveNotations().length;
 
     const boardInfo = chessRef.current.getBoardInfoAt(newIndex);
     setFen(boardInfo.fen);
@@ -115,8 +115,9 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
     }
   };
 
-  const movePiece = (moveString: string) => {
+  const movePiece = (moveString: string, animate: boolean = true) => {
     moveMultiple([moveString]);
+    setCanAnimate(animate);
   };
 
   const undo = () => {

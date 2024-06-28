@@ -1,10 +1,10 @@
 import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
-import { addUser, getUserByEmail } from "./lib";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { LoginSchema } from "@ui/schema";
 import Google from "next-auth/providers/google";
+import { addUser, getUserByEmail } from "@repo/drizzle-db";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -92,10 +92,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       const existingUser = await getUserByEmail(email);
 
       if (!existingUser) {
-        await addUser({
-          email,
-          profileImageURL: user.image,
-        });
+        if (user.image) {
+          await addUser({ email, profileImageURL: user.image });
+        } else {
+          await addUser({ email });
+        }
       } else {
         if (existingUser.password && account?.provider != "credentials") {
           return false;

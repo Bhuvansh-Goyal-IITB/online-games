@@ -72,7 +72,9 @@ export const SignUpForm: FC<SignUpFormProps> = ({ onSubmitAction }) => {
               setErrorMessage("");
               onSubmitAction(data.email, data.password, data.displayName)
                 .then((message) => {
-                  setErrorMessage(message.error);
+                  if (message) {
+                    setErrorMessage(message.error);
+                  }
                 })
                 .catch((_err) => {
                   setErrorMessage("Something went wrong");

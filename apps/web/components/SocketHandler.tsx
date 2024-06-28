@@ -157,7 +157,7 @@ export const SocketHandler: FC<SocketHandlerProps> = ({
         startGame();
       } else if (parsedData.event == "move") {
         const moveString = parsedData.data.move as string;
-        movePiece(moveString);
+        movePiece(moveString, false);
       } else if (parsedData.event == "game joined") {
         setLoading(false);
         const playerColor = parsedData.data.color as Color;

@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@repo/ui/components/ui/button";
 import {
   DropdownMenu,
@@ -9,25 +7,24 @@ import {
 } from "@repo/ui/components/ui/dropdown-menu";
 import Link from "next/link";
 import { Settings } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { currentUser } from "@/lib";
+import LogOutButton from "./LogOutButton";
 
-export const ProfileWidget = () => {
-  const session = useSession();
+export const runtime = "edge";
+
+export const ProfileWidget = async () => {
+  const user = await currentUser();
 
   return (
     <div className="flex gap-2 m-6">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            disabled={session.status == "loading"}
-            variant="outline"
-            size="icon"
-          >
+          <Button variant="outline" size="icon">
             <Settings className="w-5 h-5" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="mr-6">
-          {session.status != "authenticated" ? (
+          {user == undefined ? (
             <>
               <DropdownMenuItem asChild>
                 <Link href="/auth/login">Log In</Link>
@@ -41,12 +38,8 @@ export const ProfileWidget = () => {
               <DropdownMenuItem asChild>
                 <Link href="/profile">Profile</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  signOut();
-                }}
-              >
-                Log Out
+              <DropdownMenuItem asChild>
+                <LogOutButton />
               </DropdownMenuItem>
             </>
           )}

@@ -21,24 +21,32 @@ import {
   FormLabel,
   FormMessage,
 } from "./ui/form";
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 import FormError from "./form-error";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
+import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 
-interface LoginFormProps {
-  errorMessage?: string;
-  onGithubSubmit: () => void;
-  onGoogleSubmit: () => void;
-  onSubmit: (data: LoginType) => void;
-}
+export const LoginForm: FC = () => {
+  const [errorMessage, setErrorMessage] = useState<string>();
+  const searchParams = useSearchParams();
 
-export const LoginForm: FC<LoginFormProps> = ({
-  errorMessage,
-  onSubmit,
-  onGithubSubmit,
-  onGoogleSubmit,
-}) => {
+  const onGithubSubmit = () => {
+    setErrorMessage("");
+    signIn("github", { callbackUrl: "/" });
+  };
+
+  const onGoogleSubmit = () => {
+    setErrorMessage("");
+    signIn("google", { callbackUrl: "/" });
+  };
+
+  const onSubmit = (data: LoginType) => {
+    setErrorMessage("");
+    signIn("credentials", { ...data, callbackUrl: "/" });
+  };
+
   const form = useForm<LoginType>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
@@ -46,6 +54,16 @@ export const LoginForm: FC<LoginFormProps> = ({
       password: "",
     },
   });
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+
+    if (error == "CredentialsSignin") {
+      setErrorMessage("Invalid credentials");
+    } else if (error != null) {
+      setErrorMessage("Something went wrong");
+    }
+  }, []);
 
   return (
     <Card className="w-[95vw] max-w-[400px]">

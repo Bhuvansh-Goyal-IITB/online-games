@@ -1,3 +1,5 @@
+"use client";
+
 import { useForm } from "react-hook-form";
 import {
   Form,
@@ -9,7 +11,7 @@ import {
 } from "@repo/ui/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ProfileSchema, ProfileType } from "@ui/schema";
-import { FC, PropsWithChildren, useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -20,23 +22,26 @@ import {
 import { Input } from "@repo/ui/components/ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
-import { toast } from "sonner";
 import FormError from "./form-error";
 
-interface ProfileFormProps extends PropsWithChildren {
+interface ProfileFormProps {
   defaultValues: {
+    id: string;
     email: string;
     image: string | null;
     displayName: string | null;
   };
-  onSubmit: (data: ProfileType) => void;
+  onSubmitAction: (
+    id: string,
+    displayName: string
+  ) => Promise<{ error: string }>;
 }
 
 export const ProfileForm: FC<ProfileFormProps> = ({
-  children,
   defaultValues,
-  onSubmit,
+  onSubmitAction,
 }) => {
+  const [errorMessage, setErrorMessage] = useState<string>();
   const [edit, setEdit] = useState(defaultValues.displayName ? false : true);
 
   const form = useForm<ProfileType>({
@@ -60,7 +65,21 @@ export const ProfileForm: FC<ProfileFormProps> = ({
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form
+            onSubmit={form.handleSubmit((data) => {
+              setErrorMessage("");
+              onSubmitAction(defaultValues.id, data.displayName)
+                .then((message) => {
+                  if (message) {
+                    setErrorMessage(message.error);
+                  }
+                })
+                .catch((_err) => {
+                  console.log(_err);
+                  setErrorMessage("Something went wrong");
+                });
+            })}
+          >
             <div className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
@@ -85,12 +104,18 @@ export const ProfileForm: FC<ProfileFormProps> = ({
                   )}
                 />
               </div>
-              <div>{children}</div>
+              <FormError errorMessage={errorMessage} />
               <div>
                 {edit ? (
                   <div className="flex gap-2">
-                    <Button type="submit">Submit</Button>
                     <Button
+                      disabled={form.formState.isSubmitting}
+                      type="submit"
+                    >
+                      Submit
+                    </Button>
+                    <Button
+                      disabled={form.formState.isSubmitting}
                       variant="destructive"
                       onClick={() => {
                         form.resetField("displayName", {
@@ -103,7 +128,12 @@ export const ProfileForm: FC<ProfileFormProps> = ({
                     </Button>
                   </div>
                 ) : (
-                  <Button onClick={() => setEdit(true)}>Edit</Button>
+                  <Button
+                    disabled={form.formState.isSubmitting}
+                    onClick={() => setEdit(true)}
+                  >
+                    Edit
+                  </Button>
                 )}
               </div>
             </div>

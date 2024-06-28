@@ -1,5 +1,5 @@
-import ProfilePage from "@/components/ProfilePage";
-import { currentUser } from "@/lib";
+import { currentUser, profileUpdate } from "@/lib";
+import { ProfileForm } from "@ui/components/profile-form";
 import { redirect } from "next/navigation";
 
 export const runtime = "edge";
@@ -13,11 +13,14 @@ const Page = async () => {
 
   return (
     <div className="w-full h-full flex items-center justify-center px-4">
-      <ProfilePage
-        id={user.id!}
-        email={user.email!}
-        name={user.name ?? null}
-        image={user.image ?? null}
+      <ProfileForm
+        defaultValues={{
+          id: user.id!,
+          displayName: user.name ?? null,
+          email: user.email!,
+          image: user.image ?? null,
+        }}
+        onSubmitAction={profileUpdate}
       />
     </div>
   );
