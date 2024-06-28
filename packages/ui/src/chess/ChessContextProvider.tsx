@@ -115,9 +115,13 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
     }
   };
 
-  const movePiece = (moveString: string, animate: boolean = true) => {
+  const movePiece = (moveString: string, animate?: boolean) => {
     moveMultiple([moveString]);
-    setCanAnimate(animate);
+    if (animate) {
+      setCanAnimate(animate);
+    } else {
+      setCanAnimate(true);
+    }
   };
 
   const undo = () => {
