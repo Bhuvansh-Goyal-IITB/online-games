@@ -4,35 +4,11 @@ import bcrypt from "bcryptjs";
 import { auth, signIn } from "@/auth";
 import { redirect } from "next/navigation";
 import { addUser, updateUserDisplayName } from "@repo/drizzle-db";
-import { AuthError } from "next-auth";
 
 export const currentUser = async () => {
   const session = await auth();
 
   return session?.user;
-};
-
-export const loginUser = async (email: string, password: string) => {
-  let success = false;
-  let err: any;
-
-  try {
-    await signIn("credentials", { email, password, redirect: false });
-    success = true;
-  } catch (error: any) {
-    err = error;
-  }
-
-  if (success) {
-    redirect("/");
-  } else {
-    if (err instanceof AuthError) {
-      if (err.type == "CredentialsSignin") {
-        return { error: "Invalid credentials" };
-      }
-    }
-    return { error: "Something went wrong" };
-  }
 };
 
 export const signUpUser = async (

@@ -24,6 +24,7 @@ export const authHandler: (
     const { id, isGuest } = safeParsedData.data;
 
     if (gameSocketServer.isIdConnected(id)) {
+      sendMessage("Authorized");
       return;
     }
 
@@ -32,6 +33,7 @@ export const authHandler: (
         id,
         name: `Guest${id.substring(0, 10)}`,
       });
+      sendMessage("Authorized");
     } else {
       try {
         const user = await getUserById(id);
@@ -55,6 +57,7 @@ export const authHandler: (
           name: user.displayName,
           image: user.profileImageURL ?? undefined,
         });
+        sendMessage("Authorized");
       } catch (error) {
         sendMessage("error", {
           message: "Something went wrong",

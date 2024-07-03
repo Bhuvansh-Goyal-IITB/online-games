@@ -1,0 +1,21 @@
+{
+  "name": "@repo/socket-server",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "rm -rf dist && tsc -b"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@repo/drizzle-db": "workspace:^",
+    "@repo/socket-communication-schemas": "workspace:^",
+    "ws": "^8.17.1"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.10"
+  }
+}

@@ -5,38 +5,31 @@ import { useChessContext } from "../context/chessContext";
 
 interface PlayerInfoProps {
   materialAdvantage: number;
-  playerColor: Color;
-  playerName?: string;
-  avatarImageSrc?: string;
+  color: Color;
+  name?: string;
+  image?: string;
 }
 
-const PlayerInfo: FC<PlayerInfoProps> = ({
-  materialAdvantage,
-  playerColor,
-}) => {
+const PlayerInfo: FC<PlayerInfoProps> = ({ materialAdvantage, color }) => {
   const { getPlayerInfo } = useChessContext();
 
-  const playerInfo = getPlayerInfo(playerColor);
+  const playerInfo = getPlayerInfo(color);
 
-  let playerName: string | undefined;
-  let avatarImageSrc: string | undefined;
+  let name: string | undefined;
+  let image: string | undefined;
 
   if (playerInfo) {
-    playerName = playerInfo.name;
-    avatarImageSrc = playerInfo.profileImageSrc;
+    name = playerInfo.name;
+    image = playerInfo.image;
   }
 
   return (
     <div className="flex gap-3">
       <Avatar
-        className={`rounded-md w-8 h-8 lg:w-12 lg:h-12 ${!avatarImageSrc ? "border p-1 bg-neutral-100 " : ""}`}
+        className={`rounded-md w-8 h-8 lg:w-12 lg:h-12 ${!image ? "border p-1 bg-neutral-100 " : ""}`}
       >
-        {avatarImageSrc ? (
-          <AvatarImage
-            className="rounded-md"
-            src={avatarImageSrc}
-            alt="profile pic"
-          />
+        {image ? (
+          <AvatarImage className="rounded-md" src={image} alt="profile pic" />
         ) : (
           <AvatarImage
             className="rounded-md"
@@ -45,14 +38,14 @@ const PlayerInfo: FC<PlayerInfoProps> = ({
           />
         )}
         <AvatarFallback className="rounded-md">
-          {playerColor.toUpperCase()}
+          {color.toUpperCase()}
         </AvatarFallback>
       </Avatar>
       <div className="flex justify-start">
         <div>
           <div className="flex gap-2 items-center">
             <span className="text-md md:text-lg">
-              {playerName ? playerName : playerColor == "w" ? "White" : "Black"}
+              {name ? name : color == "w" ? "White" : "Black"}
             </span>
             {materialAdvantage > 0 && (
               <span className="text-md text-muted-foreground">

@@ -1,11 +1,12 @@
+import { User } from "next-auth";
 import { createContext, useContext } from "react";
-import { ReadyState, SendMessage } from "react-use-websocket";
 
 interface ISocketContext {
-  sendMessage: SendMessage;
-  lastMessage: MessageEvent<any> | null;
-  readyState: ReadyState;
+  sendMessage: (event: string, data?: any) => void;
+  errorMessage: string | null;
+  authorized: boolean;
   on: (event: string, eventHandler: (data: any) => void) => void;
+  user: User | undefined;
 }
 
 export const SocketContext = createContext<ISocketContext | null>(null);

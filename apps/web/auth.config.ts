@@ -1,8 +1,9 @@
 import GitHub from "next-auth/providers/github";
 import { type NextAuthConfig } from "next-auth";
+import Google from "next-auth/providers/google";
 
 export default {
-  providers: [GitHub],
+  providers: [GitHub, Google],
   session: {
     strategy: "jwt",
   },

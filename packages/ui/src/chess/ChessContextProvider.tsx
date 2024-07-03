@@ -2,20 +2,8 @@
 
 import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 import { Chess, Color, Move, PieceInfo, PieceType } from "@repo/chess";
-import { ChessContext } from "../context/chessContext";
+import { ChessContext } from "@ui/context/chessContext";
 import { PieceSet } from "./types";
-
-const parseMoveString = (moveString: string) => {
-  const from = Chess.algebraic_to_position(moveString.substring(0, 2));
-  const to = Chess.algebraic_to_position(moveString.substring(2));
-
-  let promoteTo: Exclude<PieceType, "k" | "p"> | null = null;
-  if (moveString.length == 5) {
-    promoteTo = moveString.charAt(4) as Exclude<PieceType, "k" | "p">;
-  }
-
-  return { from, to, promoteTo };
-};
 
 export interface IChessPreferences {
   flip: boolean;
@@ -27,22 +15,25 @@ export interface IChessPreferences {
 
 export interface IPlayerInfo {
   name: string;
-  profileImageSrc?: string;
+  image?: string;
 }
 
 interface ChessContextProviderProps extends PropsWithChildren {
-  whitePlayerInfo?: IPlayerInfo;
-  blackPlayerInfo?: IPlayerInfo;
   selfGame?: boolean;
 }
 
 export const ChessContextProvider: FC<ChessContextProviderProps> = ({
-  whitePlayerInfo,
-  blackPlayerInfo,
   selfGame = false,
   children,
 }) => {
   const chessRef = useRef(new Chess());
+
+  const [whitePlayerInfo, setWhitePlayerInfo] = useState<IPlayerInfo | null>(
+    null
+  );
+  const [blackPlayerInfo, setBlackPlayerInfo] = useState<IPlayerInfo | null>(
+    null
+  );
 
   const [gameStarted, setGameStarted] = useState(selfGame);
   const [preferences, setPreferences] = useState<IChessPreferences>({
@@ -57,10 +48,9 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
     chessRef.current.getBoardInfoAt(0).pieceList
   );
   const [index, setIndex] = useState(0);
-  const [lastMove, setLastMove] = useState<Omit<
-    Move,
-    "capturedPiece" | "moveString"
-  > | null>(null);
+  const [lastMove, setLastMove] = useState<Omit<Move, "capturedPiece"> | null>(
+    null
+  );
   const [validMoves, setValidMoves] = useState(
     gameStarted ? chessRef.current.validMoves : []
   );
@@ -82,14 +72,7 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
   const moveMultiple = (moveList: string[]) => {
     let movesMade = 0;
     for (let i = 0; i < moveList.length; i++) {
-      const { from, to, promoteTo } = parseMoveString(moveList[i]!);
-
-      if (promoteTo) {
-        chessRef.current.move(from, to, promoteTo);
-      } else {
-        chessRef.current.move(from, to);
-      }
-
+      chessRef.current.move(moveList[i]!);
       movesMade++;
       if (chessRef.current.outcome[0] != "") break;
     }
@@ -317,7 +300,7 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
         lastMove,
         playerColor: currentPlayerColor,
         fen,
-        selfGame: selfGame,
+        selfGame,
         selectedPiece,
         canAnimate: canAnimate && preferences.animation,
         validMoves,
@@ -331,6 +314,8 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
         setSelectedPiece,
         setPreferences,
         setPromotionMove,
+        setWhitePlayerInfo,
+        setBlackPlayerInfo,
         loadFen,
         loadMoves,
         movePiece,

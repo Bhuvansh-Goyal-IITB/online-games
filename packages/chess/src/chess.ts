@@ -80,6 +80,7 @@ export class Chess {
     return {
       move: move.move,
       notation: move.notation,
+      moveString: move.moveString,
     };
   }
 
@@ -116,7 +117,9 @@ export class Chess {
     this._outcomeMethod = "";
   }
 
-  move(from: number, to: number, promote_to?: Exclude<PieceType, "k" | "p">) {
+  move(moveString: string) {
+    const { from, to, promoteTo } = Chess.parseMoveString(moveString);
+
     let notation = "";
 
     if (this._outcome != "") return;
@@ -149,7 +152,7 @@ export class Chess {
       }
     });
 
-    this._current.move(from, to, promote_to);
+    this._current.move(from, to, promoteTo);
 
     this._current = this._current.color == "w" ? this._black : this._white;
 
@@ -185,9 +188,9 @@ export class Chess {
 
     if (moved_piece!.piece_type == "p") {
       if (moved_piece!.color == "w" && Math.floor(to / 8) == 0) {
-        notation += `=${promote_to!.toUpperCase()}`;
+        notation += `=${promoteTo!.toUpperCase()}`;
       } else if (moved_piece!.color == "b" && Math.floor(to / 8) == 7) {
-        notation += `=${promote_to!.toUpperCase()}`;
+        notation += `=${promoteTo!.toUpperCase()}`;
       }
     }
 
@@ -221,12 +224,6 @@ export class Chess {
 
     if (this._outcome != "") {
       this.clearValidMoves();
-    }
-
-    let moveString = `${Chess.position_to_algebraic(from)}${Chess.position_to_algebraic(to)}`;
-
-    if (promote_to) {
-      moveString += promote_to;
     }
 
     this._moveHistory.push({
@@ -482,6 +479,18 @@ export class Chess {
       halfMove +
       " " +
       fullMove;
+  }
+
+  static parseMoveString(moveString: string) {
+    const from = Chess.algebraic_to_position(moveString.substring(0, 2));
+    const to = Chess.algebraic_to_position(moveString.substring(2));
+
+    let promoteTo: Exclude<PieceType, "k" | "p"> | undefined = undefined;
+    if (moveString.length == 5) {
+      promoteTo = moveString.charAt(4) as Exclude<PieceType, "k" | "p">;
+    }
+
+    return { from, to, promoteTo };
   }
 
   static algebraic_to_position(algebraic: string) {

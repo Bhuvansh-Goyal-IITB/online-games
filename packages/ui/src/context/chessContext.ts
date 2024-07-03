@@ -5,7 +5,7 @@ import { IChessPreferences, IPlayerInfo } from "../chess/ChessContextProvider";
 interface IChessContext {
   pieceList: PieceInfo[];
   playerColor: Color | null;
-  lastMove: Omit<Move, "capturedPiece" | "moveString"> | null;
+  lastMove: Omit<Move, "capturedPiece"> | null;
   selfGame: boolean;
   fen: string;
   canAnimate: boolean;
@@ -21,6 +21,8 @@ interface IChessContext {
   setSelectedPiece: Dispatch<SetStateAction<Omit<PieceInfo, "id"> | null>>;
   setPromotionMove: Dispatch<SetStateAction<number[] | null>>;
   setCurrentPlayerColor: Dispatch<SetStateAction<Color | null>>;
+  setWhitePlayerInfo: Dispatch<SetStateAction<IPlayerInfo | null>>;
+  setBlackPlayerInfo: Dispatch<SetStateAction<IPlayerInfo | null>>;
   movePiece: (moveString: string, animate?: boolean) => void;
   loadMoves: (moveList: string[]) => void;
   loadFen: (fen: string) => void;
@@ -30,7 +32,7 @@ interface IChessContext {
   first: () => void;
   last: () => void;
   goToMove: (moveIndex: number) => void;
-  getPlayerInfo: (playerColor: Color) => IPlayerInfo | undefined;
+  getPlayerInfo: (playerColor: Color) => IPlayerInfo | null;
   getPGN: () => string;
   resign: (resigningPlayerColor: Color) => void;
   draw: () => void;

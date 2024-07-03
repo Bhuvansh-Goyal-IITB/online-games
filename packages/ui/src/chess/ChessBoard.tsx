@@ -102,9 +102,9 @@ export const ChessBoard: FC = () => {
   return (
     <div className="flex flex-col gap-4">
       {!flip ? (
-        <PlayerInfo materialAdvantage={-materialAdvantage} playerColor="b" />
+        <PlayerInfo materialAdvantage={-materialAdvantage} color="b" />
       ) : (
-        <PlayerInfo materialAdvantage={materialAdvantage} playerColor="w" />
+        <PlayerInfo materialAdvantage={materialAdvantage} color="w" />
       )}
       <div
         className="relative max-w-[75vh] max-h-[75vh] border-yellow-900 border-[6px] overflow-hidden rounded-md"
@@ -136,9 +136,9 @@ export const ChessBoard: FC = () => {
         <ValidMoves />
       </div>
       {!flip ? (
-        <PlayerInfo materialAdvantage={materialAdvantage} playerColor="w" />
+        <PlayerInfo materialAdvantage={materialAdvantage} color="w" />
       ) : (
-        <PlayerInfo materialAdvantage={-materialAdvantage} playerColor="b" />
+        <PlayerInfo materialAdvantage={-materialAdvantage} color="b" />
       )}
     </div>
   );
