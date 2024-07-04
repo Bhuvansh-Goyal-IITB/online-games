@@ -21,49 +21,6 @@ importers:
         specifier: ^2.0.4
         version: 2.0.4
 
-  apps/chess-socket-server:
-    dependencies:
-      '@paralleldrive/cuid2':
-        specifier: ^2.2.2
-        version: 2.2.2
-      '@repo/chess':
-        specifier: workspace:^
-        version: link:../../packages/chess
-      '@repo/drizzle-db':
-        specifier: workspace:^
-        version: link:../../packages/drizzle-db
-      '@repo/socket-communication-schemas':
-        specifier: workspace:^
-        version: link:../../packages/socket-communication-schemas
-      dotenv:
-        specifier: ^16.4.5
-        version: 16.4.5
-      ioredis:
-        specifier: ^5.4.1
-        version: 5.4.1
-      ws:
-        specifier: ^8.17.1
-        version: 8.17.1
-      zod:
-        specifier: ^3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@repo/typescript-config':
-        specifier: workspace:^
-        version: link:../../packages/typescript-config
-      '@types/node':
-        specifier: ^20.14.8
-        version: 20.14.8
-      '@types/ws':
-        specifier: ^8.5.10
-        version: 8.5.10
-      tsc-watch:
-        specifier: ^6.2.0
-        version: 6.2.0(typescript@5.5.2)
-      typescript:
-        specifier: ^5.5.2
-        version: 5.5.2
-
   apps/game-testing:
     dependencies:
       '@repo/chess':
@@ -124,6 +81,49 @@ importers:
       wrangler:
         specifier: ^3.61.0
         version: 3.61.0(@cloudflare/workers-types@4.20240620.0)
+
+  apps/socket-server:
+    dependencies:
+      '@paralleldrive/cuid2':
+        specifier: ^2.2.2
+        version: 2.2.2
+      '@repo/chess':
+        specifier: workspace:^
+        version: link:../../packages/chess
+      '@repo/drizzle-db':
+        specifier: workspace:^
+        version: link:../../packages/drizzle-db
+      '@repo/socket-communication-schemas':
+        specifier: workspace:^
+        version: link:../../packages/socket-communication-schemas
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.4.5
+      ioredis:
+        specifier: ^5.4.1
+        version: 5.4.1
+      ws:
+        specifier: ^8.17.1
+        version: 8.17.1
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:^
+        version: link:../../packages/typescript-config
+      '@types/node':
+        specifier: ^20.14.8
+        version: 20.14.8
+      '@types/ws':
+        specifier: ^8.5.10
+        version: 8.5.10
+      tsc-watch:
+        specifier: ^6.2.0
+        version: 6.2.0(typescript@5.5.2)
+      typescript:
+        specifier: ^5.5.2
+        version: 5.5.2
 
   apps/web:
     dependencies:
@@ -256,19 +256,6 @@ importers:
       drizzle-kit:
         specifier: ^0.22.7
         version: 0.22.7
-
-  packages/drizzle-schema:
-    dependencies:
-      '@paralleldrive/cuid2':
-        specifier: ^2.2.2
-        version: 2.2.2
-      drizzle-orm:
-        specifier: ^0.31.2
-        version: 0.31.2(@cloudflare/workers-types@4.20240620.0)(@libsql/client@0.6.2)(@types/react@18.3.3)(react@18.3.1)
-    devDependencies:
-      '@repo/typescript-config':
-        specifier: workspace:^
-        version: link:../typescript-config
 
   packages/eslint-config:
     devDependencies:
@@ -7621,7 +7608,7 @@ snapshots:
       eslint: 9.5.0
       eslint-import-resolver-node: 0.3.9
       eslint-import-resolver-typescript: 3.6.1(@typescript-eslint/parser@7.2.0(eslint@9.5.0)(typescript@5.5.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(eslint@9.5.0))(eslint@9.5.0)
-      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@7.2.0(eslint@9.5.0)(typescript@5.5.2))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@9.5.0)(typescript@5.5.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(eslint@9.5.0))(eslint@9.5.0))(eslint@9.5.0)
+      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@7.2.0(eslint@9.5.0)(typescript@5.5.2))(eslint-import-resolver-typescript@3.6.1)(eslint@9.5.0)
       eslint-plugin-jsx-a11y: 6.9.0(eslint@9.5.0)
       eslint-plugin-react: 7.34.3(eslint@9.5.0)
       eslint-plugin-react-hooks: 4.6.2(eslint@9.5.0)
@@ -7675,7 +7662,7 @@ snapshots:
       enhanced-resolve: 5.17.0
       eslint: 9.5.0
       eslint-module-utils: 2.8.1(@typescript-eslint/parser@7.2.0(eslint@9.5.0)(typescript@5.5.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@9.5.0)(typescript@5.5.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(eslint@9.5.0))(eslint@9.5.0))(eslint@9.5.0)
-      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@7.2.0(eslint@9.5.0)(typescript@5.5.2))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@9.5.0)(typescript@5.5.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(eslint@9.5.0))(eslint@9.5.0))(eslint@9.5.0)
+      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@7.2.0(eslint@9.5.0)(typescript@5.5.2))(eslint-import-resolver-typescript@3.6.1)(eslint@9.5.0)
       fast-glob: 3.3.2
       get-tsconfig: 4.7.5
       is-core-module: 2.14.0
@@ -7741,7 +7728,7 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.2.0(eslint@9.5.0)(typescript@5.5.2))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@9.5.0)(typescript@5.5.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(eslint@9.5.0))(eslint@9.5.0))(eslint@9.5.0):
+  eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.2.0(eslint@9.5.0)(typescript@5.5.2))(eslint-import-resolver-typescript@3.6.1)(eslint@9.5.0):
     dependencies:
       array-includes: 3.1.8
       array.prototype.findlastindex: 1.2.5

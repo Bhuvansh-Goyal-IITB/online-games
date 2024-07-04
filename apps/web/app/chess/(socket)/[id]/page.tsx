@@ -4,6 +4,7 @@ import React, { FC } from "react";
 import { ChessBoard } from "@repo/ui/chess/ChessBoard";
 import { GameSidePanel } from "@repo/ui/chess/GameSidePanel";
 import { useChessGameHandler } from "@/hooks/useChessGameHandler";
+import { Loader2 } from "lucide-react";
 
 export const runtime = "edge";
 
@@ -18,6 +19,9 @@ const Page: FC<PageProps> = ({ params }) => {
     <>
       {loading ? (
         <div className="w-full h-full flex justify-center items-center text-lg">
+          <div className="flex gap-2">
+            <Loader2 className="size-6 animate-spin" />
+          </div>
           Loading...
         </div>
       ) : (
