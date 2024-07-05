@@ -4,7 +4,7 @@ import { MessageHandler } from "../../types.js";
 import { ChessGame } from "../../games/index.js";
 
 export const moveHandler: (
-  gameSocketServer: GameSocketServer
+  gameSocketServer: GameSocketServer,
 ) => MessageHandler = (gameSocketServer) => {
   return async (sendMessage, playerInfo, data) => {
     const safeParsedData = moveDataSchema.safeParse(data);
@@ -45,6 +45,7 @@ export const moveHandler: (
       }
 
       const moves = game.state == "" ? [] : game.state.split(",");
+      const timer = gameSocketServer.getTimer(gameId)!;
 
       if (moves.length % 2 == 0) {
         if (game.getPlayerColor(playerInfo.id) == "b") {
@@ -60,6 +61,8 @@ export const moveHandler: (
           gameSocketServer.sendMessageTo(game.getPlayerId("b")!, "move", {
             move: moveString,
           });
+
+          timer.tick(game.getPlayerId("b")!, gameSocketServer);
         } catch (error) {
           sendMessage("error", {
             message: "Invalid move",
@@ -80,6 +83,8 @@ export const moveHandler: (
           gameSocketServer.sendMessageTo(game.getPlayerId("w")!, "move", {
             move: moveString,
           });
+
+          timer.tick(game.getPlayerId("w")!, gameSocketServer);
         } catch (error) {
           sendMessage("error", {
             message: "Invalid move",

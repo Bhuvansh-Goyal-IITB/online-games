@@ -62,6 +62,9 @@ export const joinGameHandler: (
       const whiteData = game.getPlayerProfile("w");
       const blackData = game.getPlayerProfile("b");
 
+      const whiteId = game.getPlayerId("w")!;
+      const blackId = game.getPlayerId("b")!;
+
       if (game.started) {
         sendMessage("game started", {
           color,
@@ -76,6 +79,17 @@ export const joinGameHandler: (
             opponentData: color == "w" ? whiteData : blackData,
           }
         );
+
+        gameSocketServer.createTimer(gameId, whiteId, {
+          [whiteId]: {
+            playerTag: "w",
+            timeInSec: 300,
+          },
+          [blackId]: {
+            playerTag: "b",
+            timeInSec: 300,
+          },
+        });
       } else {
         sendMessage("game joined", {
           color: color,

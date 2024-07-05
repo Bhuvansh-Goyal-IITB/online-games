@@ -8,6 +8,7 @@ import {
 import { redis, subscriber } from "./redis.js";
 import { createId } from "@paralleldrive/cuid2";
 import { authHandler } from "./handlers/auth.js";
+import { GameTimer, PlayerTimeInfo } from "./game-timer.js";
 
 export const sendMessageFunctionGenerator = (ws: WebSocket) => {
   return (event: string, data?: any) => {
@@ -28,6 +29,7 @@ export class GameSocketServer {
   private wss: WebSocketServer;
   private routeHandlers: RouteHandlers = {};
   private connectedUsers = new Map<string, WebSocket>();
+  private gameTimers: GameTimer[] = [];
 
   constructor(options?: ServerOptions) {
     this.wss = new WebSocketServer(options);
@@ -79,7 +81,7 @@ export class GameSocketServer {
               ws.send(JSON.stringify(payloadGenerator(event, data)));
             },
             { id, name, image },
-            data
+            data,
           );
         }
       });
@@ -98,6 +100,25 @@ export class GameSocketServer {
     } else {
       await redis.publish(id, JSON.stringify(payloadGenerator(event, data)));
     }
+  }
+
+  createTimer(
+    gameId: string,
+    startPlayerId: string,
+    initialInfo: PlayerTimeInfo,
+  ) {
+    const newTimer = new GameTimer(gameId, initialInfo, startPlayerId, this);
+    this.gameTimers.push(newTimer);
+    return newTimer;
+  }
+
+  async removeTimer(gameId: string) {
+    this.gameTimers = this.gameTimers.filter((timer) => timer.gameId != gameId);
+    await redis.del(gameId);
+  }
+
+  getTimer(gameId: string) {
+    return this.gameTimers.find((timer) => timer.gameId == gameId);
   }
 
   on(game: string, handler: RouteHandler) {
