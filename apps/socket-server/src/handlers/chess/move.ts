@@ -1,16 +1,24 @@
 import { moveDataSchema } from "@repo/socket-communication-schemas";
 import { GameSocketServer } from "../../game-server.js";
-import { MessageHandler } from "../../types.js";
+import { MessageHandler, WebSocketWithInfo } from "../../types.js";
 import { ChessGame } from "../../games/index.js";
 
 export const moveHandler: (
   gameSocketServer: GameSocketServer,
 ) => MessageHandler = (gameSocketServer) => {
-  return async (sendMessage, playerInfo, data) => {
+  return async (ws, data) => {
+    const myWs = ws as WebSocketWithInfo;
+    if (!myWs.gameId) {
+      myWs.sendMessage("error", {
+        message: "Please join the game first",
+      });
+      return;
+    }
+
     const safeParsedData = moveDataSchema.safeParse(data);
 
     if (!safeParsedData.success) {
-      sendMessage("error", {
+      myWs.sendMessage("error", {
         message: "Invalid fields",
       });
       return;
@@ -22,7 +30,7 @@ export const moveHandler: (
       const redisRecord = await gameSocketServer.getGame(gameId);
 
       if (Object.keys(redisRecord).length == 0) {
-        sendMessage("error", {
+        myWs.sendMessage("error", {
           message: "Game does not exist",
         });
         return;
@@ -30,15 +38,15 @@ export const moveHandler: (
 
       const game = new ChessGame(gameId, redisRecord);
 
-      if (!game.isPlayer(playerInfo.id)) {
-        sendMessage("error", {
+      if (!game.isPlayer(myWs.id)) {
+        myWs.sendMessage("error", {
           message: "You are not a player of this game",
         });
         return;
       }
 
       if (!game.started) {
-        sendMessage("error", {
+        myWs.sendMessage("error", {
           message: "Game has not started",
         });
         return;
@@ -48,8 +56,8 @@ export const moveHandler: (
       const timer = gameSocketServer.getTimer(gameId)!;
 
       if (moves.length % 2 == 0) {
-        if (game.getPlayerColor(playerInfo.id) == "b") {
-          sendMessage("error", {
+        if (game.getPlayerColor(myWs.id) == "b") {
+          myWs.sendMessage("error", {
             message: "Not your turn",
           });
           return;
@@ -64,14 +72,14 @@ export const moveHandler: (
 
           timer.tick(game.getPlayerId("b")!, gameSocketServer);
         } catch (error) {
-          sendMessage("error", {
+          myWs.sendMessage("error", {
             message: "Invalid move",
           });
           return;
         }
       } else if (moves.length % 2 != 0) {
-        if (game.getPlayerColor(playerInfo.id) == "w") {
-          sendMessage("error", {
+        if (game.getPlayerColor(myWs.id) == "w") {
+          myWs.sendMessage("error", {
             message: "Not your turn",
           });
           return;
@@ -86,7 +94,7 @@ export const moveHandler: (
 
           timer.tick(game.getPlayerId("w")!, gameSocketServer);
         } catch (error) {
-          sendMessage("error", {
+          myWs.sendMessage("error", {
             message: "Invalid move",
           });
           return;
@@ -97,7 +105,7 @@ export const moveHandler: (
         gameSocketServer.removeGame(gameId);
       }
     } catch (_error) {
-      sendMessage("error", {
+      myWs.sendMessage("error", {
         message: "Something went wrong",
       });
     }

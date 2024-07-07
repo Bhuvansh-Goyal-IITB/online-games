@@ -36,21 +36,27 @@ export class GameSocketServer {
 
     this.wss.on("connection", (ws) => {
       ws.on("close", async () => {
-        const { id, game } = ws as WebSocketWithInfo & { game: string };
-
+        const { id, game, gameId } = ws as WebSocketWithInfo;
         const result = this.connectedUsers.delete(id);
         if (result) {
           const promises = [
             redis.srem(`${game}:waiting`, id),
+            redis.srem(`${game}:joined`, id),
             subscriber.unsubscribe(id),
           ];
           await Promise.all(promises);
+        }
+
+        if (gameId) {
+          const timer = this.getTimer(gameId)!;
+          timer.startAbortTimer(id, this);
+          subscriber.subscribe(`timer:${gameId.substring(0, 6)}`);
         }
       });
 
       ws.on("message", async (payload) => {
         const { event, data } = JSON.parse(payload.toString());
-        const { id, name, image } = ws as WebSocketWithInfo;
+        const { id } = ws as WebSocketWithInfo;
 
         if (!event || typeof event != "string") return;
 
@@ -76,38 +82,64 @@ export class GameSocketServer {
         const messageHandler = routeHandler?.(action);
 
         if (messageHandler) {
-          await messageHandler(
-            (event: string, data?: any) => {
-              ws.send(JSON.stringify(payloadGenerator(event, data)));
-            },
-            { id, name, image },
-            data,
-          );
+          await messageHandler(ws, data);
         }
       });
     });
 
     subscriber.on("message", async (channel, message) => {
-      this.connectedUsers.get(channel)?.send(message);
+      if (channel.startsWith("timer")) {
+        // Message should have gameId and joiningPlayerId
+        const { gameId, joiningPlayerId } = JSON.parse(message) as {
+          gameId: string;
+          joiningPlayerId: string;
+        };
+        const timer = this.getTimer(gameId);
+        timer?.revertAbort(joiningPlayerId, this);
+        return;
+      }
+
+      const ws = this.connectedUsers.get(channel);
+      const { event, data, needsGameId } = JSON.parse(message) as {
+        event: string;
+        data?: any;
+        needsGameId: boolean;
+      };
+
+      if (ws) {
+        if (needsGameId && (ws as WebSocketWithInfo).gameId) {
+          ws.send(JSON.stringify({ event, data }));
+        } else if (!needsGameId) {
+          ws.send(JSON.stringify({ event, data }));
+        }
+      }
     });
   }
 
-  async sendMessageTo(id: string, event: string, data?: any) {
+  async sendMessageTo(
+    id: string,
+    event: string,
+    data?: any,
+    needsGameId: boolean = true,
+  ) {
     const ws = this.connectedUsers.get(id);
 
     if (ws) {
-      sendMessageFunctionGenerator(ws)(event, data);
+      if (needsGameId && (ws as WebSocketWithInfo).gameId) {
+        sendMessageFunctionGenerator(ws)(event, data);
+      } else if (!needsGameId) {
+        sendMessageFunctionGenerator(ws)(event, data);
+      }
     } else {
-      await redis.publish(id, JSON.stringify(payloadGenerator(event, data)));
+      await redis.publish(
+        id,
+        JSON.stringify({ ...payloadGenerator(event, data), needsGameId }),
+      );
     }
   }
 
-  createTimer(
-    gameId: string,
-    startPlayerId: string,
-    initialInfo: PlayerTimeInfo,
-  ) {
-    const newTimer = new GameTimer(gameId, initialInfo, startPlayerId, this);
+  createTimer(gameId: string, initialInfo: PlayerTimeInfo) {
+    const newTimer = new GameTimer(gameId, initialInfo);
     this.gameTimers.push(newTimer);
     return newTimer;
   }
@@ -144,10 +176,16 @@ export class GameSocketServer {
   }
 
   async addPlayer(ws: WebSocket, game: string, playerInfo: PlayerInfo) {
-    (ws as WebSocketWithInfo).id = playerInfo.id;
-    (ws as WebSocketWithInfo).name = playerInfo.name;
-    (ws as WebSocketWithInfo).image = playerInfo.image;
-    (ws as WebSocketWithInfo).game = game;
+    const myWs = ws as WebSocketWithInfo;
+    myWs.id = playerInfo.id;
+    myWs.name = playerInfo.name;
+    myWs.image = playerInfo.image;
+    myWs.game = game;
+
+    myWs.sendMessage = function (event, data) {
+      sendMessageFunctionGenerator(this)(event, data);
+    };
+
     this.connectedUsers.set(playerInfo.id, ws);
 
     await subscriber.subscribe(playerInfo.id);

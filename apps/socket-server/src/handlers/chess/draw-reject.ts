@@ -1,16 +1,23 @@
 import { gameIdDataSchema } from "@repo/socket-communication-schemas";
 import { GameSocketServer } from "../../game-server.js";
-import { MessageHandler } from "../../types.js";
+import { MessageHandler, WebSocketWithInfo } from "../../types.js";
 import { ChessGame } from "../../games/index.js";
 
 export const drawRejectHandler: (
-  gameSocketServer: GameSocketServer
+  gameSocketServer: GameSocketServer,
 ) => MessageHandler = (gameSocketServer) => {
-  return async (sendMessage, playerInfo, data) => {
+  return async (ws, data) => {
+    const myWs = ws as WebSocketWithInfo;
+    if (!myWs.gameId) {
+      myWs.sendMessage("error", {
+        message: "Please join the game first",
+      });
+      return;
+    }
     const safeParsedData = gameIdDataSchema.safeParse(data);
 
     if (!safeParsedData.success) {
-      sendMessage("error", {
+      myWs.sendMessage("error", {
         message: "Invalid fields",
       });
       return;
@@ -22,7 +29,7 @@ export const drawRejectHandler: (
       const redisRecord = await gameSocketServer.getGame(gameId);
 
       if (Object.keys(redisRecord).length == 0) {
-        sendMessage("error", {
+        myWs.sendMessage("error", {
           message: "Game does not exist",
         });
         return;
@@ -30,27 +37,27 @@ export const drawRejectHandler: (
 
       const game = new ChessGame(gameId, redisRecord);
 
-      if (!game.isPlayer(playerInfo.id)) {
-        sendMessage("error", {
+      if (!game.isPlayer(myWs.id)) {
+        myWs.sendMessage("error", {
           message: "You are not a player of this game",
         });
         return;
       }
 
       if (!game.started) {
-        sendMessage("error", {
+        myWs.sendMessage("error", {
           message: "Game has not started",
         });
         return;
       }
 
-      if (game.getPlayerColor(playerInfo.id) == "w") {
+      if (game.getPlayerColor(myWs.id) == "w") {
         gameSocketServer.sendMessageTo(game.getPlayerId("b")!, "draw reject");
       } else {
         gameSocketServer.sendMessageTo(game.getPlayerId("w")!, "draw reject");
       }
     } catch (_error) {
-      sendMessage("error", {
+      myWs.sendMessage("error", {
         message: "Something went wrong",
       });
     }

@@ -1,5 +1,7 @@
 import { Chess } from "@repo/chess";
 import { redis } from "../redis.js";
+import WebSocket from "ws";
+import { WebSocketWithInfo } from "../types.js";
 
 export class ChessGame {
   private _state: string;
@@ -87,43 +89,48 @@ export class ChessGame {
         };
   }
 
-  async addPlayer(id: string, name: string, image?: string) {
+  async addPlayer(ws: WebSocket) {
+    const myWs = ws as WebSocketWithInfo;
+
     if (!this._playerInfo["white:id"] && !this._playerInfo["black:id"]) {
       const color = Math.random() > 0.5 ? "white" : "black";
 
       const redisObject: any = {};
 
-      redisObject[`${color}:id`] = id;
-      redisObject[`${color}:name`] = name;
+      redisObject[`${color}:id`] = myWs.id;
+      redisObject[`${color}:name`] = myWs.name;
 
-      if (image) redisObject[`${color}:image`] = image;
+      if (myWs.image) redisObject[`${color}:image`] = myWs.image;
 
       this._playerInfo = { ...this._playerInfo, ...redisObject };
       await redis.hset(this.gameId, redisObject);
+      myWs.gameId = this.gameId;
     } else if (!this._playerInfo["white:id"]) {
       const redisObject: any = {};
       const color = "white";
 
-      redisObject[`${color}:id`] = id;
-      redisObject[`${color}:name`] = name;
+      redisObject[`${color}:id`] = myWs.id;
+      redisObject[`${color}:name`] = myWs.name;
 
-      if (image) redisObject[`${color}:image`] = image;
+      if (myWs.image) redisObject[`${color}:image`] = myWs.image;
 
       this._playerInfo = { ...this._playerInfo, ...redisObject };
       this._started = true;
       await redis.hset(this.gameId, { ...redisObject, started: true });
+      myWs.gameId = this.gameId;
     } else if (!this._playerInfo["black:id"]) {
       const redisObject: any = {};
       const color = "black";
 
-      redisObject[`${color}:id`] = id;
-      redisObject[`${color}:name`] = name;
+      redisObject[`${color}:id`] = myWs.id;
+      redisObject[`${color}:name`] = myWs.name;
 
-      if (image) redisObject[`${color}:image`] = image;
+      if (myWs.image) redisObject[`${color}:image`] = myWs.image;
 
       this._playerInfo = { ...this._playerInfo, ...redisObject };
       this._started = true;
       await redis.hset(this.gameId, { ...redisObject, started: true });
+      myWs.gameId = this.gameId;
     }
   }
 }
