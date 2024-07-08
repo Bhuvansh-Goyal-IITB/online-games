@@ -90,7 +90,7 @@ export const joinGameHandler: (
         });
 
         gameSocketServer.sendMessageTo(
-          game.getPlayerId(color == "w" ? "b" : "w")!,
+          color == "w" ? blackId : whiteId,
           "game started",
           {
             color: color == "w" ? "b" : "w",
@@ -101,11 +101,11 @@ export const joinGameHandler: (
         const timer = gameSocketServer.createTimer(gameId, {
           [whiteId]: {
             playerTag: "w",
-            timeInSec: 120,
+            timeInSec: 300,
           },
           [blackId]: {
             playerTag: "b",
-            timeInSec: 120,
+            timeInSec: 300,
           },
         });
 

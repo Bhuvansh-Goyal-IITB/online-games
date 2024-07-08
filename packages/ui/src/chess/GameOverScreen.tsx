@@ -48,7 +48,15 @@ export const GameOverScreen: FC = () => {
               </div>
             </CardTitle>
             <CardDescription>
-              <div className="flex justify-center text-lg">by {outcome[1]}</div>
+              {outcome[1] == "abandon" ? (
+                <div className="flex justify-center text-lg">
+                  game abandoned
+                </div>
+              ) : (
+                <div className="flex justify-center text-lg">
+                  by {outcome[1]}
+                </div>
+              )}
             </CardDescription>
           </CardHeader>
         </Card>

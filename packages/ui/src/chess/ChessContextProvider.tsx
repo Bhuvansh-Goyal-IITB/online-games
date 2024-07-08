@@ -1,7 +1,7 @@
 "use client";
 
 import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
-import { Chess, Color, Move, PieceInfo, PieceType } from "@repo/chess";
+import { Chess, Color, Move, PieceInfo } from "@repo/chess";
 import { ChessContext } from "@ui/context/chessContext";
 import { PieceSet } from "./types";
 
@@ -29,10 +29,10 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
   const chessRef = useRef(new Chess());
 
   const [whitePlayerInfo, setWhitePlayerInfo] = useState<IPlayerInfo | null>(
-    null
+    null,
   );
   const [blackPlayerInfo, setBlackPlayerInfo] = useState<IPlayerInfo | null>(
-    null
+    null,
   );
 
   const [gameStarted, setGameStarted] = useState(selfGame);
@@ -45,20 +45,20 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
   });
   const [fen, setFen] = useState(chessRef.current.getBoardInfoAt(0).fen);
   const [pieceList, setPieceList] = useState(
-    chessRef.current.getBoardInfoAt(0).pieceList
+    chessRef.current.getBoardInfoAt(0).pieceList,
   );
   const [index, setIndex] = useState(0);
   const [lastMove, setLastMove] = useState<Omit<Move, "capturedPiece"> | null>(
-    null
+    null,
   );
   const [validMoves, setValidMoves] = useState(
-    gameStarted ? chessRef.current.validMoves : []
+    gameStarted ? chessRef.current.validMoves : [],
   );
   const [canAnimate, setCanAnimate] = useState(true);
   const [promotionMove, setPromotionMove] = useState<number[] | null>(null);
 
   const [currentPlayerColor, setCurrentPlayerColor] = useState<Color | null>(
-    null
+    null,
   );
 
   const [selectedPiece, setSelectedPiece] = useState<Omit<
@@ -284,6 +284,16 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
     setValidMoves([]);
   };
 
+  const timeout = (loosingPlayerColor: Color) => {
+    chessRef.current.timeOut(loosingPlayerColor);
+    setValidMoves([]);
+  };
+
+  const abandon = (leavingPlayerColor: Color) => {
+    chessRef.current.abandon(leavingPlayerColor);
+    setValidMoves([]);
+  };
+
   const outcome = chessRef.current.outcome;
 
   useEffect(() => {
@@ -329,6 +339,8 @@ export const ChessContextProvider: FC<ChessContextProviderProps> = ({
         getPGN,
         draw,
         resign,
+        timeout,
+        abandon,
         startGame: () => {
           setGameStarted(true);
         },

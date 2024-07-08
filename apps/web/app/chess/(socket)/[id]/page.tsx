@@ -5,6 +5,7 @@ import { ChessBoard } from "@repo/ui/chess/ChessBoard";
 import { GameSidePanel } from "@repo/ui/chess/GameSidePanel";
 import { useChessGameHandler } from "@/hooks/useChessGameHandler";
 import { Loader2 } from "lucide-react";
+import { OnlineGameInfo } from "@/components/OnlineGameInfo";
 
 export const runtime = "edge";
 
@@ -13,7 +14,8 @@ interface PageProps {
 }
 
 const Page: FC<PageProps> = ({ params }) => {
-  const { loading, onResign, onDraw } = useChessGameHandler(params.id);
+  const { loading, onResign, onDraw, timeData, abortData } =
+    useChessGameHandler(params.id);
 
   return (
     <>
@@ -27,7 +29,9 @@ const Page: FC<PageProps> = ({ params }) => {
       ) : (
         <div className="relative flex flex-col lg:flex-row gap-4">
           <div className="h-full grow-[2]">
-            <ChessBoard />
+            <OnlineGameInfo abortData={abortData} timeData={timeData}>
+              <ChessBoard />
+            </OnlineGameInfo>
           </div>
           <div className="min-h-full grow-0">
             <GameSidePanel onResign={onResign} onDraw={onDraw} />

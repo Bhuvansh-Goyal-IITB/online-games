@@ -26,6 +26,7 @@ export class GameTimer {
   }
 
   startAbortTimer(leavingPlayerId: string, gameSocketServer: GameSocketServer) {
+    subscriber.subscribe(`timer:${this._gameId.substring(0, 6)}`);
     for (const playerId in this.playerInfo) {
       if (playerId != leavingPlayerId) {
         gameSocketServer.sendMessageTo(playerId, "player left", {
@@ -64,7 +65,7 @@ export class GameTimer {
           `${this.playerInfo[leavingPlayerId]!.playerTag}:id`,
         );
       }
-    }, 1000 * 30);
+    }, 1000 * 60);
 
     this.abortInfoList.push({
       playerId: leavingPlayerId,

@@ -17,11 +17,21 @@ export const useChessGameHandler = (gameId: string) => {
     startGame,
     setPreferences,
     resign,
+    timeout,
+    abandon,
     draw,
   } = useChessContext();
   const { sendMessage, on, authorized, user } = useSocketContext();
   const [loading, setLoading] = useState(true);
   const [movesMade, setMovesMade] = useState(0);
+  const [timeData, setTimeData] = useState({
+    w: 300,
+    b: 300,
+  });
+  const [abortData, setAbortData] = useState<{
+    leftPlayer: "w" | "b";
+    time: number;
+  } | null>(null);
 
   useEffect(() => {
     if (moveList.length != movesMade) {
@@ -141,7 +151,7 @@ export const useChessGameHandler = (gameId: string) => {
     resign(color);
   });
 
-  on("draw offer", (data) => {
+  on("draw offer", (_data) => {
     toast("Opponent offered a draw", {
       action: {
         label: "Accept",
@@ -166,6 +176,42 @@ export const useChessGameHandler = (gameId: string) => {
     draw();
   });
 
+  on("time", (data) => {
+    const timeData = data as { w: number; b: number };
+
+    if (timeData.w == 0) {
+      timeout("w");
+    } else if (timeData.b == 0) {
+      timeout("b");
+    }
+
+    if (abortData && abortData.time > 0) {
+      setAbortData({ ...abortData, time: abortData.time - 1 });
+    }
+
+    setTimeData(timeData);
+  });
+
+  on("player left", (data) => {
+    const { tag } = data as { tag: "w" | "b" };
+
+    toast("Opponent Left");
+    setAbortData({
+      leftPlayer: tag,
+      time: 60,
+    });
+  });
+
+  on("player rejoined", (_data) => {
+    toast("Opponent Rejoined");
+    setAbortData(null);
+  });
+
+  on("game aborted", (data) => {
+    const { tag } = data as { tag: "w" | "b" };
+    abandon(tag);
+  });
+
   const onResign = () => {
     sendMessage("resign", {
       gameId,
@@ -178,5 +224,5 @@ export const useChessGameHandler = (gameId: string) => {
     });
   };
 
-  return { loading, onResign, onDraw };
+  return { loading, onResign, onDraw, timeData, abortData };
 };

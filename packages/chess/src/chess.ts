@@ -16,6 +16,8 @@ export class Chess {
     | "three fold repetetion"
     | "insufficient material"
     | "resignation"
+    | "time"
+    | "abandon"
     | "agreement"
     | "repetetion" = "";
 
@@ -125,7 +127,7 @@ export class Chess {
     if (this._outcome != "") return;
 
     let moved_piece = this._current.pieces.find(
-      (piece) => piece.position == from
+      (piece) => piece.position == from,
     );
 
     let ambiguityResolver = "";
@@ -141,11 +143,11 @@ export class Chess {
         ) {
           if (piece.position % 8 != moved_piece!.position % 8) {
             ambiguityResolver = Chess.position_to_algebraic(
-              moved_piece!.position
+              moved_piece!.position,
             )[0]!;
           } else {
             ambiguityResolver = Chess.position_to_algebraic(
-              moved_piece!.position
+              moved_piece!.position,
             )[1]!;
           }
         }
@@ -199,7 +201,7 @@ export class Chess {
 
     if (
       this._current.is_in_check(
-        this._current.color == "w" ? this._black : this._white
+        this._current.color == "w" ? this._black : this._white,
       )
     ) {
       let hasValidMoves = false;
@@ -232,6 +234,30 @@ export class Chess {
       notation,
       capturedPiece: capturedPiece ?? null,
     });
+  }
+
+  abandon(leavingPlayerColor: Color) {
+    if (leavingPlayerColor == "w") {
+      this._outcome = "b";
+      this._outcomeMethod = "abandon";
+      this.clearValidMoves();
+    } else {
+      this._outcome = "w";
+      this._outcomeMethod = "abandon";
+      this.clearValidMoves();
+    }
+  }
+
+  timeOut(loosingPlayerColor: Color) {
+    if (loosingPlayerColor == "w") {
+      this._outcome = "b";
+      this._outcomeMethod = "time";
+      this.clearValidMoves();
+    } else {
+      this._outcome = "w";
+      this._outcomeMethod = "time";
+      this.clearValidMoves();
+    }
   }
 
   resign(resigningPlayerColor: Color) {
@@ -275,7 +301,7 @@ export class Chess {
             (piece) =>
               piece.piece_type == "p" &&
               (piece.position == (row + direction) * 8 + (col - 1) ||
-                piece.position == (row + direction) * 8 + (col + 1))
+                piece.position == (row + direction) * 8 + (col + 1)),
           )
         ) {
           repetetionHistory += ` ${enPassant}`;
@@ -285,7 +311,7 @@ export class Chess {
           this._current.pieces.find(
             (piece) =>
               piece.piece_type == "p" &&
-              piece.position == (row + direction) * 8 + (col + 1)
+              piece.position == (row + direction) * 8 + (col + 1),
           )
         ) {
           repetetionHistory += ` ${enPassant}`;
@@ -295,7 +321,7 @@ export class Chess {
           this._current.pieces.find(
             (piece) =>
               piece.piece_type == "p" &&
-              piece.position == (row + direction) * 8 + (col - 1)
+              piece.position == (row + direction) * 8 + (col - 1),
           )
         ) {
           repetetionHistory += ` ${enPassant}`;
@@ -345,7 +371,7 @@ export class Chess {
     if (!hasValidMoves) {
       if (
         this._current.is_in_check(
-          this._current.color == "w" ? this._black : this._white
+          this._current.color == "w" ? this._black : this._white,
         )
       ) {
         this._outcome = this._current.color == "w" ? "b" : "w";

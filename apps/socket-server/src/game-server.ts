@@ -48,9 +48,7 @@ export class GameSocketServer {
         }
 
         if (gameId) {
-          const timer = this.getTimer(gameId)!;
-          timer.startAbortTimer(id, this);
-          subscriber.subscribe(`timer:${gameId.substring(0, 6)}`);
+          this.getTimer(gameId)?.startAbortTimer(id, this);
         }
       });
 
@@ -168,7 +166,8 @@ export class GameSocketServer {
   }
 
   removeGame(gameId: string) {
-    return redis.del(gameId);
+    const promises = [redis.del(gameId), redis.del(`${gameId}:joined`)];
+    return Promise.all(promises);
   }
 
   isIdConnected(id: string) {

@@ -35,6 +35,8 @@ interface IChessContext {
   getPlayerInfo: (playerColor: Color) => IPlayerInfo | null;
   getPGN: () => string;
   resign: (resigningPlayerColor: Color) => void;
+  timeout: (loosingPlayerColor: Color) => void;
+  abandon: (leavingPlayerColor: Color) => void;
   draw: () => void;
   startGame: () => void;
 }
@@ -46,7 +48,7 @@ export const useChessContext = () => {
 
   if (context == null) {
     throw Error(
-      "Chess context should only be used inside chess context provider"
+      "Chess context should only be used inside chess context provider",
     );
   }
 
