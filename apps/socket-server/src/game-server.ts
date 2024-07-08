@@ -142,9 +142,9 @@ export class GameSocketServer {
     return newTimer;
   }
 
-  async removeTimer(gameId: string) {
+  removeTimer(gameId: string) {
+    this.gameTimers.find((timer) => timer.gameId == gameId)?.stopAll();
     this.gameTimers = this.gameTimers.filter((timer) => timer.gameId != gameId);
-    await redis.del(gameId);
   }
 
   getTimer(gameId: string) {
@@ -166,6 +166,7 @@ export class GameSocketServer {
   }
 
   removeGame(gameId: string) {
+    this.removeTimer(gameId);
     const promises = [redis.del(gameId), redis.del(`${gameId}:joined`)];
     return Promise.all(promises);
   }

@@ -50,7 +50,6 @@ export class GameTimer {
         }
 
         await gameSocketServer.removeGame(this._gameId);
-        await gameSocketServer.removeTimer(this._gameId);
       } else {
         for (const playerId in this.playerInfo) {
           if (playerId != leavingPlayerId) {
@@ -96,15 +95,27 @@ export class GameTimer {
     }
   }
 
+  stopAll() {
+    this.abortInfoList.forEach((abortInfo) => {
+      clearTimeout(abortInfo.timerId);
+    });
+
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
+  }
+
   tick(currentTickPlayerId: string, gameSocketServer: GameSocketServer) {
-    if (this.intervalId) clearInterval(this.intervalId);
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
 
     this.intervalId = setInterval(async () => {
       const prevCurrentPlayerInfo = this.playerInfo[currentTickPlayerId]!;
 
       if (prevCurrentPlayerInfo.timeInSec == 0) {
-        clearInterval(this.intervalId!);
-        await gameSocketServer.removeTimer(this._gameId);
+        if (this.intervalId) clearInterval(this.intervalId);
+        gameSocketServer.removeTimer(this._gameId);
         return;
       }
 

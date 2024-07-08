@@ -1,7 +1,7 @@
 import { IPlayerInfo } from "@repo/ui/chess/ChessContextProvider";
 import { useChessContext } from "@repo/ui/context/chessContext";
 import { useSocketContext } from "@repo/ui/context/socketContext";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "@repo/ui/components/ui/sonner";
 
 export const useChessGameHandler = (gameId: string) => {
@@ -33,6 +33,8 @@ export const useChessGameHandler = (gameId: string) => {
     time: number;
   } | null>(null);
 
+  const joinReqSent = useRef(false);
+
   useEffect(() => {
     if (moveList.length != movesMade) {
       setMovesMade(moveList.length);
@@ -53,8 +55,9 @@ export const useChessGameHandler = (gameId: string) => {
   }, [moveList]);
 
   useEffect(() => {
-    if (authorized) {
+    if (authorized && !joinReqSent.current) {
       sendMessage("join game", { gameId });
+      joinReqSent.current = true;
     }
   }, [authorized]);
 
@@ -177,11 +180,11 @@ export const useChessGameHandler = (gameId: string) => {
   });
 
   on("time", (data) => {
-    const timeData = data as { w: number; b: number };
+    const newTimeData = data as { w: number; b: number };
 
-    if (timeData.w == 0) {
+    if (newTimeData.w == 0) {
       timeout("w");
-    } else if (timeData.b == 0) {
+    } else if (newTimeData.b == 0) {
       timeout("b");
     }
 
@@ -189,7 +192,7 @@ export const useChessGameHandler = (gameId: string) => {
       setAbortData({ ...abortData, time: abortData.time - 1 });
     }
 
-    setTimeData(timeData);
+    setTimeData(newTimeData);
   });
 
   on("player left", (data) => {

@@ -110,10 +110,12 @@ export const joinGameHandler: (
         });
 
         timer.tick(whiteId, gameSocketServer);
+        await redis.sadd(`${gameId}:joined`, myWs.id);
       } else {
         myWs.sendMessage("game joined", {
           color: color,
         });
+        await redis.sadd(`${gameId}:joined`, myWs.id);
       }
     } catch (_error) {
       myWs.sendMessage("error", {
