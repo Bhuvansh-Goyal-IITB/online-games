@@ -41,14 +41,26 @@ export class GameSocketServer {
         if (result) {
           const promises = [
             redis.srem(`${game}:waiting`, id),
-            redis.srem(`${game}:joined`, id),
             subscriber.unsubscribe(id),
           ];
           await Promise.all(promises);
         }
 
         if (gameId) {
-          this.getTimer(gameId)?.startAbortTimer(id, this);
+          const timer = this.getTimer(gameId);
+
+          if (timer) {
+            timer.startAbortTimer(id, this);
+          } else {
+            await redis.publish(
+              `timer:${gameId.substring(0, 6)}`,
+              JSON.stringify({
+                action: "leave",
+                gameId,
+                playerId: id,
+              }),
+            );
+          }
         }
       });
 
@@ -87,52 +99,38 @@ export class GameSocketServer {
 
     subscriber.on("message", async (channel, message) => {
       if (channel.startsWith("timer")) {
-        // Message should have gameId and joiningPlayerId
-        const { gameId, joiningPlayerId } = JSON.parse(message) as {
+        const { action, gameId, playerId } = JSON.parse(message) as {
+          action: "join" | "leave" | "stop";
           gameId: string;
-          joiningPlayerId: string;
+          playerId?: string;
         };
+
         const timer = this.getTimer(gameId);
-        timer?.revertAbort(joiningPlayerId, this);
+
+        if (timer && action == "stop") {
+          timer.stopAll();
+          this.gameTimers = this.gameTimers.filter(
+            (timer) => timer.gameId != gameId,
+          );
+        } else if (timer && playerId && action == "join") {
+          timer.revertAbort(playerId, this);
+        } else if (timer && playerId && action == "leave") {
+          timer.startAbortTimer(playerId, this);
+        }
         return;
       }
 
-      const ws = this.connectedUsers.get(channel);
-      const { event, data, needsGameId } = JSON.parse(message) as {
-        event: string;
-        data?: any;
-        needsGameId: boolean;
-      };
-
-      if (ws) {
-        if (needsGameId && (ws as WebSocketWithInfo).gameId) {
-          ws.send(JSON.stringify({ event, data }));
-        } else if (!needsGameId) {
-          ws.send(JSON.stringify({ event, data }));
-        }
-      }
+      this.connectedUsers.get(channel)?.send(message);
     });
   }
 
-  async sendMessageTo(
-    id: string,
-    event: string,
-    data?: any,
-    needsGameId: boolean = true,
-  ) {
+  async sendMessageTo(id: string, event: string, data?: any) {
     const ws = this.connectedUsers.get(id);
 
     if (ws) {
-      if (needsGameId && (ws as WebSocketWithInfo).gameId) {
-        sendMessageFunctionGenerator(ws)(event, data);
-      } else if (!needsGameId) {
-        sendMessageFunctionGenerator(ws)(event, data);
-      }
+      sendMessageFunctionGenerator(ws)(event, data);
     } else {
-      await redis.publish(
-        id,
-        JSON.stringify({ ...payloadGenerator(event, data), needsGameId }),
-      );
+      await redis.publish(id, JSON.stringify(payloadGenerator(event, data)));
     }
   }
 
@@ -142,9 +140,23 @@ export class GameSocketServer {
     return newTimer;
   }
 
-  removeTimer(gameId: string) {
-    this.gameTimers.find((timer) => timer.gameId == gameId)?.stopAll();
-    this.gameTimers = this.gameTimers.filter((timer) => timer.gameId != gameId);
+  async removeTimer(gameId: string) {
+    const timer = this.gameTimers.find((timer) => timer.gameId == gameId);
+
+    if (timer) {
+      timer.stopAll();
+      this.gameTimers = this.gameTimers.filter(
+        (timer) => timer.gameId != gameId,
+      );
+    } else {
+      await redis.publish(
+        `timer:${gameId.substring(0, 6)}`,
+        JSON.stringify({
+          action: "stop",
+          gameId,
+        }),
+      );
+    }
   }
 
   getTimer(gameId: string) {
@@ -166,8 +178,7 @@ export class GameSocketServer {
   }
 
   removeGame(gameId: string) {
-    this.removeTimer(gameId);
-    const promises = [redis.del(gameId), redis.del(`${gameId}:joined`)];
+    const promises = [this.removeTimer(gameId), redis.del(gameId)];
     return Promise.all(promises);
   }
 

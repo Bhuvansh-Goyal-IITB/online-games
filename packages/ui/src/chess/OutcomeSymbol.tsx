@@ -28,6 +28,7 @@ export const OutcomeSymbol: FC<OutcomeSymbolProps> = ({
   position,
 }) => {
   const { currentIndex, moveList, outcome } = useChessContext();
+
   return (
     <>
       {pieceType == "k" &&
@@ -43,11 +44,11 @@ export const OutcomeSymbol: FC<OutcomeSymbolProps> = ({
             </ContainerDiv>
           ) : outcome[1] == "abandon" ? (
             <ContainerDiv position={position}>
-              <img src="/abandon.svg" />
+              <img className="rounded-full bg-[#E02828]" src="/abandon.svg" />
             </ContainerDiv>
           ) : outcome[1] == "time" ? (
             <ContainerDiv position={position}>
-              <img src="/timeout.svg" />
+              <img className="rounded-full bg-[#E02828]" src="/timeout.svg" />
             </ContainerDiv>
           ) : (
             <ContainerDiv position={position}>
@@ -58,11 +59,11 @@ export const OutcomeSymbol: FC<OutcomeSymbolProps> = ({
           color == "w" ? (
             outcome[1] == "abandon" ? (
               <ContainerDiv position={position}>
-                <img src="/abandon.svg" />
+                <img className="rounded-full bg-[#E02828]" src="/abandon.svg" />
               </ContainerDiv>
             ) : outcome[1] == "time" ? (
               <ContainerDiv position={position}>
-                <img src="/timeout.svg" />
+                <img className="rounded-full bg-[#E02828]" src="/timeout.svg" />
               </ContainerDiv>
             ) : outcome[1] == "resignation" ? (
               <ContainerDiv position={position}>

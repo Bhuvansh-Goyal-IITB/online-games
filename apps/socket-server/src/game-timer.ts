@@ -15,10 +15,17 @@ export class GameTimer {
   private playerInfo: PlayerTimeInfo;
   private intervalId: NodeJS.Timeout | null = null;
   private abortInfoList: AbortInfo[] = [];
+  private currentlyJoinedPlayers = new Set<string>();
 
   constructor(gameId: string, initialInfo: PlayerTimeInfo) {
     this._gameId = gameId;
     this.playerInfo = initialInfo;
+
+    for (const playerId in this.playerInfo) {
+      this.currentlyJoinedPlayers.add(playerId);
+    }
+
+    subscriber.subscribe(`timer:${this._gameId.substring(0, 6)}`);
   }
 
   get gameId() {
@@ -26,38 +33,40 @@ export class GameTimer {
   }
 
   startAbortTimer(leavingPlayerId: string, gameSocketServer: GameSocketServer) {
-    subscriber.subscribe(`timer:${this._gameId.substring(0, 6)}`);
-    for (const playerId in this.playerInfo) {
+    this.currentlyJoinedPlayers.delete(leavingPlayerId);
+
+    this.currentlyJoinedPlayers.forEach((playerId) => {
       if (playerId != leavingPlayerId) {
         gameSocketServer.sendMessageTo(playerId, "player left", {
           tag: this.playerInfo[leavingPlayerId]!.playerTag,
         });
       }
-    }
+    });
 
     const timerId = setTimeout(async () => {
-      const numJoinedPlayers = await redis.scard(`${this._gameId}:joined`);
+      const numJoinedPlayers = this.currentlyJoinedPlayers.size;
 
       if (numJoinedPlayers <= 1) {
         if (this.intervalId) clearInterval(this.intervalId);
 
-        for (const playerId in this.playerInfo) {
+        this.currentlyJoinedPlayers.forEach((playerId) => {
           if (playerId != leavingPlayerId) {
             gameSocketServer.sendMessageTo(playerId, "game aborted", {
               tag: this.playerInfo[leavingPlayerId]!.playerTag,
             });
           }
-        }
+        });
 
         await gameSocketServer.removeGame(this._gameId);
       } else {
-        for (const playerId in this.playerInfo) {
+        this.currentlyJoinedPlayers.forEach((playerId) => {
           if (playerId != leavingPlayerId) {
             gameSocketServer.sendMessageTo(playerId, "player aborted", {
               tag: this.playerInfo[leavingPlayerId]!.playerTag,
             });
           }
-        }
+        });
+        delete this.playerInfo[leavingPlayerId];
 
         await redis.hdel(
           this._gameId,
@@ -73,6 +82,7 @@ export class GameTimer {
   }
 
   revertAbort(joiningPlayerId: string, gameSocketServer: GameSocketServer) {
+    this.currentlyJoinedPlayers.add(joiningPlayerId);
     const abortInfo = this.abortInfoList.find(
       (abortInfo) => abortInfo.playerId == joiningPlayerId,
     );
@@ -80,22 +90,23 @@ export class GameTimer {
     if (!abortInfo) return;
 
     clearTimeout(abortInfo.timerId);
-    subscriber.unsubscribe(`timer:${this._gameId.substring(0, 6)}`);
 
     this.abortInfoList = this.abortInfoList.filter(
       (abortInfo) => abortInfo.playerId != joiningPlayerId,
     );
 
-    for (const playerId in this.playerInfo) {
+    this.currentlyJoinedPlayers.forEach((playerId) => {
       if (playerId != joiningPlayerId) {
         gameSocketServer.sendMessageTo(playerId, "player rejoined", {
           tag: this.playerInfo[joiningPlayerId]!.playerTag,
         });
       }
-    }
+    });
   }
 
   stopAll() {
+    subscriber.unsubscribe(`timer:${this._gameId.substring(0, 6)}`);
+
     this.abortInfoList.forEach((abortInfo) => {
       clearTimeout(abortInfo.timerId);
     });
@@ -131,9 +142,9 @@ export class GameTimer {
         timePayload[currentPlayerInfo.playerTag] = currentPlayerInfo.timeInSec;
       }
 
-      for (const playerId in this.playerInfo) {
+      this.currentlyJoinedPlayers.forEach((playerId) => {
         gameSocketServer.sendMessageTo(playerId, "time", timePayload);
-      }
+      });
     }, 1000);
   }
 }

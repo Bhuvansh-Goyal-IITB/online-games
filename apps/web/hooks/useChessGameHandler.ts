@@ -211,6 +211,9 @@ export const useChessGameHandler = (gameId: string) => {
   });
 
   on("game aborted", (data) => {
+    if (abortData) {
+      setAbortData({ ...abortData, time: 0 });
+    }
     const { tag } = data as { tag: "w" | "b" };
     abandon(tag);
   });

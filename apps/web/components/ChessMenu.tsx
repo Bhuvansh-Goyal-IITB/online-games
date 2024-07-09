@@ -6,11 +6,7 @@ import React, { FC, useState } from "react";
 import { toast } from "@repo/ui/components/ui/sonner";
 import Link from "next/link";
 
-interface ChessMenuProps {
-  id?: string;
-}
-
-const ChessMenu: FC<ChessMenuProps> = ({ id }) => {
+const ChessMenu: FC = () => {
   const [pending, setIsPending] = useState(false);
   const router = useRouter();
 
@@ -19,7 +15,7 @@ const ChessMenu: FC<ChessMenuProps> = ({ id }) => {
 
     try {
       const { gameId } = (await fetch("/api/create-game/chess").then((res) =>
-        res.json()
+        res.json(),
       )) as { gameId: string };
 
       router.push(`/chess/${gameId}`);
@@ -35,7 +31,9 @@ const ChessMenu: FC<ChessMenuProps> = ({ id }) => {
         Create Game
       </Button>
       <Button size="lg" asChild>
-        <Link href="/chess/random">Play Online</Link>
+        <Link href="/chess/random" replace={true}>
+          Play Online
+        </Link>
       </Button>
     </div>
   );

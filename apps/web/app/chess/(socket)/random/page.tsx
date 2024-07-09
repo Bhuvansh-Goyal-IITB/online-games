@@ -17,7 +17,7 @@ const Page = () => {
 
   on("gameId", (data) => {
     const { gameId } = data as { gameId: string };
-    router.push(`/chess/${gameId}`);
+    router.replace(`/chess/${gameId}`);
   });
 
   return (

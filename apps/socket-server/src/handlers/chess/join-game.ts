@@ -48,8 +48,9 @@ export const joinGameHandler: (
           await redis.publish(
             `timer:${gameId.substring(0, 6)}`,
             JSON.stringify({
+              action: "join",
               gameId,
-              joiningPlayerId: myWs.id,
+              playerId: myWs.id,
             }),
           );
         }
@@ -68,7 +69,6 @@ export const joinGameHandler: (
           color,
           opponentData,
         });
-        await redis.sadd(`${gameId}:joined`, myWs.id);
         return;
       }
 
@@ -110,12 +110,10 @@ export const joinGameHandler: (
         });
 
         timer.tick(whiteId, gameSocketServer);
-        await redis.sadd(`${gameId}:joined`, myWs.id);
       } else {
         myWs.sendMessage("game joined", {
           color: color,
         });
-        await redis.sadd(`${gameId}:joined`, myWs.id);
       }
     } catch (_error) {
       myWs.sendMessage("error", {

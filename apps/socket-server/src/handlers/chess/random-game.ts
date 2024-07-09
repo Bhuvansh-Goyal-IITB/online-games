@@ -20,16 +20,13 @@ export const randomGameHandler: (
           ChessGame.generateInitialState(),
         );
 
-        myWs.sendMessage("gameId", { gameId });
+        setTimeout(() => {
+          myWs.sendMessage("gameId", { gameId });
+        }, 500);
 
-        gameSocketServer.sendMessageTo(
-          opponentPlayerId!,
-          "gameId",
-          {
-            gameId,
-          },
-          false,
-        );
+        gameSocketServer.sendMessageTo(opponentPlayerId!, "gameId", {
+          gameId,
+        });
       }
     } catch (_error) {
       myWs.sendMessage("error", {
