@@ -2,6 +2,7 @@ import React, { FC } from "react";
 import { ChessBoard } from "@ui/chess/ChessBoard";
 import { ChessContextProvider } from "@ui/chess/ChessContextProvider";
 import { GameSidePanel } from "@ui/chess/GameSidePanel";
+import { GameInfo } from "@ui/chess/GameInfo";
 
 const Page: FC = () => {
   return (
@@ -9,7 +10,18 @@ const Page: FC = () => {
       <ChessContextProvider selfGame>
         <div className="relative flex flex-col lg:flex-row gap-4">
           <div className="h-full grow-[2]">
-            <ChessBoard />
+            <GameInfo
+              abortData={{
+                leftPlayer: "w",
+                time: 80,
+              }}
+              timeData={{
+                w: 201,
+                b: 120,
+              }}
+            >
+              <ChessBoard />
+            </GameInfo>
           </div>
           <div className="min-h-full grow-0">
             <GameSidePanel />

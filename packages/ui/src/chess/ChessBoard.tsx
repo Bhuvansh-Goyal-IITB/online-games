@@ -66,7 +66,7 @@ export const ChessBoard: FC = () => {
 
   return (
     <div
-      className="relative max-w-[75vh] max-h-[75vh] border-yellow-900 border-[6px] overflow-hidden rounded-md"
+      className="relative max-w-[70vh] max-h-[70vh] border-yellow-900 border-[6px] overflow-hidden rounded-md"
       onDragStart={(e) => {
         e.preventDefault();
       }}

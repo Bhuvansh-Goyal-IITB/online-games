@@ -198,7 +198,7 @@ export const useChessGameHandler = (gameId: string) => {
   on("player left", (data) => {
     const { tag } = data as { tag: "w" | "b" };
 
-    toast("Opponent Left");
+    toast.info("Opponent Left");
     setAbortData({
       leftPlayer: tag,
       time: 60,
@@ -206,7 +206,7 @@ export const useChessGameHandler = (gameId: string) => {
   });
 
   on("player rejoined", (_data) => {
-    toast("Opponent Rejoined");
+    toast.info("Opponent Rejoined");
     setAbortData(null);
   });
 

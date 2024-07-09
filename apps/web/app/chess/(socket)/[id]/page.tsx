@@ -5,7 +5,7 @@ import { ChessBoard } from "@repo/ui/chess/ChessBoard";
 import { GameSidePanel } from "@repo/ui/chess/GameSidePanel";
 import { useChessGameHandler } from "@/hooks/useChessGameHandler";
 import { Loader2 } from "lucide-react";
-import { OnlineGameInfo } from "@/components/OnlineGameInfo";
+import { GameInfo } from "@ui/chess/GameInfo";
 
 export const runtime = "edge";
 
@@ -29,9 +29,9 @@ const Page: FC<PageProps> = ({ params }) => {
       ) : (
         <div className="relative flex flex-col lg:flex-row gap-4">
           <div className="h-full grow-[2]">
-            <OnlineGameInfo abortData={abortData} timeData={timeData}>
+            <GameInfo abortData={abortData} timeData={timeData}>
               <ChessBoard />
-            </OnlineGameInfo>
+            </GameInfo>
           </div>
           <div className="min-h-full grow-0">
             <GameSidePanel onResign={onResign} onDraw={onDraw} />

@@ -1,14 +1,17 @@
+"use client";
+
 import { useChessContext } from "@repo/ui/context/chessContext";
 import PlayerInfo from "@ui/chess/PlayerInfo";
 import { FC, PropsWithChildren } from "react";
-import { OnlineGameClock } from "./OnlineGameClock";
+import { AbortClock } from "./AbortClock";
+import { GameClock } from "./GameClock";
 
-interface OnlineGameInfoProps extends PropsWithChildren {
+interface GameInfoProps extends PropsWithChildren {
   timeData: { w: number; b: number };
   abortData: { leftPlayer: "w" | "b"; time: number } | null;
 }
 
-export const OnlineGameInfo: FC<OnlineGameInfoProps> = ({
+export const GameInfo: FC<GameInfoProps> = ({
   children,
   timeData,
   abortData,
@@ -57,40 +60,44 @@ export const OnlineGameInfo: FC<OnlineGameInfoProps> = ({
       {!flip ? (
         <div className="w-full flex justify-between">
           <PlayerInfo materialAdvantage={-materialAdvantage} color="b" />
-          <OnlineGameClock
-            timeData={timeData}
-            abortData={abortData}
-            color="b"
-          />
+          <div className="flex gap-2">
+            {abortData && abortData.leftPlayer == "b" && (
+              <AbortClock time={abortData.time} />
+            )}
+            <GameClock time={timeData.b} />
+          </div>
         </div>
       ) : (
         <div className="w-full flex justify-between">
           <PlayerInfo materialAdvantage={-materialAdvantage} color="w" />
-          <OnlineGameClock
-            timeData={timeData}
-            abortData={abortData}
-            color="w"
-          />
+          <div className="flex gap-2">
+            {abortData && abortData.leftPlayer == "w" && (
+              <AbortClock time={abortData.time} />
+            )}
+            <GameClock time={timeData.w} />
+          </div>
         </div>
       )}
       {children}
       {!flip ? (
         <div className="w-full flex justify-between">
           <PlayerInfo materialAdvantage={-materialAdvantage} color="w" />
-          <OnlineGameClock
-            timeData={timeData}
-            abortData={abortData}
-            color="w"
-          />
+          <div className="flex gap-2">
+            {abortData && abortData.leftPlayer == "w" && (
+              <AbortClock time={abortData.time} />
+            )}
+            <GameClock time={timeData.w} />
+          </div>
         </div>
       ) : (
         <div className="w-full flex justify-between">
           <PlayerInfo materialAdvantage={-materialAdvantage} color="b" />
-          <OnlineGameClock
-            timeData={timeData}
-            abortData={abortData}
-            color="b"
-          />
+          <div className="flex gap-2">
+            {abortData && abortData.leftPlayer == "b" && (
+              <AbortClock time={abortData.time} />
+            )}
+            <GameClock time={timeData.b} />
+          </div>
         </div>
       )}
     </div>
