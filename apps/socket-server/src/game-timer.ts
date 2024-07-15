@@ -10,6 +10,7 @@ interface AbortInfo {
   timerId: NodeJS.Timeout;
 }
 
+// TODO: delete a game if it has been created but no one is joining (after a certain duration)
 export class GameTimer {
   private _gameId: string;
   private playerInfo: PlayerTimeInfo;
