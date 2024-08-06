@@ -15,7 +15,7 @@ export default async function Page() {
       </div>
       {user == undefined && <AuthPopup />}
       <div>
-        <ChessMenu id={user?.id ?? undefined} />
+        <ChessMenu />
       </div>
     </div>
   );

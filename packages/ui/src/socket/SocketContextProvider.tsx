@@ -29,39 +29,41 @@ export const SocketContextProvider: FC<SocketContextProviderProps> = ({
     }
   };
 
+  function openEventListner(this: WebSocket) {
+    if (user) {
+      this.send(
+        JSON.stringify({
+          event: `${game}:auth`,
+          data: {
+            id: user.id!,
+            isGuest: false,
+          },
+        }),
+      );
+    } else {
+      let guestId = localStorage.getItem("id");
+      if (!guestId) {
+        guestId = createId();
+        localStorage.setItem("id", guestId);
+      }
+      console.log("Hi");
+      this.send(
+        JSON.stringify({
+          event: `${game}:auth`,
+          data: {
+            id: guestId,
+            isGuest: true,
+          },
+        }),
+      );
+    }
+  }
+
   useEffect(() => {
     const newSocket = new WebSocket(process.env.NEXT_PUBLIC_BACKEND_URL!);
 
     newSocket.addEventListener("close", closeEventListner);
-
-    newSocket.onopen = () => {
-      if (user) {
-        newSocket.send(
-          JSON.stringify({
-            event: `${game}:auth`,
-            data: {
-              id: user.id!,
-              isGuest: false,
-            },
-          })
-        );
-      } else {
-        let guestId = localStorage.getItem("id");
-        if (!guestId) {
-          guestId = createId();
-          localStorage.setItem("id", guestId);
-        }
-        newSocket.send(
-          JSON.stringify({
-            event: `${game}:auth`,
-            data: {
-              id: guestId,
-              isGuest: true,
-            },
-          })
-        );
-      }
-    };
+    newSocket.addEventListener("open", openEventListner);
 
     newSocket.onmessage = (messageEvent) => {
       const parsedMessage = JSON.parse(messageEvent.data);
@@ -94,6 +96,7 @@ export const SocketContextProvider: FC<SocketContextProviderProps> = ({
 
     return () => {
       newSocket.removeEventListener("close", closeEventListner);
+      newSocket.removeEventListener("open", openEventListner);
       newSocket.close();
     };
   }, []);
