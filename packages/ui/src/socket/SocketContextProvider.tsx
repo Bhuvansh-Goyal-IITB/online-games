@@ -11,13 +11,11 @@ interface EventHandlers {
 
 interface SocketContextProviderProps extends PropsWithChildren {
   user?: User;
-  game: string;
 }
 
 export const SocketContextProvider: FC<SocketContextProviderProps> = ({
   children,
   user,
-  game,
 }) => {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -33,7 +31,7 @@ export const SocketContextProvider: FC<SocketContextProviderProps> = ({
     if (user) {
       this.send(
         JSON.stringify({
-          event: `${game}:auth`,
+          event: "auth",
           data: {
             id: user.id!,
             isGuest: false,
@@ -46,10 +44,9 @@ export const SocketContextProvider: FC<SocketContextProviderProps> = ({
         guestId = createId();
         localStorage.setItem("id", guestId);
       }
-      console.log("Hi");
       this.send(
         JSON.stringify({
-          event: `${game}:auth`,
+          event: "auth",
           data: {
             id: guestId,
             isGuest: true,
@@ -105,7 +102,7 @@ export const SocketContextProvider: FC<SocketContextProviderProps> = ({
     if (!socket || socket.readyState != 1) return;
 
     const payload: { event: string; data?: any } = {
-      event: `${game}:${event}`,
+      event: `${event}`,
     };
     if (data) payload.data = data;
 

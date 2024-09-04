@@ -1,25 +1,11 @@
 import WebSocket from "ws";
 
-export interface RouteHandlers {
-  [key: string]: RouteHandler;
+export type EventHandler = (ws: WebSocket, data: any) => Promise<void>;
+
+export interface PlayerInfo {
+  name: string;
+  id: string;
+  image?: string;
 }
 
-export type MessageHandler = (ws: WebSocket, data: any) => Promise<void> | void;
-
-export type RouteHandler = (action: string) => MessageHandler | undefined;
-
-export type PlayerInfo = {
-  id: string;
-  name: string;
-  image?: string;
-};
-
-export type Game = "chess";
-
-export type WebSocketWithInfo = WebSocket &
-  PlayerInfo & {
-    game: string;
-    gameId?: string;
-  } & {
-    sendMessage: (event: string, data?: any) => void;
-  };
+export type WebSocketWithInfo = WebSocket & PlayerInfo;

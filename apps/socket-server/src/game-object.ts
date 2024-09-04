@@ -1,9 +1,9 @@
 import { Chess } from "@repo/chess";
-import { redis } from "../redis.js";
+import { redis, addPlayerToRedisData } from "./redis.js";
 import WebSocket from "ws";
-import { WebSocketWithInfo } from "../types.js";
+import { WebSocketWithInfo } from "./types.js";
 
-export class ChessGame {
+export class GameObject {
   private _state: string;
   private _playerInfo: Record<string, string>;
   private _started: boolean;
@@ -12,7 +12,6 @@ export class ChessGame {
 
   constructor(gameId: string, initialState: Record<string, string>) {
     this.gameId = gameId;
-
     const { state, started, ...playerInfo } = initialState;
 
     if (state == undefined || started == undefined)
@@ -41,11 +40,27 @@ export class ChessGame {
     return this.chess.outcome[0] != "";
   }
 
+  get isFull() {
+    return (
+      this._playerInfo["white:id"] != undefined &&
+      this._playerInfo["black:id"] != undefined
+    );
+  }
+
   static generateInitialState() {
     return {
       state: "",
       started: "false",
     };
+  }
+
+  async startGame() {
+    if (this.isFull && !this.started) {
+      this._started = true;
+      await redis.hset(this.gameId, {
+        started: "true",
+      });
+    }
   }
 
   async move(moveString: string) {
@@ -90,47 +105,16 @@ export class ChessGame {
   }
 
   async addPlayer(ws: WebSocket) {
-    const myWs = ws as WebSocketWithInfo;
+    const { id, name, image } = ws as WebSocketWithInfo;
+    const changeObject = addPlayerToRedisData(this._playerInfo, {
+      id,
+      name,
+      image,
+    });
 
-    if (!this._playerInfo["white:id"] && !this._playerInfo["black:id"]) {
-      const color = Math.random() > 0.5 ? "white" : "black";
-
-      const redisObject: any = {};
-
-      redisObject[`${color}:id`] = myWs.id;
-      redisObject[`${color}:name`] = myWs.name;
-
-      if (myWs.image) redisObject[`${color}:image`] = myWs.image;
-
-      this._playerInfo = { ...this._playerInfo, ...redisObject };
-      await redis.hset(this.gameId, redisObject);
-      myWs.gameId = this.gameId;
-    } else if (!this._playerInfo["white:id"]) {
-      const redisObject: any = {};
-      const color = "white";
-
-      redisObject[`${color}:id`] = myWs.id;
-      redisObject[`${color}:name`] = myWs.name;
-
-      if (myWs.image) redisObject[`${color}:image`] = myWs.image;
-
-      this._playerInfo = { ...this._playerInfo, ...redisObject };
-      this._started = true;
-      await redis.hset(this.gameId, { ...redisObject, started: true });
-      myWs.gameId = this.gameId;
-    } else if (!this._playerInfo["black:id"]) {
-      const redisObject: any = {};
-      const color = "black";
-
-      redisObject[`${color}:id`] = myWs.id;
-      redisObject[`${color}:name`] = myWs.name;
-
-      if (myWs.image) redisObject[`${color}:image`] = myWs.image;
-
-      this._playerInfo = { ...this._playerInfo, ...redisObject };
-      this._started = true;
-      await redis.hset(this.gameId, { ...redisObject, started: true });
-      myWs.gameId = this.gameId;
+    if (Object.keys(changeObject).length > 0) {
+      this._playerInfo = { ...this._playerInfo, ...changeObject };
+      await redis.hset(this.gameId, changeObject);
     }
   }
 }

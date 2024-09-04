@@ -9,7 +9,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
   const user = await currentUser();
 
   return (
-    <SocketContextProvider user={user} game="chess">
+    <SocketContextProvider user={user}>
       <SocketError>{children}</SocketError>
     </SocketContextProvider>
   );

@@ -1,15 +1,12 @@
 import "dotenv/config";
 import { createServer } from "http";
-import { GameSocketServer } from "./game-server.js";
-import { chessRouteHandler } from "./game-routes/index.js";
+import { Server } from "./server.js";
 
-const server = createServer();
+const httpServer = createServer();
 const port = process.env.PORT || 3000;
 
-const gameSocketServer = new GameSocketServer({ server });
+const server = new Server({ server: httpServer });
 
-gameSocketServer.on("chess", chessRouteHandler(gameSocketServer));
-
-server.listen(port, () => {
-  console.log(`Server started on port ${port}`);
+httpServer.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
 });

@@ -1,4 +1,3 @@
-import { IPlayerInfo } from "@repo/ui/chess/ChessContextProvider";
 import { useChessContext } from "@repo/ui/context/chessContext";
 import { useSocketContext } from "@repo/ui/context/socketContext";
 import { useEffect, useRef, useState } from "react";

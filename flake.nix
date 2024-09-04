@@ -19,6 +19,10 @@
               nodePackages_latest.prettier
               tailwindcss-language-server
               vscode-langservers-extracted
+              nodePackages_latest.pnpm
+              nodejs_20
+              typescript
+              sqld
             ];
           };
         };
