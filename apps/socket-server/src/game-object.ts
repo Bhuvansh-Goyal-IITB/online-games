@@ -105,7 +105,8 @@ export class GameObject {
   }
 
   async addPlayer(ws: WebSocket) {
-    const { id, name, image } = ws as WebSocketWithInfo;
+    const myWs = ws as WebSocketWithInfo;
+    const { id, name, image } = myWs;
     const changeObject = addPlayerToRedisData(this._playerInfo, {
       id,
       name,
@@ -115,6 +116,7 @@ export class GameObject {
     if (Object.keys(changeObject).length > 0) {
       this._playerInfo = { ...this._playerInfo, ...changeObject };
       await redis.hset(this.gameId, changeObject);
+      myWs.gameId = this.gameId;
     }
   }
 }

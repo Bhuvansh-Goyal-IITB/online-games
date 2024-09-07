@@ -18,14 +18,16 @@ export const randomHandler: (server: Server) => EventHandler = (server) => {
         await redis.sadd("waiting", id);
       } else {
         const opponentPlayerId = (await redis.spop("waiting")) as string;
-        const opponentData = server.getPlayerInfo(opponentPlayerId!)!;
+        const opponentData = server.getPlayerInfo(opponentPlayerId)!;
 
         const gameId = await createGame(playerData, opponentData);
 
+        (ws as WebSocketWithInfo).gameId = gameId;
         server.sendMessage(ws, "gameId", {
           gameId,
         });
 
+        server.setWsGameId(opponentPlayerId, gameId);
         server.sendMessageTo(opponentPlayerId, "gameId", {
           gameId,
         });

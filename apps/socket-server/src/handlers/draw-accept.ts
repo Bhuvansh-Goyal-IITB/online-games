@@ -46,6 +46,10 @@ export const drawAcceptHandler: (server: Server) => EventHandler = (server) => {
         gameObject.getPlayerColor(id)! == "w" ? "b" : "w",
       )!;
 
+      const timer = server.getTimer(gameId)!;
+      timer.stop();
+      server.removeTimer(gameId);
+     
       server.sendMessage(ws, "draw accept");
       server.sendMessageTo(opponentPlayerId, "draw accept");
 

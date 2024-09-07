@@ -44,6 +44,7 @@ export const moveHandler: (server: Server) => EventHandler = (server) => {
       }
 
       const moves = gameObject.state == "" ? [] : gameObject.state.split(",");
+      const timer = server.getTimer(gameId)!;
 
       if (moves.length % 2 == 0) {
         if (gameObject.getPlayerColor(id) == "b") {
@@ -59,6 +60,8 @@ export const moveHandler: (server: Server) => EventHandler = (server) => {
           server.sendMessageTo(gameObject.getPlayerId("b")!, "move", {
             move: moveString,
           });
+
+          timer.tick("b", server);
         } catch (error) {
           server.sendMessage(ws, "error", {
             message: "Invalid move",
@@ -79,6 +82,8 @@ export const moveHandler: (server: Server) => EventHandler = (server) => {
           server.sendMessageTo(gameObject.getPlayerId("w")!, "move", {
             move: moveString,
           });
+
+          timer.tick("w", server);
         } catch (error) {
           server.sendMessage(ws, "error", {
             message: "Invalid move",
@@ -88,7 +93,9 @@ export const moveHandler: (server: Server) => EventHandler = (server) => {
       }
 
       if (gameObject.isFinished) {
-        removeGame(gameId);
+        await removeGame(gameId);
+        timer.stop();
+        server.removeTimer(gameId);
       }
     } catch (error) {
       server.sendMessage(ws, "error", {

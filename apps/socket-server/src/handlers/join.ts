@@ -37,6 +37,9 @@ export const joinHandler: (server: Server) => EventHandler = (server) => {
           return;
         }
 
+        const timer = server.getTimer(gameId)!;
+        timer.removeAbortTimer(id, server);
+
         if (gameObject.state && gameObject.state != "") {
           server.sendMessage(ws, "total moves", {
             moves: gameObject.state,
@@ -59,10 +62,7 @@ export const joinHandler: (server: Server) => EventHandler = (server) => {
         await gameObject.addPlayer(ws);
       }
 
-      if (gameObject.isFull && !gameObject.started) {
-        // start the timer here
-        gameObject.startGame();
-      }
+      gameObject.startGame();
 
       const color = gameObject.getPlayerColor(id);
       const whiteData = gameObject.getPlayerProfile("w");
@@ -81,6 +81,19 @@ export const joinHandler: (server: Server) => EventHandler = (server) => {
           color: color == "w" ? "b" : "w",
           opponentData: color == "w" ? whiteData : blackData,
         });
+
+        const timer = server.createTimer(gameId, {
+          w: {
+            id: whiteId,
+            time: 300,
+          },
+          b: {
+            id: blackId,
+            time: 300,
+          },
+        });
+
+        timer.tick("w", server);
       } else {
         server.sendMessage(ws, "game joined", {
           color,

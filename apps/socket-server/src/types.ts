@@ -6,6 +6,7 @@ export interface PlayerInfo {
   name: string;
   id: string;
   image?: string;
+  gameId?: string;
 }
 
 export type WebSocketWithInfo = WebSocket & PlayerInfo;

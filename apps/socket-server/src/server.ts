@@ -3,18 +3,29 @@ import { ServerOptions, WebSocketServer } from "ws";
 import { PlayerInfo, WebSocketWithInfo } from "./types.js";
 import { getAuthHandler } from "./handlers/auth.js";
 import { getEventHandler } from "./handlers/index.js";
+import { GameTimer, TimerState } from "./timer.js";
+import { redis } from "./redis.js";
 
 export class Server {
   private wss: WebSocketServer;
   private connectedUsers = new Map<string, WebSocket>();
+  private timers: GameTimer[] = [];
 
   constructor(options?: ServerOptions) {
     this.wss = new WebSocketServer(options);
 
     this.wss.on("connection", (ws) => {
       ws.on("close", async () => {
-        const { id } = ws as WebSocketWithInfo;
+        const { id, gameId } = ws as WebSocketWithInfo;
         this.connectedUsers.delete(id);
+        await redis.srem("waiting", id);
+
+        if (gameId) {
+          const timer = this.getTimer(gameId);
+          if (!timer) return;
+
+          timer.startAbortTimer(id, this);
+        }
       });
       ws.on("message", async (payload) => {
         const { event, data } = JSON.parse(payload.toString()) as {
@@ -31,7 +42,6 @@ export class Server {
           await authHander(ws, data);
           return;
         } else if (!id || !this.connectedUsers.has(id)) {
-          console.log(id);
           this.sendMessage(ws, "error", {
             message: "Unauthorized",
           });
@@ -44,6 +54,20 @@ export class Server {
         }
       });
     });
+  }
+
+  createTimer(gameId: string, initialState: TimerState) {
+    const newTimer = new GameTimer(gameId, initialState);
+    this.timers.push(newTimer);
+    return newTimer;
+  }
+
+  getTimer(gameId: string) {
+    return this.timers.find((t) => t.gameId == gameId);
+  }
+
+  removeTimer(gameId: string) {
+    this.timers = this.timers.filter((t) => t.gameId != gameId);
   }
 
   sendMessage(ws: WebSocket, event: string, data?: any) {
@@ -60,6 +84,13 @@ export class Server {
     };
     if (data) payload["data"] = data;
     this.connectedUsers.get(playerId)?.send(JSON.stringify(payload));
+  }
+
+  setWsGameId(playerId: string, gameId: string) {
+    const ws = this.connectedUsers.get(playerId);
+    if (ws) {
+      (ws as WebSocketWithInfo).gameId = gameId;
+    }
   }
 
   getPlayerInfo(playerId: string) {

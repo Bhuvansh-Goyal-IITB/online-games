@@ -1,7 +1,7 @@
 import { gameIdDataSchema } from "@repo/socket-communication-schemas";
 import { Server } from "../server.js";
 import { EventHandler, WebSocketWithInfo } from "../types.js";
-import { getGame } from "../redis.js";
+import { getGame, removeGame } from "../redis.js";
 import { GameObject } from "../game-object.js";
 
 export const resignHandler: (server: Server) => EventHandler = (server) => {
@@ -43,6 +43,10 @@ export const resignHandler: (server: Server) => EventHandler = (server) => {
         return;
       }
 
+      const timer = server.getTimer(gameId)!;
+      timer.stop();
+      server.removeTimer(gameId);
+
       if (gameObject.getPlayerColor(id) == "w") {
         server.sendMessageTo(gameObject.getPlayerId("b")!, "resign", {
           color: "w",
@@ -52,6 +56,8 @@ export const resignHandler: (server: Server) => EventHandler = (server) => {
           color: "b",
         });
       }
+
+      await removeGame(gameId);
     } catch (error) {
       server.sendMessage(ws, "error", {
         message: "Something went wrong",
