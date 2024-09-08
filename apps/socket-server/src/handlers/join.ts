@@ -37,6 +37,8 @@ export const joinHandler: (server: Server) => EventHandler = (server) => {
           return;
         }
 
+        (ws as WebSocketWithInfo).gameId = gameId;
+
         const timer = server.getTimer(gameId)!;
         timer.removeAbortTimer(id, server);
 
