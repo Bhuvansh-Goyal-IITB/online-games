@@ -1,21 +1,14 @@
 import { authDataSchema } from "@repo/socket-communication-schemas";
-import {
-  GameSocketServer,
-  sendMessageFunctionGenerator,
-} from "../game-server.js";
-import { WebSocket } from "ws";
+import { Server } from "../server.js";
+import { EventHandler } from "../types.js";
 import { getUserById } from "@repo/drizzle-db";
 
-export const authHandler: (
-  game: string,
-  gameSocketServer: GameSocketServer
-) => (ws: WebSocket, data: any) => void = (game, gameSocketServer) => {
+export const getAuthHandler: (server: Server) => EventHandler = (server) => {
   return async (ws, data) => {
     const safeParsedData = authDataSchema.safeParse(data);
-    const sendMessage = sendMessageFunctionGenerator(ws);
 
     if (!safeParsedData.success) {
-      sendMessage("error", {
+      server.sendMessage(ws, "error", {
         message: "Invalid fields",
       });
       return;
@@ -23,47 +16,48 @@ export const authHandler: (
 
     const { id, isGuest } = safeParsedData.data;
 
-    if (gameSocketServer.isIdConnected(id)) {
-      sendMessage("Authorized");
+    if (server.isIdConnected(id)) {
+      server.sendMessage(ws, "Authorized");
       return;
     }
 
     if (isGuest) {
-      await gameSocketServer.addPlayer(ws, game, {
+      server.addPlayer(ws, {
         id,
         name: `Guest${id.substring(0, 10)}`,
       });
-      sendMessage("Authorized");
-    } else {
-      try {
-        const user = await getUserById(id);
 
-        if (!user) {
-          sendMessage("error", {
-            message: "User does not exist",
-          });
-          return;
-        }
+      server.sendMessage(ws, "Authorized");
+      return;
+    }
 
-        if (!user.displayName) {
-          sendMessage("error", {
-            message: "Please complete your profile (display name not set)",
-          });
-          return;
-        }
+    try {
+      const user = await getUserById(id);
 
-        await gameSocketServer.addPlayer(ws, game, {
-          id,
-          name: user.displayName,
-          image: user.profileImageURL ?? undefined,
-        });
-        sendMessage("Authorized");
-      } catch (error) {
-        sendMessage("error", {
-          message: "Something went wrong",
+      if (!user) {
+        server.sendMessage(ws, "error", {
+          message: "User does not exist",
         });
         return;
       }
+
+      if (!user.displayName) {
+        server.sendMessage(ws, "error", {
+          message: "Please complete your profile (display name not set)",
+        });
+        return;
+      }
+
+      server.addPlayer(ws, {
+        id,
+        name: user.displayName,
+        image: user.profileImageURL ?? undefined,
+      });
+      server.sendMessage(ws, "Authorized");
+    } catch (error) {
+      server.sendMessage(ws, "error", {
+        message: "Something went wrong",
+      });
     }
   };
 };

@@ -1,4 +1,3 @@
-import { IPlayerInfo } from "@repo/ui/chess/ChessContextProvider";
 import { useChessContext } from "@repo/ui/context/chessContext";
 import { useSocketContext } from "@repo/ui/context/socketContext";
 import { useEffect, useRef, useState } from "react";
@@ -180,42 +179,34 @@ export const useChessGameHandler = (gameId: string) => {
   });
 
   on("time", (data) => {
-    const newTimeData = data as { w: number; b: number };
+    const newTimeData = data as {
+      w: number;
+      b: number;
+      wabort?: number;
+      babort?: number;
+    };
 
-    if (newTimeData.w == 0) {
-      timeout("w");
-    } else if (newTimeData.b == 0) {
-      timeout("b");
-    }
-
-    if (abortData && abortData.time > 0) {
-      setAbortData({ ...abortData, time: abortData.time - 1 });
+    if (newTimeData.wabort) {
+      setAbortData({ leftPlayer: "w", time: newTimeData.wabort });
+    } else if (newTimeData.babort) {
+      setAbortData({ leftPlayer: "b", time: newTimeData.babort });
     }
 
     setTimeData(newTimeData);
   });
 
-  on("player left", (data) => {
+  on("abort", (data) => {
     const { tag } = data as { tag: "w" | "b" };
+    abandon(tag);
+  });
 
+  on("player left", (data) => {
     toast.info("Opponent Left");
-    setAbortData({
-      leftPlayer: tag,
-      time: 60,
-    });
   });
 
   on("player rejoined", (_data) => {
     toast.info("Opponent Rejoined");
     setAbortData(null);
-  });
-
-  on("game aborted", (data) => {
-    if (abortData) {
-      setAbortData({ ...abortData, time: 0 });
-    }
-    const { tag } = data as { tag: "w" | "b" };
-    abandon(tag);
   });
 
   const onResign = () => {
